@@ -1,0 +1,8 @@
+#ifndef DISCORDIADOR_SRC_CONSOLA_DISCORDIADOR_H_
+#define DISCORDIADOR_SRC_CONSOLA_DISCORDIADOR_H_
+
+#include "utils_discordiador.h"
+
+void leer_consola();
+
+#endif /* DISCORDIADOR_SRC_CONSOLA_DISCORDIADOR_H_ */

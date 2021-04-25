@@ -1,6 +1,6 @@
 #include "sockets.h"
 
-int iniciar_servidor(t_log* logger)
+int iniciar_servidor(t_log* logger, char* ip, char* puerto)
 {
 	int socket_servidor;
     struct addrinfo hints, *servinfo;
@@ -10,22 +10,35 @@ int iniciar_servidor(t_log* logger)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    getaddrinfo("127.0.0.1", "4444", &hints, &servinfo);
+    getaddrinfo(ip, puerto, &hints, &servinfo);
 
-    for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next)
-    {
-        socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (socket_servidor == -1)
-            continue;
+    if ((socket_servidor = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) == -1){
+		log_info(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+		exit(-1);
+	}
 
-        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-            close(socket_servidor);
-            continue;
+//    for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next)
+//    {
+//        socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+//        if (socket_servidor == -1)
+//            continue;
+
+        if (bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
+        	log_info(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+        	exit(-1);
         }
-        break;
-    }
 
-	listen(socket_servidor, SOMAXCONN);
+//        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
+//            close(socket_servidor);
+//            continue;
+//        }
+//        break;
+//    }
+
+    if(listen(socket_servidor, SOMAXCONN)){
+    		log_info(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+    		exit(-1);
+    }
 
     freeaddrinfo(servinfo);
 
@@ -45,8 +58,18 @@ int esperar_cliente(t_log* logger, int socket_servidor)
 
 	return socket_cliente;
 }
+uint32_t conectar(t_log* logger, char* ip, char* puerto){
+	uint32_t socket_conexion = crear_conexion(logger,ip, puerto);
+	if (socket_conexion == -1) {
+		log_error(logger, "No me pude conectar");
+	} else {
+		log_info(logger, "Me conecte exitosamente");
+	}
 
-int crear_conexion(t_log* logger, char *ip, char* puerto)
+	return socket_conexion;
+}
+
+int crear_conexion(t_log* logger, char* ip, char* puerto)
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info;

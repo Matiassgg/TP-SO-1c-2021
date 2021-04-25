@@ -25,9 +25,7 @@ t_buffer* serializar_paquete(t_paquete* paquete)
     return buffer;
 }
 
-void eliminar_paquete(t_paquete* paquete)
-{
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
+void eliminar_paquete(t_paquete* paquete){
+	eliminar_buffer(paquete->buffer);
 	free(paquete);
 }

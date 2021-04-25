@@ -22,6 +22,7 @@
 #include "sockets.h"
 
 t_log* iniciar_logger(char* archivo_log, char* archivo_c);
+int contar_elementos_array(char** array);
 void helloWorld();
 
 #endif

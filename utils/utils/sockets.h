@@ -7,8 +7,9 @@
 #include<commons/log.h>
 #include<string.h>
 
-int iniciar_servidor(t_log* logger);
+int iniciar_servidor(t_log* logger, char* ip, char* puerto);
 int esperar_cliente(t_log* logger, int socket_servidor);
+uint32_t conectar(t_log* logger, char* ip, char* puerto);
 int crear_conexion(t_log* logger, char *ip, char* puerto);
 void liberar_conexion(int* socket_cliente);
 
