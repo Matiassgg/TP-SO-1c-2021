@@ -15,6 +15,8 @@ void iniciar_discordiador(void) {
 	leer_config();
 	logger = iniciar_logger(archivo_log, "discordiador.c");
     log_info(logger, "Ya obtuvimos la config de discordiador\n");
+
+    iniciar_planificacion();
 }
 
 void leer_config(void) {

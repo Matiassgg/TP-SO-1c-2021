@@ -21,6 +21,12 @@ t_config* config;
 t_log* logger;
 pthread_t hiloReceive;
 
+t_queue* cola_new;
+t_queue* cola_ready;
+t_queue* cola_exec;
+t_queue* cola_exit;
+t_queue* cola_bloq;
+
 void arrancar_servidor();
 void serve_client(int* socketQuenosPAsan);
 void procesar_mensaje_recibido(int cod_op, int cliente_fd);
