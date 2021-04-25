@@ -1,8 +1,8 @@
-#include "utils_discordiador.h"
+#include "utils_mongo.h"
 
 void arrancar_servidor(void){
 	pthread_t thread;
-	uint32_t socket_servidor = iniciar_servidor(logger, ip_discordiador, puerto_escucha);
+	uint32_t socket_servidor = iniciar_servidor(logger, ip_Mongo_Store, puerto_escucha);
 	while(1){
 		uint32_t socket_cliente = esperar_cliente(logger,socket_servidor);
 
@@ -15,7 +15,6 @@ void arrancar_servidor(void){
 }
 
 void serve_client(int* socketQuenosPAsan) {
-    log_info(logger, "entramos a serve_client");
 	int socket = *socketQuenosPAsan;
 	free(socketQuenosPAsan);
 

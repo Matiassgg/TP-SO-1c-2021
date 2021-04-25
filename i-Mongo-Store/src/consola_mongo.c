@@ -1,4 +1,4 @@
-#include "consola_discordiador.h"
+#include "consola_mongo.h"
 
 void leer_consola() {
 	char* leido = readline(">");
@@ -12,12 +12,12 @@ void leer_consola() {
 			}
 			else {
 				uint32_t socketConexion;
-				log_info(logger, "DISCORDIADOR :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
+				log_info(logger, "MONGO :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
 
 				if (!strcmp(palabras_del_mensaje[1], "Mi-RAM-HQ"))
 					socketConexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
-				else if(!strcmp(palabras_del_mensaje[1], "i-Mongo_Store"))
-					socketConexion = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
+				else if(!strcmp(palabras_del_mensaje[1], "discordiador"))
+					socketConexion = conectar(logger, ip_discordiador, puerto_discordiador);
 
 				t_paquete* paquete_a_enviar = crear_paquete(ESTAON);
 
