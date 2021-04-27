@@ -1,5 +1,4 @@
 #include "discordiador.h"
-#define ARCHIVO_CONFIG "../discordiador.config"
 
 int main(int argc, char* argv[]) {
 	iniciar_discordiador();
@@ -11,7 +10,7 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
 }
 
-void iniciar_discordiador(void) {
+void iniciar_discordiador() {
 	leer_config();
 	logger = iniciar_logger(archivo_log, "discordiador.c");
     log_info(logger, "Ya obtuvimos la config de discordiador\n");
@@ -19,7 +18,7 @@ void iniciar_discordiador(void) {
     iniciar_planificacion();
 }
 
-void leer_config(void) {
+void leer_config() {
 	config = config_create(ARCHIVO_CONFIG);
 
 	ip_discordiador = config_get_string_value(config, "IP_DISCORDIADOR");
@@ -28,5 +27,5 @@ void leer_config(void) {
 	puerto_Mi_RAM_HQ = config_get_string_value(config, "PUERTO_MI_RAM_HQ");
 	ip_Mongo_Store = config_get_string_value(config, "IP_I_MONGO_STORE");
 	puerto_Mongo_Store = config_get_string_value(config, "PUERTO_I_MONGO_STORE");
-	archivo_log = config_get_string_value(config, "ARCHIVO_LOG");
+	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 }

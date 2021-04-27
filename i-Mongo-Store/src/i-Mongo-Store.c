@@ -1,5 +1,5 @@
 #include "i-Mongo-Store.h"
-#define ARCHIVO_CONFIG "../i-Mongo-Store.config"
+
 
 int main(int argc, char* argv[]) {
 	iniciar_mongo();
@@ -27,5 +27,5 @@ void leer_config(void) {
 	puerto_Mi_RAM_HQ = config_get_string_value(config, "PUERTO_MI_RAM_HQ");
 	ip_discordiador = config_get_string_value(config, "IP_DISCORDIADOR");
 	puerto_discordiador = config_get_string_value(config, "PUERTO_DISCORDIADOR");
-	archivo_log = config_get_string_value(config, "ARCHIVO_LOG");
+	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 }

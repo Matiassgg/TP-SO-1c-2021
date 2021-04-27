@@ -1,5 +1,4 @@
 #include "Mi-RAM-HQ.h"
-#define ARCHIVO_CONFIG "../Mi-RAM-HQ.config"
 
 int main(int argc, char* argv[]) {
 	iniciar_Mi_RAM_HQ();
@@ -19,5 +18,5 @@ void leer_config(void) {
 
 	ip_Mi_RAM_HQ = config_get_string_value(config, "IP_RAM");
 	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
-	archivo_log = config_get_string_value(config, "ARCHIVO_LOG");
+	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 }
