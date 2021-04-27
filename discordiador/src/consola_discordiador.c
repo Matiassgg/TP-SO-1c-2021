@@ -1,5 +1,6 @@
 #include "consola_discordiador.h"
 
+
 void leer_consola() {
 	char* leido = readline(">");
 
@@ -24,7 +25,7 @@ void leer_consola() {
 
 				t_buffer* buffer = serializar_paquete(paquete_a_enviar);
 
-				send(socketConexion, buffer->stream, &buffer->size, 0);
+				send(socketConexion, buffer->stream, (size_t) &buffer->size, 0);
 
 				liberar_conexion(&socketConexion);
 
