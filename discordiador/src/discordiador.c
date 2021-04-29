@@ -28,4 +28,6 @@ void leer_config() {
 	ip_Mongo_Store = config_get_string_value(config, "IP_I_MONGO_STORE");
 	puerto_Mongo_Store = config_get_string_value(config, "PUERTO_I_MONGO_STORE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
+	algoritmo = config_get_string_value(config, "ALGORITMO");
+	quantum = config_get_int_value(config, "QUANTUM");
 }
