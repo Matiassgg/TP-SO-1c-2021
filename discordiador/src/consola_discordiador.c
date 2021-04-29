@@ -1,13 +1,12 @@
 #include "consola_discordiador.h"
 
-
 void leer_consola() {
 	char* leido = readline(">");
 
 	while (strcmp(leido, "\0")) {
 		char** palabras_del_mensaje = string_split(leido, " ");
 
-		if (!strcmp(palabras_del_mensaje[0], "estasON")) {
+		if (sonIguales(palabras_del_mensaje[0] ,"estasON")) {
 			if (contar_elementos_array(palabras_del_mensaje) != 2) {
 				log_info(logger, "Cantidad incorrecta de argumentos");
 			}
@@ -15,9 +14,9 @@ void leer_consola() {
 				uint32_t socketConexion;
 				log_info(logger, "DISCORDIADOR :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
 
-				if (!strcmp(palabras_del_mensaje[1], "Mi-RAM-HQ"))
+				if (sonIguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
 					socketConexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
-				else if(!strcmp(palabras_del_mensaje[1], "i-Mongo_Store"))
+				else if(sonIguales(palabras_del_mensaje[1] ,"i-Mongo_Store"))
 					socketConexion = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
 
 				t_paquete* paquete_a_enviar = crear_paquete(ESTAON);
