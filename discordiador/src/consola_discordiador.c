@@ -3,9 +3,10 @@
 void leer_consola() {
 	char* leido = readline(">");
 
-	while (strcmp(leido, "\0")) {
-		char** palabras_del_mensaje = string_split(leido, " ");
 
+	while (!son_iguales(leido, "\0")) {
+		/*
+		 * ESTAS_ON
 		if (sonIguales(palabras_del_mensaje[0] ,"estasON")) {
 			if (contar_elementos_array(palabras_del_mensaje) != 2) {
 				log_info(logger, "Cantidad incorrecta de argumentos");
@@ -29,7 +30,10 @@ void leer_consola() {
 				eliminar_paquete(paquete_a_enviar);
 				eliminar_buffer(buffer);
 			}
-		}
+		}*/
+
+
+		procesar_mensajes_en_consola_discordiador(string_split(leido, " "), 1);
 
 /*
 		if (!strcmp(palabras_del_mensaje[0], "crearRestaurante")) {
@@ -62,10 +66,58 @@ void leer_consola() {
 		*/
 
 		free(leido);
-		string_iterate_lines(palabras_del_mensaje,(void*) free);
-		free(palabras_del_mensaje);
 		leido = readline(">");
 	}
-
 	free(leido);
+}
+
+void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje, int cantidadArgumentos) {
+
+	// Check de mensaje valido ?¿¿
+	/*
+	if(existe_en_array(msg_strings_discordiador , palabras_del_mensaje[0])) {
+		log_info(logger, "No existe el mensaje");
+		return;
+	}*/
+
+	if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, cantidadArgumentos)) {
+		log_info(logger, "Cantidad incorrecta de argumentos");
+		return;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"ESTAS_ON")) {
+		uint32_t socket_conexion;
+		log_info(logger, "DISCORDIADOR :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
+
+		if (son_iguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
+			socket_conexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+		else if(son_iguales(palabras_del_mensaje[1] ,"i-Mongo-Store"))
+			socket_conexion = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
+		else
+			log_warning(logger, "A quien te trataste de conectar? Cri cri, cri cri");
+
+		t_paquete* paquete_a_enviar = crear_paquete(ESTA_ON);
+		t_buffer* buffer = serializar_paquete(paquete_a_enviar);
+
+		send(socket_conexion, buffer->stream, (size_t) buffer->size, 0);
+
+		liberar_conexion(&socket_conexion);
+		eliminar_paquete(paquete_a_enviar);
+		eliminar_buffer(buffer);
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"OTRO")) {
+		// NADA
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"MAS CASOS")) {
+		// NADA
+	}
+
 }

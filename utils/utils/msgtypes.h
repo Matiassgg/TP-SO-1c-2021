@@ -4,7 +4,6 @@
 #include "protocolo.h"
 
 typedef enum {
-
 	MSGTYPE_UNKNOWN = 0,
 	// Discordiador
 	INICIAR_PLANIFICACION,
@@ -13,7 +12,7 @@ typedef enum {
 	LISTAR_TRIPULANTES,
 	EXPULSAR_TRIPULANTE,
 	OBTENER_BITACORA,
-	ESTAON,
+	ESTA_ON,
 	// Tripulantes ?
 	GENERAR_OXIGENO,
 	CONSUMIR_OXIGENO,

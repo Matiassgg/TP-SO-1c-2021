@@ -3,9 +3,8 @@
 void leer_consola() {
 	char* leido = readline(">");
 
-	while (strcmp(leido, "\0")) {
-		char** palabras_del_mensaje = string_split(leido, " ");
-
+	while (!son_iguales(leido, "\0")) {
+/*
 		if (sonIguales(palabras_del_mensaje[0] ,"estasON")) {
 			if (contar_elementos_array(palabras_del_mensaje) != 2) {
 				log_info(logger, "Cantidad incorrecta de argumentos");
@@ -31,7 +30,9 @@ void leer_consola() {
 				eliminar_paquete(paquete_a_enviar);
 				eliminar_buffer(buffer);
 			}
-		}
+		}*/
+
+		procesar_mensajes_en_consola_mongo(string_split(leido, " "), 1);
 
 /*
 		if (!strcmp(palabras_del_mensaje[0], "crearRestaurante")) {
@@ -64,10 +65,61 @@ void leer_consola() {
 		*/
 
 		free(leido);
-		string_iterate_lines(palabras_del_mensaje,(void*) free);
-		free(palabras_del_mensaje);
 		leido = readline(">");
 	}
-
 	free(leido);
 }
+
+void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje, int cantidadArgumentos) {
+
+	// Check de mensaje valido ?¿¿
+	/*
+	if(existe_en_array(msg_strings_mongo, palabras_del_mensaje[0])) {
+		log_info(logger, "No existe el mensaje");
+		return;
+	}*/
+
+	if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, cantidadArgumentos)) {
+		log_info(logger, "Cantidad incorrecta de argumentos");
+		return;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"ESTAS_ON")) {
+		uint32_t socketConexion;
+		log_info(logger, "MONGO :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
+
+		if (son_iguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
+			socketConexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+		else if(son_iguales(palabras_del_mensaje[1] ,"discordiador"))
+			socketConexion = conectar(logger, ip_discordiador, puerto_discordiador);
+
+		t_paquete* paquete_a_enviar = crear_paquete(ESTA_ON);
+
+
+		t_buffer* buffer = serializar_paquete(paquete_a_enviar);
+
+		send(socketConexion, buffer->stream, (size_t) buffer->size, 0);
+
+		liberar_conexion(&socketConexion);
+
+		eliminar_paquete(paquete_a_enviar);
+		eliminar_buffer(buffer);
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"OTRO")) {
+		// NADA
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"MAS CASOS")) {
+		// NADA
+	}
+
+}
+
+

@@ -12,8 +12,20 @@ int contar_elementos_array(char** array) {
 	return contador;
 }
 
-int sonIguales(char* cadenaA, char* cadenaB) {
+int son_iguales(char* cadenaA, char* cadenaB) {
 	return strcmp(cadenaA ,cadenaB) == 0;
+}
+
+int chequear_argumentos_del_mensaje(char** argumentos, int cantidad_argumentos_mensaje) {
+	return contar_elementos_array(argumentos) != cantidad_argumentos_mensaje;
+}
+
+int existe_en_array(char** array, char* elemento_buscado) {
+	int contador = 0;
+	while (array[contador] != NULL || !son_iguales(elemento_buscado, array[contador])) {
+		contador++;
+	}
+	return 1;
 }
 
 // El buen helloWorld, nada le gana

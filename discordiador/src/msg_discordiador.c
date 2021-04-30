@@ -21,7 +21,6 @@ void serializar_iniciar_patota(iniciar_patota* msg, t_buffer* buffer){
 	//-----------------------------
 
 	uint32_t offset = 0;
-	uint32_t aux;
 	msg->tam_path = string_length(msg->path_tareas);
 
 	buffer->size = sizeof(uint32_t);
@@ -40,8 +39,8 @@ void serializar_iniciar_patota(iniciar_patota* msg, t_buffer* buffer){
 	offset += msg->tam_path;
 
 	for (int i = 0; i < msg->cant_tripulantes; i++) {
-		uint32_t posicion_x = list_get(msg->posiciones,i);
-		uint32_t posicion_y = list_get(msg->posiciones,i);
+		uint32_t posicion_x = (uint32_t) list_get(msg->posiciones,i);
+		uint32_t posicion_y = (uint32_t) list_get(msg->posiciones,i);
 
 		memcpy(buffer->stream + offset, &(posicion_x), sizeof(uint32_t));
 		offset += sizeof(uint32_t);

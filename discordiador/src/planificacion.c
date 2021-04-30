@@ -10,7 +10,7 @@ void iniciar_planificacion(){
 
 	if(algoritmo == NULL)
 		log_info(logger, "Error al leer el algoritmo de planificacion");
-	else if(sonIguales(algoritmo, "RR"))
+	else if(son_iguales(algoritmo, "RR"))
 		log_info(logger, "El algoritmo seleccionado es: %s con quantum de %d", algoritmo, quantum);
 	else
 		log_info(logger, "El algoritmo seleccionado es: %s", algoritmo);
