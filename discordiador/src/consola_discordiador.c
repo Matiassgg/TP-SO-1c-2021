@@ -16,15 +16,13 @@ void leer_consola() {
 
 				if (sonIguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
 					socketConexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
-				else if(sonIguales(palabras_del_mensaje[1] ,"i-Mongo_Store"))
+				else if(sonIguales(palabras_del_mensaje[1] ,"i-Mongo-Store"))
 					socketConexion = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
 
 				t_paquete* paquete_a_enviar = crear_paquete(ESTAON);
-
-
 				t_buffer* buffer = serializar_paquete(paquete_a_enviar);
 
-				send(socketConexion, buffer->stream, (size_t) &buffer->size, 0);
+				send(socketConexion, buffer->stream, (size_t) buffer->size, 0);
 
 				liberar_conexion(&socketConexion);
 

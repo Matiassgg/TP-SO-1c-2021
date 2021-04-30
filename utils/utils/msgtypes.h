@@ -1,8 +1,7 @@
 #ifndef SHARED_SHARED_MSGTYPES_H_
 #define SHARED_SHARED_MSGTYPES_H_
 
-// #include <>
-// #include <>
+#include "protocolo.h"
 
 typedef enum {
 
@@ -42,5 +41,16 @@ typedef enum {
 
 }e_module;
 
+typedef struct{
+    uint32_t cant_tripulantes;
+    uint32_t tam_path;
+    char* path_tareas;
+    t_list* posiciones;
+} iniciar_patota;
+
+typedef struct{
+	uint32_t pos_x;
+	uint32_t pos_y;
+} posicion;
 
 #endif /* SHARED_SHARED_MSGTYPES_H_ */
