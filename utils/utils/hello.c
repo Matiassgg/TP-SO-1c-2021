@@ -25,7 +25,10 @@ int existe_en_array(char** array, char* elemento_buscado) {
 	while (array[contador] != NULL || !son_iguales(elemento_buscado, array[contador])) {
 		contador++;
 	}
-	return 1;
+	if(array[contador] != NULL)
+		return 1;
+	else
+		return 0;
 }
 
 // El buen helloWorld, nada le gana
