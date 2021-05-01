@@ -20,7 +20,6 @@
 #include "buffer.h"
 #include "msgtypes.h"
 #include "paquete.h"
-#include "protocolo.h"
 #include "sockets.h"
 
 t_log* iniciar_logger(char*, char*);

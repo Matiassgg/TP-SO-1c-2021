@@ -1,7 +1,10 @@
 #ifndef SHARED_SHARED_PAQUETE_H_
 #define SHARED_SHARED_PAQUETE_H_
 
+#include "sockets.h"
 #include "buffer.h"
+#include <commons/collections/list.h>
+#include <commons/string.h>
 
 //typedef enum
 //{

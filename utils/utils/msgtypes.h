@@ -1,7 +1,7 @@
 #ifndef SHARED_SHARED_MSGTYPES_H_
 #define SHARED_SHARED_MSGTYPES_H_
 
-#include "protocolo.h"
+#include "paquete.h"
 
 #define MSGTYPES_QTY 1+12	// Check ???
 
