@@ -10,5 +10,6 @@
 void iniciar_discordiador(void);
 void leer_config(void);
 void iniciar_patotas(void);
+void finalizar_discordiador();
 
 #endif /* DISCORDIADOR_SRC_DISCORDIADOR_H_ */

@@ -48,6 +48,17 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		case ESTA_ON:
 			log_info(logger, "Estamos on");
 		break;
+		case INICIAR_PATOTA:
+			;
+			t_iniciar_patota* patota = deserializar_iniciar_patota(cliente_fd);
+
+			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
+
+//			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
+			list_destroy(patota->posiciones);
+			free(patota->path_tareas);
+			free(patota);
+		break;
 	}
 
 }

@@ -7,6 +7,8 @@ int main(int argc, char* argv[]) {
 
 	leer_consola();
 
+	finalizar_discordiador();
+
     return EXIT_SUCCESS;
 }
 
@@ -16,7 +18,38 @@ void iniciar_discordiador() {
 	logger = iniciar_logger(archivo_log, "discordiador.c");
     log_info(logger, "Ya obtuvimos la config de discordiador\n");
 
+
+	socket_Mi_RAM_HQ = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+	socket_Mongo_Store = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
+
+    log_info(logger, "Nos conectamos con los modulos\n");
+
     iniciar_planificacion();
+}
+
+void finalizar_discordiador(){
+	liberar_conexion(&socket_Mi_RAM_HQ);
+	liberar_conexion(&socket_Mongo_Store);
+
+	queue_clean_and_destroy_elements(cola_new,free);
+	queue_clean_and_destroy_elements(cola_ready,free);
+	queue_clean_and_destroy_elements(cola_exec,free);
+	queue_clean_and_destroy_elements(cola_bloq_E_S,free);
+	queue_clean_and_destroy_elements(cola_bloq_Emergencia,free);
+	queue_clean_and_destroy_elements(cola_exit,free);
+
+	config_destroy(config);
+	free(ip_Mi_RAM_HQ);
+	free(ip_discordiador);
+	free(ip_Mongo_Store);
+	free(puerto_Mi_RAM_HQ);
+	free(puerto_Mongo_Store);
+	free(puerto_escucha);
+	free(archivo_log);
+	free(algoritmo);
+//	free(punto_montaje);
+
+	log_destroy(logger);
 }
 
 void iniciar_patotas(){

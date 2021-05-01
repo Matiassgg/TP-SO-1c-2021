@@ -59,6 +59,7 @@ typedef struct{
 
 //---------PATOTA--------//
 typedef struct{
+	uint32_t id_patota;
     uint32_t cant_tripulantes;
     uint32_t tam_path;
     char* path_tareas;

@@ -32,19 +32,17 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		uint32_t socket_conexion;
 		log_info(logger, "DISCORDIADOR :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
 
-		if (son_iguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
-			socket_conexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
-		else if(son_iguales(palabras_del_mensaje[1] ,"i-Mongo-Store"))
-			socket_conexion = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
-		else
-			log_warning(logger, "A quien te trataste de conectar? Cri cri, cri cri");
-
 		t_paquete* paquete_a_enviar = crear_paquete(ESTA_ON);
 		t_buffer* buffer = serializar_paquete(paquete_a_enviar);
 
-		send(socket_conexion, buffer->stream, (size_t) buffer->size, 0);
 
-		liberar_conexion(&socket_conexion);
+		if (son_iguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
+			send(socket_Mi_RAM_HQ, buffer->stream, (size_t) buffer->size, 0);
+		else if(son_iguales(palabras_del_mensaje[1] ,"i-Mongo-Store"))
+			send(socket_Mongo_Store, buffer->stream, (size_t) buffer->size, 0);
+		else
+			log_warning(logger, "A quien te trataste de conectar? Cri cri, cri cri");
+
 		eliminar_paquete(paquete_a_enviar);
 		eliminar_buffer(buffer);
 	}
@@ -56,10 +54,10 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		// Se chequea que por lo menos se pasen como argumentos :
 			// La cantidad de tripulantes
 			// Archivo de tareas
-		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 2)) {
-			log_warning(logger, "Se necesita como minimo la cantidad de tripulantes y el path de tareas");
-			return;
-		}
+//		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 2)) {
+//			log_warning(logger, "Se necesita como minimo la cantidad de tripulantes y el path de tareas");
+//			return;
+//		} ????
 
 		/*
 			Iniciar patota
@@ -76,6 +74,10 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "DISCORDIADOR :: Iniciaremos la patota %i", ++cantidad_patotas);
 
 		t_iniciar_patota* patota = de_consola_a_patota(palabras_del_mensaje);
+		patota->id_patota = cantidad_patotas;
+
+		enviar_iniciar_patota(patota,socket_Mi_RAM_HQ);
+		enviar_iniciar_patota(patota,socket_Mongo_Store);
 //		list_add(patotas, patota); VER SI ES NECESARIO
 
 //		VER QUE HACER CON LA PATOTA
@@ -180,7 +182,6 @@ t_iniciar_patota* de_consola_a_patota(char** palabras_del_mensaje){
 			list_add(patota->posiciones, pos_ini);
 		}
 	}
-	free(pos_ini);
 	return patota;
 }
 

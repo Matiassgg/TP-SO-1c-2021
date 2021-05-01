@@ -18,6 +18,7 @@ void serializar_iniciar_patota(t_iniciar_patota* msg, t_buffer* buffer){
 	//2. Tamaño del path
 	//3. Path tareas
 	//4. Posiciones tripulantes 	} COMO ES LISTA IRA DENTRO DE UN FOR
+	//5. Id patota
 	//-----------------------------
 
 	uint32_t offset = 0;
@@ -39,14 +40,15 @@ void serializar_iniciar_patota(t_iniciar_patota* msg, t_buffer* buffer){
 	offset += msg->tam_path;
 
 	for (int i = 0; i < msg->cant_tripulantes; i++) {
-		uint32_t posicion_x = (uint32_t) list_get(msg->posiciones,i);
-		uint32_t posicion_y = (uint32_t) list_get(msg->posiciones,i);
+		t_posicion* posicion = list_get(msg->posiciones,i);
 
-		memcpy(buffer->stream + offset, &(posicion_x), sizeof(uint32_t));
+		memcpy(buffer->stream + offset, &(posicion->pos_x), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 
-		memcpy(buffer->stream + offset, &(posicion_y), sizeof(uint32_t));
+		memcpy(buffer->stream + offset, &(posicion->pos_y), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 	}
+
+	memcpy(buffer->stream + offset, &(msg->id_patota), sizeof(uint32_t));
 
 }

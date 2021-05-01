@@ -8,7 +8,7 @@ char* puerto_escucha;
 
 char* ip_Mi_RAM_HQ;
 char* puerto_Mi_RAM_HQ;
-int socket_Mi_RAM_HQo;
+int socket_Mi_RAM_HQ;
 
 char* ip_Mongo_Store;
 char* puerto_Mongo_Store;
