@@ -14,10 +14,10 @@ void arrancar_servidor(void){
 	}
 }
 
-void serve_client(int* socketQuenosPAsan) {
+void serve_client(int* socketQueNosPasan) {
     log_info(logger, "entramos a serve_client");
-    uint32_t socket = *socketQuenosPAsan;
-	free(socketQuenosPAsan);
+    uint32_t socket = *socketQueNosPasan;
+	free(socketQueNosPasan);
 
 	int cod_op;
 
