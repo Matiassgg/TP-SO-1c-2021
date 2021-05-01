@@ -5,65 +5,8 @@ void leer_consola() {
 
 
 	while (!son_iguales(leido, "\0")) {
-		/*
-		 * ESTAS_ON
-		if (sonIguales(palabras_del_mensaje[0] ,"estasON")) {
-			if (contar_elementos_array(palabras_del_mensaje) != 2) {
-				log_info(logger, "Cantidad incorrecta de argumentos");
-			}
-			else {
-				uint32_t socketConexion;
-				log_info(logger, "DISCORDIADOR :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
-
-				if (sonIguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
-					socketConexion = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
-				else if(sonIguales(palabras_del_mensaje[1] ,"i-Mongo-Store"))
-					socketConexion = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);
-
-				t_paquete* paquete_a_enviar = crear_paquete(ESTAON);
-				t_buffer* buffer = serializar_paquete(paquete_a_enviar);
-
-				send(socketConexion, buffer->stream, (size_t) buffer->size, 0);
-
-				liberar_conexion(&socketConexion);
-
-				eliminar_paquete(paquete_a_enviar);
-				eliminar_buffer(buffer);
-			}
-		}*/
-
 
 		procesar_mensajes_en_consola_discordiador(string_split(leido, " "), 1);
-
-/*
-		if (!strcmp(palabras_del_mensaje[0], "crearRestaurante")) {
-			if (contar_elementos_array(palabras_del_mensaje) != 8) {
-				log_info(logger, "Cantidad incorrecta de argumentos");
-			}
-			else {
-				log_info(logger, "SINDICATO :: Creamos el restaurante %s", palabras_del_mensaje[1]);
-
-				char* path = crear_path_restaurante(palabras_del_mensaje[1]);
-				crear_archivo_info(path, palabras_del_mensaje);
-
-				free(path);
-			}
-		}
-
-		if (!strcmp(palabras_del_mensaje[0], "crearReceta")) {
-			if (contar_elementos_array(palabras_del_mensaje) != 4) {
-				log_info(logger, "Cantidad incorrecta de argumentos");
-			}
-			else {
-				log_info(logger, "SINDICATO :: Creamos la receta %s", palabras_del_mensaje[1]);
-
-				char* path = crear_path_receta(palabras_del_mensaje[1]);
-				crear_archivo_receta(path, palabras_del_mensaje);
-
-				free(path);
-			}
-		}
-		*/
 
 		free(leido);
 		leido = readline(">");
@@ -110,8 +53,27 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje, int 
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	if(son_iguales(palabras_del_mensaje[0] ,"OTRO")) {
-		// NADA
+	if(son_iguales(palabras_del_mensaje[0] ,"INICIAR_PATOTA")) {
+		/*
+		 Iniciar patota
+		Recibirá como parámetro la cantidad de tripulantes que tendrá la patota,
+		un archivo de tareas que deberán ejecutar los tripulantes de la patota
+		(se indica el formato en la siguiente sección)
+		y una lista de posiciones iniciales de los tripulantes.
+		Por defecto, si no se especifica la posición de la totalidad de los tripulantes,
+		se asume que los restantes inician en 0|0.
+		Ejemplo,
+		INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4
+		 */
+		log_info(logger, "DISCORDIADOR :: Iniciaremos la patota %i", ++cantidad_patotas);
+
+		iniciar_patota* patota = de_consola_a_patota(palabras_del_mensaje);
+//		list_add(patotas,patota); VER SI ES NECESARIO
+
+//		VER QUE HACER CON LA PATOTA
+//		CREAR TRIPULANTES?
+//		AVISAR A LOS MODULOS
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -120,4 +82,34 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje, int 
 		// NADA
 	}
 
+}
+
+
+iniciar_patota* de_consola_a_patota(char** palabras_del_mensaje){
+	iniciar_patota* patota = malloc(sizeof(iniciar_patota));
+	patota->posiciones = list_create();
+	uint32_t cant_posiciones=0;
+
+	patota->cant_tripulantes = (uint32_t) atoi(palabras_del_mensaje[1]);
+	patota->tam_path = string_length(palabras_del_mensaje[2]);
+	patota->path_tareas = string_duplicate(palabras_del_mensaje[2]);
+
+	for(cant_posiciones;palabras_del_mensaje[3+cant_posiciones];cant_posiciones++){
+		posicion pos;
+		char** posicion = string_split(palabras_del_mensaje[3+cant_posiciones], "|");
+//		char** posicion = string_get_string_as_array(palabras_del_mensaje[3+cant_posiciones]); si podemos ponerlas como [posX,posY]
+		pos.pos_x = (uint32_t) atoi(posicion[0]);
+		pos.pos_y = (uint32_t) atoi(posicion[1]);
+		list_add(patota->posiciones,pos);
+		string_iterate_lines(posicion,free);
+	}
+	if(cant_posiciones < patota->cant_tripulantes)
+		for(cant_posiciones;cant_posiciones < patota->cant_tripulantes;cant_posiciones++){
+			posicion pos;
+			pos.pos_x = 0;
+			pos.pos_y = 0;
+			list_add(patota->posiciones,pos);
+		}
+
+	return patota;
 }
