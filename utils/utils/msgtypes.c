@@ -28,3 +28,37 @@ t_iniciar_patota* deserializar_iniciar_patota(uint32_t socket_cliente){
 
 	return msg;
 }
+
+void enviar_respuesta(t_respuesta respuesta, uint32_t socket_conexion){
+	t_paquete* paquete_a_enviar = crear_paquete(RESPUESTA);
+
+	serializar_respuesta(respuesta, paquete_a_enviar->buffer);
+
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
+void serializar_respuesta(t_respuesta respuesta, t_buffer* buffer){
+	//1. Respuesta
+
+	buffer->size = sizeof(t_respuesta);
+
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream, &(respuesta), sizeof(t_respuesta));
+}
+
+t_respuesta recibir_respuesta(uint32_t socket_conexion){
+	t_respuesta respuesta = FAIL;
+	uint32_t aux;
+
+	recv(socket_conexion, &aux, sizeof(op_code), MSG_WAITALL);
+	recv(socket_conexion, &aux, sizeof(uint32_t), MSG_WAITALL);
+	recv(socket_conexion, &respuesta, sizeof(t_respuesta), 0);
+
+	return respuesta;
+}
+
+
+
+
+

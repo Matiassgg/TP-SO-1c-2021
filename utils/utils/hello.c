@@ -17,7 +17,7 @@ int son_iguales(char* cadenaA, char* cadenaB) {
 }
 
 int chequear_argumentos_del_mensaje(char** argumentos, int cantidad_argumentos_mensaje) {
-	return contar_elementos_array(argumentos) != cantidad_argumentos_mensaje;
+	return contar_elementos_array(argumentos) != cantidad_argumentos_mensaje; // ???
 }
 
 int existe_en_array(char** array, char* elemento_buscado) {

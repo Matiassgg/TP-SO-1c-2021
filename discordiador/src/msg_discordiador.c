@@ -1,15 +1,10 @@
 #include "msg_discordiador.h"
 
-void enviar_iniciar_patota(t_iniciar_patota* msg, uint32_t socketConexion){
+void enviar_iniciar_patota(t_iniciar_patota* msg, uint32_t socket_conexion){
 	t_paquete* paquete_a_enviar = crear_paquete(INICIAR_PATOTA);
 
 	serializar_iniciar_patota(msg, paquete_a_enviar->buffer);
-	t_buffer* buffer = serializar_paquete(paquete_a_enviar);
-
-	send(socketConexion, buffer->stream, (size_t) buffer->size, 0);
-
-	eliminar_paquete(paquete_a_enviar);
-	eliminar_buffer(buffer);
+	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
 void serializar_iniciar_patota(t_iniciar_patota* msg, t_buffer* buffer){
@@ -22,9 +17,9 @@ void serializar_iniciar_patota(t_iniciar_patota* msg, t_buffer* buffer){
 	//-----------------------------
 
 	uint32_t offset = 0;
-	msg->tam_path = string_length(msg->path_tareas);
+	msg->tam_path = string_length(msg->path_tareas)+1;
 
-	buffer->size = sizeof(uint32_t);
+	buffer->size = sizeof(uint32_t)*3;
 	buffer->size += msg->tam_path;
 	buffer->size += (2 * sizeof(uint32_t)) * msg->cant_tripulantes;
 

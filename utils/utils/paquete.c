@@ -29,3 +29,11 @@ void eliminar_paquete(t_paquete* paquete){
 	eliminar_buffer(paquete->buffer);
 	free(paquete);
 }
+
+void enviar_paquete(t_paquete* paquete, int socket_cliente) {
+	t_buffer* a_enviar = serializar_paquete(paquete);
+	send(socket_cliente, a_enviar->stream, a_enviar->size, 0);
+
+	eliminar_paquete(paquete);
+	eliminar_buffer(a_enviar);
+}

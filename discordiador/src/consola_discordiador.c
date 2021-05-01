@@ -33,18 +33,24 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "DISCORDIADOR :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
 
 		t_paquete* paquete_a_enviar = crear_paquete(ESTA_ON);
-		t_buffer* buffer = serializar_paquete(paquete_a_enviar);
-
 
 		if (son_iguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
-			send(socket_Mi_RAM_HQ, buffer->stream, (size_t) buffer->size, 0);
+			socket_conexion = socket_Mi_RAM_HQ;
 		else if(son_iguales(palabras_del_mensaje[1] ,"i-Mongo-Store"))
-			send(socket_Mongo_Store, buffer->stream, (size_t) buffer->size, 0);
+			socket_conexion = socket_Mongo_Store;
 		else
-			log_warning(logger, "A quien te trataste de conectar? Cri cri, cri cri");
+			log_warning(logger, "DISCORDIADOR :: A quien te trataste de conectar? Cri cri, cri cri");
 
-		eliminar_paquete(paquete_a_enviar);
-		eliminar_buffer(buffer);
+		enviar_paquete(paquete_a_enviar, socket_conexion);
+
+		t_respuesta respuesta = recibir_respuesta(socket_conexion);
+
+		if (respuesta == FAIL)
+			log_warning(logger, "DISCORDIADOR :: No se recibio respuesta");
+		else
+			log_info(logger, "DISCORDIADOR :: El modulo %s esta ON", palabras_del_mensaje[1]);
+
+		return;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +59,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		// Se chequea que por lo menos se pasen como argumentos :
 			// La cantidad de tripulantes
-			// Archivo de tareas
+//			 Archivo de tareas
 //		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 2)) {
 //			log_warning(logger, "Se necesita como minimo la cantidad de tripulantes y el path de tareas");
 //			return;
@@ -83,7 +89,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 //		VER QUE HACER CON LA PATOTA
 //		CREAR TRIPULANTES?
 //		AVISAR A LOS MODULOS
-
+		return;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +109,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		struct tm tm = *localtime(&t);
 		log_info(logger, "DISCORDIADOR :: Estado de la nave: %d/%02d-%02d %02d:%02d:%02d\n", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
 		t_list* tripulantes = de_consola_a_listado_tripulantes();
-
+		return;
 
 	}
 
@@ -115,7 +121,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 //		Con este comando se busca finalizar un tripulante y avisarle a Mi-RAM HQ que este tripulante es
 //		eyectado para que deje de mostrarlo en el mapa y en caso de que sea necesario elimine su segmento
 //		de tareas. Recibirá como parámetro el id del tripulante.
-
+		return;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -128,7 +134,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 //		Con este comando se dará inicio a la planificación, la idea es que hasta este punto no hayan
 //		movimientos entre las colas de planificación ni de los tripulantes. Este mensaje no contiene ningún
 //		parámetro.
-
+		return;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +146,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 //		Este comando lo que busca es detener la planificación en cualquier momento. Este mensaje no
 //		contiene ningún parámetro.
-
+		return;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +156,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 //		Este comando obtendrá la bitácora del tripulante pasado por parámetro a través de una consulta a
 //		i-Mongo-Store.
-
+		return;
 	}
 }
 

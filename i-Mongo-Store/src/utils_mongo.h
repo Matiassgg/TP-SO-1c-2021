@@ -8,11 +8,11 @@ char* puerto_escucha;
 
 char* ip_Mi_RAM_HQ;
 char* puerto_Mi_RAM_HQ;
-int socket_Mi_RAM_HQo;
+uint32_t socket_Mi_RAM_HQ;
 
 char* ip_discordiador;
 char* puerto_discordiador;
-int socket_discordiador;
+uint32_t socket_discordiador;
 
 char* punto_montaje;
 char* archivo_log;

@@ -47,6 +47,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	switch (cod_op) {
 		case ESTA_ON:
 			log_info(logger, "Estamos on");
+			enviar_respuesta(OK,cliente_fd);
 		break;
 		case INICIAR_PATOTA:
 			;

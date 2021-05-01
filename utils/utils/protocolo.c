@@ -2,17 +2,10 @@
 
 void enviar_mensaje(char* mensaje, int socket_cliente)
 {
-	t_paquete* paquete = crear_paquete(MENSAJE);
+	t_paquete* paquete = crear_paquete(MSGTYPE_UNKNOWN);
     agregar_a_buffer(paquete->buffer, mensaje, strlen(mensaje) + 1);
     enviar_paquete(paquete, socket_cliente);
 	eliminar_paquete(paquete);
-}
-
-void enviar_paquete(t_paquete* paquete, int socket_cliente)
-{
-	t_buffer* a_enviar = serializar_paquete(paquete);
-	send(socket_cliente, a_enviar->stream, a_enviar->size, 0);
-	eliminar_buffer(a_enviar);
 }
 
 int recibir_operacion(int socket_cliente)

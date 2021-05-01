@@ -39,14 +39,6 @@ void finalizar_discordiador(){
 	queue_clean_and_destroy_elements(cola_exit,free);
 
 	config_destroy(config);
-	free(ip_Mi_RAM_HQ);
-	free(ip_discordiador);
-	free(ip_Mongo_Store);
-	free(puerto_Mi_RAM_HQ);
-	free(puerto_Mongo_Store);
-	free(puerto_escucha);
-	free(archivo_log);
-	free(algoritmo);
 //	free(punto_montaje);
 
 	log_destroy(logger);
