@@ -11,11 +11,17 @@ int main(int argc, char* argv[]) {
 }
 
 void iniciar_discordiador() {
+	iniciar_patotas();
 	leer_config();
 	logger = iniciar_logger(archivo_log, "discordiador.c");
     log_info(logger, "Ya obtuvimos la config de discordiador\n");
 
     iniciar_planificacion();
+}
+
+void iniciar_patotas(){
+	cantidad_patotas = 0;
+//	patotas = list_create(); VER SI ES NECESARIO
 }
 
 void leer_config() {

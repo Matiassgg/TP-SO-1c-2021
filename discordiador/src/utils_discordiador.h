@@ -32,6 +32,10 @@ t_queue* cola_exit;
 t_queue* cola_bloq_E_S;
 t_queue* cola_bloq_Emergencia;
 
+uint32_t cantidad_patotas;
+//t_list* patotas; VER SI ES NECESARIO
+
+
 void arrancar_servidor();
 void serve_client(int* socketQuenosPAsan);
 void procesar_mensaje_recibido(int cod_op, int cliente_fd);

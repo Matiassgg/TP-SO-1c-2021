@@ -45,7 +45,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 	//Procesar mensajes recibidos
 	switch (cod_op) {
-		case ESTAON:
+		case ESTA_ON:
 			log_info(logger, "Estamos on");
 		break;
 	}

@@ -69,10 +69,11 @@ uint32_t conectar(t_log* logger, char* ip, char* puerto){
 	return socket_conexion;
 }
 
-int crear_conexion(t_log* logger, char* ip, char* puerto)
+uint32_t crear_conexion(t_log* logger, char* ip, char* puerto)
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info;
+	uint32_t socket_cliente;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -81,10 +82,11 @@ int crear_conexion(t_log* logger, char* ip, char* puerto)
 
 	getaddrinfo(ip, puerto, &hints, &server_info);
 
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
+	socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
+	// ESto es cualquiera (?
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		log_error(logger, "Error al conectar");
+		return -1;
 
 	freeaddrinfo(server_info);
 
