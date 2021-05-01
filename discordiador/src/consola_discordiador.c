@@ -109,24 +109,46 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 	if(son_iguales(palabras_del_mensaje[0] ,"EXPULSAR_TRIPULANTE")) {
 		// NADA
+
+//		Con este comando se busca finalizar un tripulante y avisarle a Mi-RAM HQ que este tripulante es
+//		eyectado para que deje de mostrarlo en el mapa y en caso de que sea necesario elimine su segmento
+//		de tareas. Recibirá como parámetro el id del tripulante.
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"INICIAR_PLANIFICACION")) {
 		// NADA
+		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 0))
+			log_warning(logger, "No metas la pata, aca no hacen faltan argumentos");
+
+//		Con este comando se dará inicio a la planificación, la idea es que hasta este punto no hayan
+//		movimientos entre las colas de planificación ni de los tripulantes. Este mensaje no contiene ningún
+//		parámetro.
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"PAUSAR_PLANIFICACION")) {
 		// NADA
+		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 0))
+			log_warning(logger, "No metas la pata, aca no hacen faltan argumentos");
+
+//		Este comando lo que busca es detener la planificación en cualquier momento. Este mensaje no
+//		contiene ningún parámetro.
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"OBTENER_BITACORA")) {
 		// NADA
+
+//		Este comando obtendrá la bitácora del tripulante pasado por parámetro a través de una consulta a
+//		i-Mongo-Store.
+
 	}
 }
 
