@@ -3,6 +3,7 @@
 
 #include "protocolo.h"
 
+//---------MENSAJES--------//
 typedef enum {
 	MSGTYPE_UNKNOWN = 0,
 	// Discordiador
@@ -14,6 +15,7 @@ typedef enum {
 	OBTENER_BITACORA,
 	ESTA_ON,
 	// Tripulantes ?
+	ARRACAR_TAREAS,					// 1.	Informar al módulo Mi-RAM HQ que desea iniciar, indicando a qué patota pertenece
 	GENERAR_OXIGENO,
 	CONSUMIR_OXIGENO,
 	GENERAR_COMIDA,
@@ -41,15 +43,27 @@ typedef enum {
 }e_module;
 
 typedef struct{
+	uint32_t pos_x;
+	uint32_t pos_y;
+} t_posicion;
+
+//---------TRIPULANTE--------//
+typedef struct{
+	uint32_t id_tripulante;
+	uint32_t id_patota;
+	uint32_t status;
+	t_posicion posicion;
+	t_list* tareas_act;		//
+} t_tripulante;
+
+
+//---------PATOTA--------//
+typedef struct{
     uint32_t cant_tripulantes;
     uint32_t tam_path;
     char* path_tareas;
     t_list* posiciones;
-} iniciar_patota;
+} t_iniciar_patota;
 
-typedef struct{
-	uint32_t pos_x;
-	uint32_t pos_y;
-} posicion;
 
 #endif /* SHARED_SHARED_MSGTYPES_H_ */

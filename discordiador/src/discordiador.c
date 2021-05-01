@@ -20,7 +20,7 @@ void iniciar_discordiador() {
 }
 
 void iniciar_patotas(){
-	cantidad_patotas=0;
+	cantidad_patotas = 0;
 //	patotas = list_create(); VER SI ES NECESARIO
 }
 
