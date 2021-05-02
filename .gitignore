@@ -52,10 +52,10 @@ Mkfile.old
 dkms.conf
 
 # Eclipse files
-# .cproject
-# .settings/language.settings.xml
-# *.xml
-# *.cproject
+.cproject
+.settings/language.settings.xml
+*.xml
+*.cproject
 
 # Other
 */bin/
