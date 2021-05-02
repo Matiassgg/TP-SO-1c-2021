@@ -15,7 +15,6 @@ void arrancar_servidor(void){
 }
 
 void serve_client(int* socketQueNosPasan) {
-    log_info(logger, "entramos a serve_client");
     uint32_t socket = *socketQueNosPasan;
 	free(socketQueNosPasan);
 
@@ -51,7 +50,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case INICIAR_PATOTA:
 			;
-			t_iniciar_patota* patota = deserializar_iniciar_patota(cliente_fd);
+			t_patota* patota = deserializar_iniciar_patota(cliente_fd);
 
 			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 

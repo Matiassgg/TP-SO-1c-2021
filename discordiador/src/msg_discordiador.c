@@ -1,13 +1,13 @@
 #include "msg_discordiador.h"
 
-void enviar_iniciar_patota(t_iniciar_patota* msg, uint32_t socket_conexion){
+void enviar_iniciar_patota(t_patota* msg, uint32_t socket_conexion){
 	t_paquete* paquete_a_enviar = crear_paquete(INICIAR_PATOTA);
 
 	serializar_iniciar_patota(msg, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
-void serializar_iniciar_patota(t_iniciar_patota* msg, t_buffer* buffer){
+void serializar_iniciar_patota(t_patota* msg, t_buffer* buffer){
 	//------------ORDEN------------
 	//1. Cantidad tripulantes
 	//2. Tamaño del path

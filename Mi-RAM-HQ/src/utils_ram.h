@@ -3,21 +3,6 @@
 
 #include <utils/hello.h>	// Incluyo la shared
 
-typedef struct{
-	uint32_t id_pcb_patota;
-    uint32_t tam_path;
-    void* path_tareas;
-} t_pcb_patota;
-
-typedef struct{
-	uint32_t id_tcb_tripulante;
-    t_estado estado;
-    t_posicion posicion;
-    uint32_t id_prox_instruc;
-    uint32_t tam_path;
-    char* path_tareas;
-} t_tcb_tripulante;
-
 char* ip_Mi_RAM_HQ;
 char* puerto_escucha;
 char* punto_montaje;

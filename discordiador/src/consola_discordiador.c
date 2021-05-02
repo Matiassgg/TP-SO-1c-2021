@@ -69,11 +69,13 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		 */
 		log_info(logger, "DISCORDIADOR :: Iniciaremos la patota %i", ++cantidad_patotas);
 
-		t_iniciar_patota* patota = de_consola_a_patota(palabras_del_mensaje);
+		t_patota* patota = de_consola_a_patota(palabras_del_mensaje);
 		patota->id_patota = cantidad_patotas;
 
 		enviar_iniciar_patota(patota,socket_Mi_RAM_HQ);
 		enviar_iniciar_patota(patota,socket_Mongo_Store);
+
+		planificar_patota(patota);
 //		list_add(patotas, patota); VER SI ES NECESARIO
 
 //		VER QUE HACER CON LA PATOTA
@@ -171,8 +173,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	}
 }
 
-t_iniciar_patota* de_consola_a_patota(char** palabras_del_mensaje){
-	t_iniciar_patota* patota = malloc(sizeof(t_iniciar_patota));
+t_patota* de_consola_a_patota(char** palabras_del_mensaje){
+	t_patota* patota = malloc(sizeof(t_patota));
 	patota->posiciones = list_create();
 	uint32_t cant_posiciones = 0;
 

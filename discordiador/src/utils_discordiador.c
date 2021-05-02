@@ -15,7 +15,6 @@ void arrancar_servidor(void){
 }
 
 void serve_client(int* socketQuenosPAsan) {
-    log_info(logger, "entramos a serve_client");
     uint32_t socket = *socketQuenosPAsan;
 	free(socketQuenosPAsan);
 
@@ -47,6 +46,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	switch (cod_op) {
 		case ESTA_ON:
 			log_info(logger, "Estamos on");
+			enviar_respuesta(OK,cliente_fd);
 		break;
 	}
 

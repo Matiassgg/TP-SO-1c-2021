@@ -8,10 +8,48 @@ typedef enum {
 	FAIL
 } t_respuesta;
 
+//---------ESTADO--------//
+typedef enum {
+	NEW,
+	READY,
+	BLOCKED_I_O,
+	BLOCKED_EMERG,
+	EXEC,
+	EXIT
+} t_estado;
+
 typedef struct {
 	uint32_t pos_x;
 	uint32_t pos_y;
 } t_posicion;
+
+//typedef struct{
+//	uint32_t id_pcb_patota;
+//    uint32_t tam_path;
+//    void* path_tareas;
+//} t_pcb_patota;
+//
+//typedef struct{
+//	uint32_t id_tcb_tripulante;
+//    t_estado estado;
+//    t_posicion posicion;
+//    uint32_t id_prox_instruc;
+//    uint32_t tam_path;
+//    char* path_tareas;
+//} t_tcb_tripulante;
+//????????
+
+typedef struct{
+	uint32_t pid;
+	void* tareas;
+} t_pcb;
+
+typedef struct{
+	uint32_t tid;
+	t_estado estado;
+	t_posicion posicion;
+	uint32_t prox_instruccion;
+} t_tcb;
 
 //---------TRIPULANTE--------//
 typedef struct {
@@ -34,18 +72,9 @@ typedef struct {
     uint32_t tam_path;
     char* path_tareas;
     t_list* posiciones;
-} t_iniciar_patota;
+} t_patota;
 
-//---------ESTADO--------//
-typedef enum {
-	NEW,
-	READY,
-	BLOCKED,
-	EXEC,
-	EXIT
-} t_estado;
-
-t_iniciar_patota* deserializar_iniciar_patota(uint32_t socket_cliente);
+t_patota* deserializar_iniciar_patota(uint32_t socket_cliente);
 t_respuesta recibir_respuesta(uint32_t socket_conexion);
 void enviar_respuesta(t_respuesta respuesta, uint32_t socket_conexion);
 void serializar_respuesta(t_respuesta respuesta, t_buffer* buffer);

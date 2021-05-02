@@ -1,6 +1,6 @@
 #include "msgtypes.h"
 
-t_iniciar_patota* deserializar_iniciar_patota(uint32_t socket_cliente){
+t_patota* deserializar_iniciar_patota(uint32_t socket_cliente){
 	//------------ORDEN------------
 	//1. Cantidad tripulantes
 	//2. Tamaño del path
@@ -8,7 +8,7 @@ t_iniciar_patota* deserializar_iniciar_patota(uint32_t socket_cliente){
 	//4. Posiciones tripulantes 	} COMO ES LISTA IRA DENTRO DE UN FOR
 	//5. Id patota
 	//-----------------------------
-	t_iniciar_patota* msg = malloc(sizeof(t_iniciar_patota));
+	t_patota* msg = malloc(sizeof(t_patota));
 	msg->posiciones = list_create();
 
 	recv(socket_cliente, &(msg->cant_tripulantes), sizeof(uint32_t), 0);
