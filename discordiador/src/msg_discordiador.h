@@ -3,7 +3,7 @@
 
 #include "utils_discordiador.h"
 
-void enviar_iniciar_patota(t_iniciar_patota* msg, uint32_t socketConexion);
-void serializar_iniciar_patota(t_iniciar_patota* msg, t_buffer* buffer);
+void enviar_iniciar_patota(t_iniciar_patota*, uint32_t);
+void serializar_iniciar_patota(t_iniciar_patota*, t_buffer*);
 
 #endif /* DISCORDIADOR_SRC_MSG_DISCORDIADOR_H_ */

@@ -58,18 +58,12 @@ int esperar_cliente(t_log* logger, int socket_servidor)
 
 	return socket_cliente;
 }
-uint32_t conectar(t_log* logger, char* ip, char* puerto){
-	uint32_t socket_conexion = crear_conexion(logger,ip, puerto);
-	if (socket_conexion == -1) {
-		log_error(logger, "No me pude conectar");
-	} else {
-		log_info(logger, "Me conecte exitosamente");
-	}
-
+uint32_t conectar(char* ip, char* puerto){
+	uint32_t socket_conexion = crear_conexion(ip, puerto);
 	return socket_conexion;
 }
 
-uint32_t crear_conexion(t_log* logger, char* ip, char* puerto)
+uint32_t crear_conexion(char* ip, char* puerto)
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info;
@@ -84,7 +78,6 @@ uint32_t crear_conexion(t_log* logger, char* ip, char* puerto)
 
 	socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
-	// ESto es cualquiera (?
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
 		return -1;
 

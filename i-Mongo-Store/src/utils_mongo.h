@@ -21,8 +21,8 @@ t_config* config;
 t_log* logger;
 pthread_t hiloReceive;
 
-void arrancar_servidor();
-void serve_client(int* socketQuenosPAsan);
-void procesar_mensaje_recibido(int cod_op, int cliente_fd);
+void arrancar_servidor(void);
+void serve_client(int*);
+void procesar_mensaje_recibido(int, int);
 
 #endif /* I_MONGO_STORE_SRC_UTILS_MONGO_H_ */

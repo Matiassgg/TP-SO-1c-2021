@@ -1,11 +1,10 @@
 #include "consola_discordiador.h"
+#include "msg_discordiador.h"
 
 void leer_consola() {
 	char* leido = readline(">");
 	while (!son_iguales(leido, "\0")) {
-
 		procesar_mensajes_en_consola_discordiador(string_split(leido, " "));
-
 		free(leido);
 		leido = readline(">");
 	}
@@ -14,18 +13,9 @@ void leer_consola() {
 
 void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
-	// Check de mensaje valido ?¿¿
-	/*
-	if(existe_en_array(msg_strings_discordiador , palabras_del_mensaje[0])) {
-		log_info(logger, "No existe el mensaje");
-		return;
-	}*/
-
-	//////////////////////////////////////////////////////////////////////////////////////
-
 	if(son_iguales(palabras_del_mensaje[0] ,"ESTAS_ON")) {
 		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 1)) {
-			log_warning(logger, "Falta especificar que modulo, para ver si esta en ON");
+			log_warning(logger, "DISCORDIADOR :: Falta especificar el modulo");
 			return;
 		}
 
@@ -105,12 +95,15 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 			y la patota a la que pertenecen
 		*/
 
-		time_t t = time(NULL);
-		struct tm tm = *localtime(&t);
-		log_info(logger, "DISCORDIADOR :: Estado de la nave: %d/%02d-%02d %02d:%02d:%02d\n", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
-		t_list* tripulantes = de_consola_a_listado_tripulantes();
-		return;
+		log_info(logger, "------------------------------------------------------------------------");
+		log_info(logger, "DISCORDIADOR :: Estado de la nave: %s\n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+		log_info(logger, "------------------------------------------------------------------------");
+//		t_listar_tripulantes* tripulantes = de_consola_a_listado_tripulantes();
 
+		// Solo mostrar tripulantes ??????
+		// Consultar a RAM por el estado de los tripulantes ??
+
+		return;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -121,6 +114,12 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 //		Con este comando se busca finalizar un tripulante y avisarle a Mi-RAM HQ que este tripulante es
 //		eyectado para que deje de mostrarlo en el mapa y en caso de que sea necesario elimine su segmento
 //		de tareas. Recibirá como parámetro el id del tripulante.
+
+		log_info(logger, "DISCORDIADOR :: Finalizamos al tripulante %d", palabras_del_mensaje[1]);
+
+		// Avisar a RAM
+//		enviar_expulsar_tripulante(atoi(palabras_del_mensaje[1]),socket_Mi_RAM_HQ);			// es una idea ...
+
 		return;
 	}
 
@@ -134,6 +133,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 //		Con este comando se dará inicio a la planificación, la idea es que hasta este punto no hayan
 //		movimientos entre las colas de planificación ni de los tripulantes. Este mensaje no contiene ningún
 //		parámetro.
+
+		log_info(logger, "DISCORDIADOR :: Se da inicio a la planificacion");
+
 		return;
 	}
 
@@ -146,6 +148,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 //		Este comando lo que busca es detener la planificación en cualquier momento. Este mensaje no
 //		contiene ningún parámetro.
+
+		log_info(logger, "DISCORDIADOR :: Se esta deteniendo la planificacion");
+
 		return;
 	}
 
@@ -156,6 +161,12 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 //		Este comando obtendrá la bitácora del tripulante pasado por parámetro a través de una consulta a
 //		i-Mongo-Store.
+
+		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %s", palabras_del_mensaje[1]);
+
+		// Consulta a i-Mongo-Store
+//		consultar_bitacora_tripulante(atoi(palabras_del_mensaje[1])); 	// ++ idea ...
+
 		return;
 	}
 }
@@ -191,10 +202,8 @@ t_iniciar_patota* de_consola_a_patota(char** palabras_del_mensaje){
 	return patota;
 }
 
-t_list* de_consola_a_listado_tripulantes() {
-	t_list* tripulantes = list_create();
-
-
+t_listar_tripulantes* de_consola_a_listado_tripulantes() {
+	t_listar_tripulantes* tripulantes = malloc(sizeof(t_listar_tripulantes));
 
 	return tripulantes;
 }

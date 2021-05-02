@@ -5,7 +5,6 @@
 
 char* ip_discordiador;
 char* puerto_escucha;
-
 char* ip_Mi_RAM_HQ;
 char* puerto_Mi_RAM_HQ;
 uint32_t socket_Mi_RAM_HQ;
@@ -35,9 +34,8 @@ t_queue* cola_bloq_Emergencia;
 uint32_t cantidad_patotas;
 //t_list* patotas; VER SI ES NECESARIO
 
-
-void arrancar_servidor();
-void serve_client(int* socketQuenosPAsan);
-void procesar_mensaje_recibido(int cod_op, int cliente_fd);
+void arrancar_servidor(void);
+void serve_client(int*);
+void procesar_mensaje_recibido(int, int);
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */
