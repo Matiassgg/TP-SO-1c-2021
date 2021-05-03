@@ -13,7 +13,7 @@ int iniciar_servidor(t_log* logger, char* ip, char* puerto)
     getaddrinfo(ip, puerto, &hints, &servinfo);
 
     if ((socket_servidor = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol)) == -1){
-		log_info(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+		log_warning(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
 		exit(-1);
 	}
 
@@ -24,7 +24,7 @@ int iniciar_servidor(t_log* logger, char* ip, char* puerto)
 //            continue;
 
         if (bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
-        	log_info(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+        	log_warning(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
         	exit(-1);
         }
 
@@ -36,7 +36,7 @@ int iniciar_servidor(t_log* logger, char* ip, char* puerto)
 //    }
 
     if(listen(socket_servidor, SOMAXCONN)){
-    		log_info(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+    	log_warning(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
     		exit(-1);
     }
 
@@ -52,7 +52,11 @@ int esperar_cliente(t_log* logger, int socket_servidor)
 	struct sockaddr_in dir_cliente;
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
-	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+	int socket_cliente;
+
+	if((socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion)) == -1){
+		log_warning(logger, "No se pudo establecer la conexion con el cliente.");
+	}
 
 	log_info(logger, "Se conecto un cliente!");
 
@@ -78,8 +82,9 @@ uint32_t crear_conexion(char* ip, char* puerto)
 
 	socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		return -1;
+	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1){
+		log_warning("No se pudo establecer la conexion con el servidor.");
+	}
 
 	freeaddrinfo(server_info);
 
