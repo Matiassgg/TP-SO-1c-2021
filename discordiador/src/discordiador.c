@@ -42,7 +42,7 @@ void leer_config() {
 }
 
 void conectar_modulos(){
-    if((socket_Mi_RAM_HQ = crear_conexion()(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ)) == -1)
+    if((socket_Mi_RAM_HQ = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ)) == -1)
     	log_error(logger, "DISCORDIADOR :: No me pude conectar a Mi-RAM-HQ");
     if((socket_Mongo_Store = crear_conexion(ip_Mongo_Store, puerto_Mongo_Store)) == -1)
     	log_error(logger, "DISCORDIADOR :: No me pude conectar a i-Mongo-Store");
