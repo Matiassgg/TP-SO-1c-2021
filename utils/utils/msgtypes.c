@@ -17,14 +17,35 @@ t_patota* deserializar_iniciar_patota(uint32_t socket_cliente){
 	msg->path_tareas = malloc(msg->tam_path);
 	recv(socket_cliente, msg->path_tareas, msg->tam_path, 0);
 
-	t_posicion* posiciones = malloc(sizeof(t_posicion));
 	for (int i = 0; i < (msg->cant_tripulantes); i++) {
+		t_posicion* posiciones = malloc(sizeof(t_posicion));
 		recv(socket_cliente, &(posiciones->pos_x), sizeof(uint32_t), 0);
 		recv(socket_cliente, &(posiciones->pos_y), sizeof(uint32_t), 0);
 		list_add(msg->posiciones, posiciones);
 	}
 
 	recv(socket_cliente, &(msg->id_patota), sizeof(uint32_t), 0);
+
+	return msg;
+}
+
+t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente){
+	//------------ORDEN------------
+	//1. ID
+	//2. Patota asociada
+	//3. Posicion X
+	//4. Posicion Y
+	//-----------------------------
+	t_tripulante* msg = malloc(sizeof(t_tripulante));
+	msg->posicion = malloc(sizeof(t_posicion));
+
+	recv(socket_cliente, &(msg->id), sizeof(uint32_t), 0);
+
+	recv(socket_cliente, &(msg->id_patota_asociado), sizeof(uint32_t), 0);
+
+	recv(socket_cliente, &(msg->posicion->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(msg->posicion->pos_y), sizeof(uint32_t), 0);
+
 
 	return msg;
 }

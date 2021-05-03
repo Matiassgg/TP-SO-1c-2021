@@ -55,9 +55,21 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
+//			POR AHORA SE HACE FREE CAPAZ DESPUES NO
 			list_destroy(patota->posiciones);
 			free(patota->path_tareas);
 			free(patota);
+		break;
+		case INICIAR_TRIPULANTE:
+			;
+			t_tripulante* tripulante = deserializar_iniciar_tripulante(cliente_fd);
+
+			log_info(logger, "Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
+
+//			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
+//			POR AHORA SE HACE FREE CAPAZ DESPUES NO
+			free(tripulante->posicion);
+			free(tripulante);
 		break;
 	}
 
