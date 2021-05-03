@@ -1,12 +1,8 @@
 #include "planificacion.h"
 
 void iniciar_planificacion(){
-	cola_new = queue_create();
-	cola_ready = queue_create();
-	cola_exec = queue_create();
-	cola_exit = queue_create();
-	cola_bloq_E_S = queue_create();
-	cola_bloq_Emergencia = queue_create();
+	log_info(logger, "DISCORDIADOR :: Se crearan las colas de planificacion");
+	crear_colas_planificacion();
 
 	if(algoritmo == NULL)
 		log_info(logger, "Error al leer el algoritmo de planificacion");
@@ -30,6 +26,9 @@ t_pcb* crear_pcb(t_patota* patota){
 }
 
 t_list* crear_tcbs(t_patota* patota){
+
+	log_info(logger, "DISCORDIADOR :: Empezamos a crear los PCBs de los %d tripulantes", patota->cant_tripulantes);
+
 	t_list* lista_tcbs = list_create();
 	for(int i=0; i<patota->cant_tripulantes; i++){
 		t_tcb* tcb = malloc(sizeof(t_pcb));
@@ -43,4 +42,13 @@ t_list* crear_tcbs(t_patota* patota){
 	}
 
 	return lista_tcbs;
+}
+
+void crear_colas_planificacion() {
+	cola_new = queue_create();
+	cola_ready = queue_create();
+	cola_exec = queue_create();
+	cola_exit = queue_create();
+	cola_bloq_E_S = queue_create();
+	cola_bloq_Emergencia = queue_create();
 }

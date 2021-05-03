@@ -1,5 +1,4 @@
 #include "consola_discordiador.h"
-#include "msg_discordiador.h"
 
 void leer_consola() {
 	char* leido = readline(">");

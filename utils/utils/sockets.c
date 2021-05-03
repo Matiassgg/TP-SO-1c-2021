@@ -62,10 +62,12 @@ int esperar_cliente(t_log* logger, int socket_servidor)
 
 	return socket_cliente;
 }
+
+// Esta de mas esto ??
+/*
 uint32_t conectar(char* ip, char* puerto){
-	uint32_t socket_conexion = crear_conexion(ip, puerto);
-	return socket_conexion;
-}
+	return crear_conexion(ip, puerto);
+}*/
 
 uint32_t crear_conexion(char* ip, char* puerto)
 {

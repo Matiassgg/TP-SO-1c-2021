@@ -91,9 +91,9 @@ void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje, int cantida
 		log_info(logger, "MONGO :: Preguntamos si esta on %s", palabras_del_mensaje[1]);
 
 		if (son_iguales(palabras_del_mensaje[1] ,"Mi-RAM-HQ"))
-			socketConexion = conectar(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+			socketConexion = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 		else if(son_iguales(palabras_del_mensaje[1] ,"discordiador"))
-			socketConexion = conectar(ip_discordiador, puerto_discordiador);
+			socketConexion = crear_conexion(ip_discordiador, puerto_discordiador);
 
 		t_paquete* paquete_a_enviar = crear_paquete(ESTA_ON);
 
