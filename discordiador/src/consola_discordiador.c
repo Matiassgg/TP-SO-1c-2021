@@ -71,9 +71,11 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		t_patota* patota = de_consola_a_patota(palabras_del_mensaje);
 		patota->id_patota = cantidad_patotas;
 
+		// Enviar la creacion de la patota
 		enviar_iniciar_patota(patota,socket_Mi_RAM_HQ);
 		enviar_iniciar_patota(patota,socket_Mongo_Store);
 
+		// Empezar a planificar la patota
 		planificar_patota(patota);
 //		list_add(patotas, patota); VER SI ES NECESARIO
 
@@ -101,6 +103,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "------------------------------------------------------------------------");
 //		t_listar_tripulantes* tripulantes = de_consola_a_listado_tripulantes();
 
+		// todo
 		// Solo mostrar tripulantes ??????
 		// Consultar a RAM por el estado de los tripulantes ??
 
@@ -118,8 +121,12 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		log_info(logger, "DISCORDIADOR :: Finalizamos al tripulante %d", palabras_del_mensaje[1]);
 
+
+		// Busco al tripulante en base al id pasado en el mensaje ??
+		t_tripulante* tripulante = malloc(sizeof(t_tripulante));
+
 		// Avisar a RAM
-//		enviar_expulsar_tripulante(atoi(palabras_del_mensaje[1]),socket_Mi_RAM_HQ);			// es una idea ...
+		enviar_RAM_expulsar_tripulante(tripulante,socket_Mi_RAM_HQ);
 
 		return;
 	}
@@ -165,8 +172,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %s", palabras_del_mensaje[1]);
 
-		// Consulta a i-Mongo-Store
-//		consultar_bitacora_tripulante(atoi(palabras_del_mensaje[1])); 	// ++ idea ...
+		// Consulta a i-Mongo-Store para obtener la bitacora ??
 
 		return;
 	}
@@ -208,3 +214,4 @@ t_listar_tripulantes* de_consola_a_listado_tripulantes() {
 
 	return tripulantes;
 }
+

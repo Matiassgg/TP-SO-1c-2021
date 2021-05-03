@@ -38,7 +38,8 @@ void leer_config() {
 	puerto_Mongo_Store = config_get_string_value(config, "PUERTO_I_MONGO_STORE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 	algoritmo = config_get_string_value(config, "ALGORITMO");
-	quantum = config_get_int_value(config, "QUANTUM");
+	if(son_iguales(algoritmo, "RR"))
+		quantum = config_get_int_value(config, "QUANTUM");
 }
 
 void conectar_modulos(){

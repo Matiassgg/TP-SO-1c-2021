@@ -56,7 +56,7 @@ typedef struct {
 	uint32_t id_tripulante;
 	uint32_t id_patota;
 	t_posicion posicion;
-	t_list* tareas_act;
+	t_list* tarea_act;
 } t_tripulante;
 
 typedef struct {
@@ -74,9 +74,9 @@ typedef struct {
     t_list* posiciones;
 } t_patota;
 
-t_patota* deserializar_iniciar_patota(uint32_t socket_cliente);
-t_respuesta recibir_respuesta(uint32_t socket_conexion);
-void enviar_respuesta(t_respuesta respuesta, uint32_t socket_conexion);
-void serializar_respuesta(t_respuesta respuesta, t_buffer* buffer);
+t_patota* deserializar_iniciar_patota(uint32_t);
+t_respuesta recibir_respuesta(uint32_t);
+void enviar_respuesta(t_respuesta, uint32_t);
+void serializar_respuesta(t_respuesta, t_buffer*);
 
 #endif /* SHARED_SHARED_MSGTYPES_H_ */

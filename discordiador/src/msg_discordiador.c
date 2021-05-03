@@ -2,8 +2,13 @@
 
 void enviar_iniciar_patota(t_patota* msg, uint32_t socket_conexion){
 	t_paquete* paquete_a_enviar = crear_paquete(INICIAR_PATOTA);
-
 	serializar_iniciar_patota(msg, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
+void enviar_RAM_expulsar_tripulante(t_tripulante* msg, uint32_t socket_conexion) {
+	t_paquete* paquete_a_enviar = crear_paquete(EXPULSAR_TRIPULANTE);
+	serializar_expulsar_tripulante(msg, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
@@ -45,5 +50,20 @@ void serializar_iniciar_patota(t_patota* msg, t_buffer* buffer){
 	}
 
 	memcpy(buffer->stream + offset, &(msg->id_patota), sizeof(uint32_t));
+}
+
+void serializar_expulsar_tripulante(t_tripulante* msg, t_buffer* buffer) {
+	//------------ORDEN------------
+	//1. Id_tripulante
+	//2. Id_patota
+	//3. Posicion
+	//4. Tareas_act										???????
+	//-----------------------------
+
+	uint32_t offset = 0;
+
+	// Hay que definir bien al tripulante antes ...
 
 }
+
+
