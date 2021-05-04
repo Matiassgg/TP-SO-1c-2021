@@ -1,6 +1,6 @@
 #include "planificacion.h"
 
-void preprar_planificacion(){
+void preparar_planificacion(){
 	void* convertir(char* algoritmo_nombre) {
 		if (son_iguales(algoritmo_nombre, "FIFO")) return (void*) planificacion_segun_FIFO;
 //		if (son_iguales(algoritmo_nombre, "RR")) return (void*) planificacion_segun_RR;

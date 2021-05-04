@@ -4,7 +4,7 @@
 #include "utils_discordiador.h"
 #include "tripulantes.h"
 
-void preprar_planificacion(void);
+void preparar_planificacion(void);
 void planificar_patota(t_patota*);
 void iniciar_planificacion();
 t_pcb* crear_pcb(t_patota*);

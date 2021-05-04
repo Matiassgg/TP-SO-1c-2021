@@ -20,7 +20,7 @@ void iniciar_discordiador() {
     log_info(logger, "Ya obtuvimos la config de discordiador\n");
 
     conectar_modulos(); // TAL VEZ NO SEA ASI
-    preprar_planificacion();
+    preparar_planificacion();
 }
 void iniciar_patotas(){
 	cantidad_patotas = 0;
