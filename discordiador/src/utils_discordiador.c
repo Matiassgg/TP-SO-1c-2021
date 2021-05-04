@@ -14,9 +14,9 @@ void arrancar_servidor(void){
 	}
 }
 
-void serve_client(int* socketQuenosPAsan) {
-    uint32_t socket = *socketQuenosPAsan;
-	free(socketQuenosPAsan);
+void serve_client(int* socketQueNosPasan) {
+    uint32_t socket = *socketQueNosPasan;
+	free(socketQueNosPasan);
 
 	int cod_op;
 
