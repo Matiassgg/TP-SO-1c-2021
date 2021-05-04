@@ -2,11 +2,11 @@
 #define DISCORDIADOR_SRC_PLANIFICACION_H_
 
 #include "utils_discordiador.h"
+#include "tripulantes.h"
 
 void preprar_planificacion(void);
 void planificar_patota(t_patota*);
-t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i);
-void iniciar_tripulante(t_tripulante* tripulante);
+void iniciar_planificacion();
 t_pcb* crear_pcb(t_patota*);
 t_list* agregar_tcbs(t_patota*);
 void crear_colas_planificacion(void);

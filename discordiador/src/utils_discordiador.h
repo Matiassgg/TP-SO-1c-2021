@@ -16,8 +16,14 @@ uint32_t socket_Mongo_Store;
 char* punto_montaje;
 char* archivo_log;
 
+uint32_t grado_multitarea;
+uint32_t duracion_sabotaje;
+uint32_t retardo_ciclo_cpu;
+
+void* planificacion_corto_plazo;
 char* algoritmo;
 uint32_t quantum;
+bool planificacion_habilitada;
 
 t_config* config;
 t_log* logger;

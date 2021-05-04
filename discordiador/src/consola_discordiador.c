@@ -102,6 +102,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "DISCORDIADOR :: Estado de la nave: %s\n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 		log_info(logger, "------------------------------------------------------------------------");
 //		t_listar_tripulantes* tripulantes = de_consola_a_listado_tripulantes();
+//		QUE TAL SI MEJOR USAMOS TRIPUALNTE :V Y EL STATUS SE HACE UNA FUNCION NOC COMO PERO SE VERA
 
 		// todo
 		// Solo mostrar tripulantes ??????
@@ -141,6 +142,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 //		Con este comando se dará inicio a la planificación, la idea es que hasta este punto no hayan
 //		movimientos entre las colas de planificación ni de los tripulantes. Este mensaje no contiene ningún
 //		parámetro.
+
+		iniciar_planificacion();
 
 		log_info(logger, "DISCORDIADOR :: Se da inicio a la planificacion");
 

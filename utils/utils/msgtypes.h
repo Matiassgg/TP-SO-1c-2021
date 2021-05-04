@@ -60,6 +60,8 @@ typedef struct {
 	t_posicion* posicion;
 //	t_list* tarea_act; // DEBERIA SER UNA LISTA?? SOLO HACE DE A UNA TAREA
 	t_tarea* tarea_act;
+	t_estado estado;
+	bool quantum;
 } t_tripulante;
 
 typedef struct {

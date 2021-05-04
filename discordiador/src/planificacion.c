@@ -1,9 +1,17 @@
 #include "planificacion.h"
 
 void preprar_planificacion(){
+	void* convertir(char* algoritmo_nombre) {
+		if (son_iguales(algoritmo_nombre, "FIFO")) return (void*) planificacion_segun_FIFO;
+//		if (son_iguales(algoritmo_nombre, "RR")) return (void*) planificacion_segun_RR;
+		return NULL;
+	}
+
 	log_info(logger, "DISCORDIADOR :: Se crearan las colas de planificacion");
 	crear_colas_planificacion();
 	id_tcb=1;
+
+	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
 		log_info(logger, "Error al leer el algoritmo de planificacion");
@@ -30,24 +38,29 @@ void planificar_patota(t_patota* patota){
 
 }
 
-t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
-	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
+void iniciar_planificacion(){
 
-	tripulante->id_patota_asociado = patota->id_patota;
-	tripulante->posicion = list_get(patota->posiciones,i);
-	tripulante->id = i;
-	tripulante->tarea_act = NULL;
-
-	return tripulante;
+	for(int i=0; i<grado_multitarea; i++){
+		pthread_t planificar_corto;
+		pthread_create(&planificar_corto, NULL, (void*) planificacion_corto_plazo, NULL);
+		pthread_detach(planificar_corto);
+	}
 }
 
-void iniciar_tripulante(t_tripulante* tripulante){
-	int socket_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+void planificacion_segun_FIFO() {
 
-	enviar_iniciar_tripulante(tripulante, socket_RAM);
+	while (planificacion_habilitada) {
+		t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
+		//FALTA SEGUIR :V
+	}
+}
 
-//	tripulante->tarea_act = solicitar_tarea(tripulante);
-	queue_push(cola_new, tripulante);
+bool quedan_pasos(t_tripulante* tripulante){
+	return esta_en_el_lugar(tripulante->posicion,tripulante->tarea_act->posicion);
+}
+
+bool esta_en_el_lugar(t_posicion posicion1, t_posicion posicion2){
+	return (posicion1.pos_x == posicion2.pos_x) && (posicion1.pos_y == posicion2.pos_y);
 }
 
 t_pcb* crear_pcb(t_patota* patota){
