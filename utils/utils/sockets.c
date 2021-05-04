@@ -3,6 +3,7 @@
 int iniciar_servidor(t_log* logger, char* ip, char* puerto)
 {
 	int socket_servidor;
+
     struct addrinfo hints, *servinfo;
 
     memset(&hints, 0, sizeof(hints));
@@ -23,10 +24,18 @@ int iniciar_servidor(t_log* logger, char* ip, char* puerto)
 //        if (socket_servidor == -1)
 //            continue;
 
-        if (bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
-        	log_warning(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
-        	exit(-1);
-        }
+    //Sin esto, el SO impide que se pueda reutilizar la direccion.
+    int activado = 1;
+    if(setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &activado, sizeof(activado))==-1){
+    	log_warning(logger, "no se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+    	exit(-1);
+    }
+
+    //Asociamos el socket con el puerto
+	if (bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen) < 0) {
+		log_warning(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
+		exit(-1);
+	}
 
 //        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
 //            close(socket_servidor);
@@ -35,6 +44,7 @@ int iniciar_servidor(t_log* logger, char* ip, char* puerto)
 //        break;
 //    }
 
+	//Seteamos max conexiones posibles
     if(listen(socket_servidor, SOMAXCONN)){
     	log_warning(logger, "No se pudo crear el server correctamente. Levante el modulo nuevamente. Gracias, vuelvas prontos.");
     		exit(-1);
