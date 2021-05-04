@@ -56,11 +56,11 @@ void planificacion_segun_FIFO() {
 }
 
 bool quedan_pasos(t_tripulante* tripulante){
-	return esta_en_el_lugar(tripulante->posicion,tripulante->tarea_act->posicion);
+	return esta_en_el_lugar(tripulante->posicion, tripulante->tarea_act->posicion);
 }
 
-bool esta_en_el_lugar(t_posicion posicion1, t_posicion posicion2){
-	return (posicion1.pos_x == posicion2.pos_x) && (posicion1.pos_y == posicion2.pos_y);
+bool esta_en_el_lugar(t_posicion* posicion1, t_posicion* posicion2){
+	return (posicion1->pos_x == posicion2->pos_x) && (posicion1->pos_y == posicion2->pos_y);
 }
 
 t_pcb* crear_pcb(t_patota* patota){

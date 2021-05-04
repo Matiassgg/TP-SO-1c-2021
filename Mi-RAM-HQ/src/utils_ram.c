@@ -70,6 +70,19 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
 			free(tripulante->posicion);
 			free(tripulante);
+			break;
+		case LISTAR_TRIPULANTES:
+			;
+//			t_tripulante* tripulante = deserializar_listar_tripulantes(cliente_fd);
+
+			log_info(logger, "Nos llego LISTAR_TRIPULANTES");
+
+			// Obtener el listado de todos los tripulantes con su estado y su patota correspondiente
+
+//			enviar_discordiador_listar_tripulantes_respuesta(tripulantes, cliente_fd); es necesario????
+
+//			log_info(logger, "RAM :: Se enviaron los datos de los tripulantes");
+
 		break;
 	}
 

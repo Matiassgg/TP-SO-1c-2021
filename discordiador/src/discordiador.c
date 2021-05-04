@@ -40,9 +40,9 @@ void leer_config() {
 	algoritmo = config_get_string_value(config, "ALGORITMO");
 	if(son_iguales(algoritmo, "RR"))
 		quantum = config_get_int_value(config, "QUANTUM");
-	grado_multitarea = config_get_string_value(config, "GRADO_MULTITAREA");
-	duracion_sabotaje = config_get_string_value(config, "DURACION_SABOTAJE");
-	retardo_ciclo_cpu = config_get_string_value(config, "RETARDO_CICLO_CPU");
+	grado_multitarea = config_get_int_value(config, "GRADO_MULTITAREA");
+	duracion_sabotaje = config_get_int_value(config, "DURACION_SABOTAJE");
+	retardo_ciclo_cpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 }
 
 void conectar_modulos(){

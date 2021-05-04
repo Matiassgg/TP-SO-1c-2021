@@ -64,12 +64,6 @@ typedef struct {
 	bool quantum;
 } t_tripulante;
 
-typedef struct {
-	uint32_t id_tripulante;
-	uint32_t id_patota;
-	uint32_t status;
-} t_listar_tripulantes;
-
 //---------PATOTA--------//
 typedef struct {
 	uint32_t id_patota;
@@ -78,8 +72,6 @@ typedef struct {
     char* path_tareas;
     t_list* posiciones;
 } t_patota;
-
-
 
 t_patota* deserializar_iniciar_patota(uint32_t);
 t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente);

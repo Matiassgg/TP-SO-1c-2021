@@ -11,6 +11,12 @@ void enviar_iniciar_tripulante(t_tripulante* tripulante, uint32_t socket_conexio
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
+void enviar_RAM_listar_tripulantes(t_tripulante* tripulante, uint32_t socket_conexion){
+	t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
+	serializar_listar_tripulantes(tripulante, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
 void enviar_RAM_expulsar_tripulante(t_tripulante* msg, uint32_t socket_conexion) {
 	t_paquete* paquete_a_enviar = crear_paquete(EXPULSAR_TRIPULANTE);
 	serializar_expulsar_tripulante(msg, paquete_a_enviar->buffer);
@@ -78,21 +84,40 @@ void serializar_iniciar_tripulante(t_tripulante* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
-
 }
 
-void serializar_expulsar_tripulante(t_tripulante* msg, t_buffer* buffer) {
+void serializar_listar_tripulantes(t_tripulante* msg, t_buffer* buffer) {
 	//------------ORDEN------------
-	//1. Id_tripulante
-	//2. Id_patota
-	//3. Posicion
-	//4. Tareas_act										???????
+	//1. Id del tripulante
+	//2. Id de patota
+	//3. Estado
 	//-----------------------------
 
 	uint32_t offset = 0;
 
-	// Hay que definir bien al tripulante antes ...
+	buffer->size = sizeof(uint32_t)*3;
+	buffer->stream = malloc(buffer->size);
 
+	memcpy(buffer->stream + offset, &(msg->id), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(msg->estado), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+}
+
+
+void serializar_expulsar_tripulante(t_tripulante* msg, t_buffer* buffer) {
+	//------------ORDEN------------
+	//1. Id tripulante
+	//2. Id Patota asociada
+	//3. Posicion
+	//4. Tarea_act										???????
+	//-----------------------------
+
+	// uint32_t offset = 0;
 }
 
 

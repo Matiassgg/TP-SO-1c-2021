@@ -101,12 +101,12 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "------------------------------------------------------------------------");
 		log_info(logger, "DISCORDIADOR :: Estado de la nave: %s\n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
 		log_info(logger, "------------------------------------------------------------------------");
-//		t_listar_tripulantes* tripulantes = de_consola_a_listado_tripulantes();
-//		QUE TAL SI MEJOR USAMOS TRIPUALNTE :V Y EL STATUS SE HACE UNA FUNCION NOC COMO PERO SE VERA
 
-		// todo
-		// Solo mostrar tripulantes ??????
-		// Consultar a RAM por el estado de los tripulantes ??
+		t_tripulante* tripulante;
+//		QUE TAL SI MEJOR USAMOS TRIPUALNTE :V Y EL STATUS SE HACE UNA FUNCION NOC COMO PERO SE VERA
+		enviar_RAM_listar_tripulantes(tripulante, socket_Mi_RAM_HQ);
+
+
 
 		return;
 	}
@@ -122,11 +122,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		log_info(logger, "DISCORDIADOR :: Finalizamos al tripulante %d", palabras_del_mensaje[1]);
 
+		t_tripulante* tripulante;
 
-		// Busco al tripulante en base al id pasado en el mensaje ??
-		t_tripulante* tripulante = malloc(sizeof(t_tripulante));
-
-		// Avisar a RAM
+		// Aviso a RAM
 		enviar_RAM_expulsar_tripulante(tripulante,socket_Mi_RAM_HQ);
 
 		return;
@@ -175,7 +173,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %s", palabras_del_mensaje[1]);
 
-		// Consulta a i-Mongo-Store para obtener la bitacora ??
+		// Consulta a i-Mongo-Store para obtener la bitacora
 
 		return;
 	}
@@ -210,11 +208,5 @@ t_patota* de_consola_a_patota(char** palabras_del_mensaje){
 		}
 	}
 	return patota;
-}
-
-t_listar_tripulantes* de_consola_a_listado_tripulantes() {
-	t_listar_tripulantes* tripulantes = malloc(sizeof(t_listar_tripulantes));
-
-	return tripulantes;
 }
 
