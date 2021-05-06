@@ -19,6 +19,7 @@ void preparar_planificacion(){
 		log_info(logger, "El algoritmo seleccionado es: %s con quantum de %d", algoritmo, quantum);
 	else
 		log_info(logger, "El algoritmo seleccionado es: %s", algoritmo);
+
 }
 
 void planificar_patota(t_patota* patota){
@@ -49,18 +50,17 @@ void iniciar_planificacion(){
 
 void planificacion_segun_FIFO() {
 
-	while (planificacion_habilitada) {
+	while (!queue_is_empty(cola_ready)) {
 		t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
+		tripulante->estado = EXEC; // avisar a ram?
+
+		while(quedan_pasos(tripulante)){
+			avanzar_hacia(tripulante, *tripulante->tarea_act->posicion); // avisar a ram
+		}
+		hacer_tarea(tripulante); // avisar a ram
+
 		//FALTA SEGUIR :V
 	}
-}
-
-bool quedan_pasos(t_tripulante* tripulante){
-	return esta_en_el_lugar(tripulante->posicion, tripulante->tarea_act->posicion);
-}
-
-bool esta_en_el_lugar(t_posicion* posicion1, t_posicion* posicion2){
-	return (posicion1->pos_x == posicion2->pos_x) && (posicion1->pos_y == posicion2->pos_y);
 }
 
 t_pcb* crear_pcb(t_patota* patota){

@@ -17,6 +17,8 @@
 #include <commons/collections/queue.h>
 #include <readline/readline.h>
 #include <commons/temporal.h>
+#include <readline/readline.h>
+#include <semaphore.h>
 #include "buffer.h"
 #include "msgtypes.h"
 #include "paquete.h"

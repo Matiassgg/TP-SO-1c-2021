@@ -58,10 +58,10 @@ typedef struct {
 	uint32_t id;
 	uint32_t id_patota_asociado;
 	t_posicion* posicion;
-//	t_list* tarea_act; // DEBERIA SER UNA LISTA?? SOLO HACE DE A UNA TAREA
 	t_tarea* tarea_act;
 	t_estado estado;
 	bool quantum;
+	int socket_conexion;
 } t_tripulante;
 
 //---------PATOTA--------//
