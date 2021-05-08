@@ -1,7 +1,7 @@
 #ifndef I_MONGO_STORE_SRC_UTILS_MONGO_H_
 #define I_MONGO_STORE_SRC_UTILS_MONGO_H_
 
-#include <utils/hello.h>	// Incluyo la shared
+#include "../../utils/utils/utils.h"	// Incluyo la shared
 
 char* ip_Mongo_Store;
 char* puerto_escucha;

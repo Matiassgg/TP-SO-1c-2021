@@ -23,12 +23,14 @@
 #include "msgtypes.h"
 #include "paquete.h"
 #include "sockets.h"
+#include "nivel-gui/tad_nivel.h"
 
 t_log* iniciar_logger(char*, char*);
 int contar_elementos_array(char**);
 int son_iguales(char*, char*);
 int chequear_argumentos_del_mensaje(char**, int);
 int existe_en_array(char**, char*);
+t_posicion obtener_posicion_origen(t_posicion posicion, t_movimiento direccion);
 void helloWorld(void);
 
 #endif

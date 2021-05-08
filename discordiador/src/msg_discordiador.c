@@ -23,6 +23,17 @@ void enviar_RAM_expulsar_tripulante(t_tripulante* msg, uint32_t socket_conexion)
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
+void enviar_mover_hacia(t_tripulante* tripulante, t_movimiento direccion){
+//	RAM
+	t_paquete* paquete_a_enviar = crear_paquete(MOVER_HACIA);
+	serializar_mover_hacia_RAM(tripulante->id, direccion, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_RAM);
+//	MONGO
+	paquete_a_enviar = crear_paquete(MOVER_HACIA);
+	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
+
+}
 void serializar_iniciar_patota(t_patota* msg, t_buffer* buffer){
 	//------------ORDEN------------
 	//1. Cantidad tripulantes
@@ -81,9 +92,53 @@ void serializar_iniciar_tripulante(t_tripulante* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(msg->posicion.pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(msg->posicion.pos_y), sizeof(uint32_t));
+}
+
+void serializar_mover_hacia_RAM(uint32_t id_tripulante, t_movimiento direccion, t_buffer* buffer){
+	//------------ORDEN------------
+	//1. ID
+	//2. Direccion
+	//-----------------------------
+	uint32_t offset = 0;
+
+	buffer->size = sizeof(uint32_t) + sizeof(t_movimiento);
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(id_tripulante), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(direccion), sizeof(t_movimiento));
+}
+
+void serializar_mover_hacia_Mongo(t_tripulante* tripulante,t_movimiento direccion, t_buffer* buffer){
+	//------------ORDEN------------
+	//1. ID
+	//2. Posicion origen
+	//3. Posicion destino
+	//-----------------------------
+	uint32_t offset = 0;
+
+	buffer->size = sizeof(uint32_t)*5;
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(tripulante->id), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	t_posicion posicion_origen = obtener_posicion_origen(tripulante->posicion, direccion);
+	memcpy(buffer->stream + offset, &(posicion_origen.pos_x), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(posicion_origen.pos_y), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(tripulante->posicion.pos_x), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(tripulante->posicion.pos_y), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
 }
 
 void serializar_listar_tripulantes(t_tripulante* msg, t_buffer* buffer) {

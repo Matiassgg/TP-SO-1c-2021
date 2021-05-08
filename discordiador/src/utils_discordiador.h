@@ -1,7 +1,7 @@
 #ifndef DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_
 #define DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_
 
-#include <utils/hello.h>
+#include "../../utils/utils/utils.h"
 
 char* ip_discordiador;
 char* puerto_escucha;
@@ -40,7 +40,7 @@ t_queue* cola_bloq_Emergencia;
 uint32_t cantidad_patotas;
 //t_list* patotas;
 uint32_t id_tcb;
-
+uint32_t cantidad_tripulantes;
 void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);

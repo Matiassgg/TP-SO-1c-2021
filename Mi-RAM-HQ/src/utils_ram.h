@@ -1,7 +1,7 @@
 #ifndef MI_RAM_HQ_SRC_UTILS_RAM_H_
 #define MI_RAM_HQ_SRC_UTILS_RAM_H_
 
-#include <utils/hello.h>	// Incluyo la shared
+#include "../../utils/utils/utils.h"	// Incluyo la shared
 
 char* ip_Mi_RAM_HQ;
 char* puerto_escucha;

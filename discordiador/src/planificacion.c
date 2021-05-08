@@ -52,10 +52,10 @@ void planificacion_segun_FIFO() {
 
 	while (!queue_is_empty(cola_ready)) {
 		t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
-		tripulante->estado = EXEC; // avisar a ram?
+//		tripulante->estado = EXEC; // avisar a ram?
 
 		while(quedan_pasos(tripulante)){
-			avanzar_hacia(tripulante, *tripulante->tarea_act->posicion); // avisar a ram
+			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 		}
 		hacer_tarea(tripulante); // avisar a ram
 

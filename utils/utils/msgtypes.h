@@ -18,6 +18,14 @@ typedef enum {
 	EXIT
 } t_estado;
 
+typedef enum {
+	ARRIBA,
+	ABAJO,
+	IZQUIERDA,
+	DERECHA
+} t_movimiento;
+
+//---------POSICION--------//
 typedef struct {
 	uint32_t pos_x;
 	uint32_t pos_y;
@@ -49,7 +57,7 @@ typedef enum {
 typedef struct {
 	e_tarea tarea;
     uint32_t parametro;
-	t_posicion* posicion;
+	t_posicion posicion;
     uint32_t tiempo;
 } t_tarea;
 
@@ -57,11 +65,12 @@ typedef struct {
 typedef struct {
 	uint32_t id;
 	uint32_t id_patota_asociado;
-	t_posicion* posicion;
+	t_posicion posicion;
 	t_tarea* tarea_act;
 	t_estado estado;
 	bool quantum;
-	int socket_conexion;
+	int socket_conexion_RAM;
+	int socket_conexion_Mongo;
 } t_tripulante;
 
 //---------PATOTA--------//

@@ -25,7 +25,8 @@ typedef enum {
 	OBTENER_BITACORA,
 	ESTA_ON,
 	// Tripulantes ?
-	ARRACAR_TAREAS,					// 1.	Informar al módulo Mi-RAM HQ que desea iniciar, indicando a qué patota pertenece
+	ARRANCAR_TAREAS,					// 1.	Informar al módulo Mi-RAM HQ que desea iniciar, indicando a qué patota pertenece
+	MOVER_HACIA,
 //	GENERAR_OXIGENO,
 //	CONSUMIR_OXIGENO,
 //	GENERAR_COMIDA,

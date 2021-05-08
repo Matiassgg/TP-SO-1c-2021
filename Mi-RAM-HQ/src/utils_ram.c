@@ -68,7 +68,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
-			free(tripulante->posicion);
 			free(tripulante);
 			break;
 		case LISTAR_TRIPULANTES:

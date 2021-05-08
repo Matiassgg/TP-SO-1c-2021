@@ -1,4 +1,4 @@
-#include "hello.h"
+#include "utils.h"
 
 t_log* iniciar_logger(char* archivo_log, char* archivo_c) {
 	return log_create(archivo_log, archivo_c, 1, LOG_LEVEL_INFO);
@@ -30,6 +30,28 @@ int existe_en_array(char** array, char* elemento_buscado) {
 	else
 		return 0;
 }
+
+t_posicion obtener_posicion_origen(t_posicion posicion, t_movimiento direccion){
+	t_posicion posicion_anterior = posicion;
+
+	switch(direccion){
+		case ARRIBA:
+			posicion_anterior.pos_y--;
+		break;
+		case ABAJO:
+			posicion_anterior.pos_y++;
+		break;
+		case DERECHA:
+			posicion_anterior.pos_x++;
+		break;
+		case IZQUIERDA:
+			posicion_anterior.pos_x--;
+		break;
+	}
+
+	return posicion_anterior;
+}
+
 
 // El buen helloWorld, nada le gana
 void helloWorld() {

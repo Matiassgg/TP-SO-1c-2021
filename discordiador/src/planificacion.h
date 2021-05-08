@@ -12,6 +12,5 @@ t_list* agregar_tcbs(t_patota*);
 void crear_colas_planificacion(void);
 void liberar_pcb_patota(t_patota*);
 void planificacion_segun_FIFO(void);
-bool esta_en_el_lugar(t_posicion*, t_posicion*);
 
 #endif /* DISCORDIADOR_SRC_PLANIFICACION_H_ */

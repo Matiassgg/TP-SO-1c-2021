@@ -1,5 +1,5 @@
 # Include custom library paths here
-LIBRARY_PATHS=commons sys
+LIBRARY_PATHS=commons sys nivel-gui ncurses
 
 # ==============================================================================================================
 
