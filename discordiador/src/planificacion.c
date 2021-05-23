@@ -3,22 +3,25 @@
 void preparar_planificacion(){
 	void* convertir(char* algoritmo_nombre) {
 		if (son_iguales(algoritmo_nombre, "FIFO")) return (void*) planificacion_segun_FIFO;
-//		if (son_iguales(algoritmo_nombre, "RR")) return (void*) planificacion_segun_RR;
+		if (son_iguales(algoritmo_nombre, "RR")) return (void*) planificacion_segun_RR;
 		return NULL;
 	}
 
 	log_info(logger, "DISCORDIADOR :: Se crearan las colas de planificacion");
 	crear_colas_planificacion();
-	id_tcb=1;
+	id_tcb = 1;
 
 	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
-		log_info(logger, "Error al leer el algoritmo de planificacion");
+		log_error(logger, "Error al leer el algoritmo de planificacion");
 	else if(son_iguales(algoritmo, "RR"))
-		log_info(logger, "El algoritmo seleccionado es: %s con quantum de %d", algoritmo, quantum);
+		log_info(logger, "El algoritmo seleccionado es RR con quantum de %d", quantum);
+	else if(son_iguales(algoritmo, "FIFO"))
+		log_info(logger, "El algoritmo seleccionado es FIFO");
 	else
-		log_info(logger, "El algoritmo seleccionado es: %s", algoritmo);
+		log_info(logger, "El algoritmo seleccionado no coincide con ningun algoritmo valido");
+
 
 }
 
@@ -57,10 +60,40 @@ void planificacion_segun_FIFO() {
 		while(quedan_pasos(tripulante)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 		}
-		hacer_tarea(tripulante); // avisar a ram
+		hacer_tarea(tripulante);
+		// Avisar a ram que se esta haciendo la tarea
 
 		//FALTA SEGUIR :V
 	}
+}
+
+void planificacion_segun_RR() {
+	log_info(logger, "Sin implementar, anda a saber que pasa aca");
+	uint32_t quantum_de_config = quantum;
+
+	while (!queue_is_empty(cola_ready)) {
+		t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
+//		tripulante->estado = EXEC;
+
+		while(quantum_de_config > 0){
+
+			if(quedan_pasos(tripulante)) {
+				enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+			}
+			else {
+				// Si le dio el quantum para llegar a la posicion donde debe hacer la tarea
+				hacer_tarea(tripulante);
+				// Avisar a ram que se esta haciendo la tarea
+			}
+
+			quantum_de_config--;
+		}
+		queue_push(cola_ready, tripulante);	// VUelve a la cola de ready por fin de Q
+		quantum_de_config = quantum;
+		// TODO
+	}
+
+
 }
 
 t_pcb* crear_pcb(t_patota* patota){

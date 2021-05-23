@@ -23,7 +23,6 @@ t_patota* deserializar_iniciar_patota(uint32_t socket_cliente){
 		recv(socket_cliente, &(posiciones->pos_y), sizeof(uint32_t), 0);
 		list_add(msg->posiciones, posiciones);
 	}
-
 	recv(socket_cliente, &(msg->id_patota), sizeof(uint32_t), 0);
 
 	return msg;
@@ -44,7 +43,6 @@ t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente){
 
 	recv(socket_cliente, &(msg->posicion.pos_x), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(msg->posicion.pos_y), sizeof(uint32_t), 0);
-
 
 	return msg;
 }

@@ -18,7 +18,7 @@ void iniciar_tripulante(t_tripulante* tripulante){
 
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
 
-//	solicitar_tarea(tripulante);
+//	solicitar_tarea(tripulante);	// todo ram
 	queue_push(cola_ready, tripulante);
 }
 
@@ -68,7 +68,6 @@ t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion posicion_meta) {
 			direccion = IZQUIERDA;
 		}
 	} else {
-
 		if (quedan_movimientos(tripulante->posicion.pos_y, posicion_meta.pos_y)) {
 			if (tripulante->posicion.pos_y < posicion_meta.pos_y) {
 				tripulante->posicion.pos_y++;
@@ -79,7 +78,7 @@ t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion posicion_meta) {
 			}
 		}
 	}
-	log_info(logger, "El tripualnte %i esta en la posicion %i,%i yendo a %i,%i", tripulante->id, tripulante->posicion.pos_x,tripulante->posicion.pos_y, posicion_meta.pos_x, posicion_meta.pos_y);
+	log_info(logger, "El tripulante %i esta en la posicion %i,%i yendo a %i,%i", tripulante->id, tripulante->posicion.pos_x,tripulante->posicion.pos_y, posicion_meta.pos_x, posicion_meta.pos_y);
 
 	return direccion;
 }

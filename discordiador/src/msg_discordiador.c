@@ -168,11 +168,20 @@ void serializar_expulsar_tripulante(t_tripulante* msg, t_buffer* buffer) {
 	//------------ORDEN------------
 	//1. Id tripulante
 	//2. Id Patota asociada
-	//3. Posicion
-	//4. Tarea_act										???????
 	//-----------------------------
+	// Sera necesaria la posicion ? Si se la informo a RAM siempre ...
 
-	// uint32_t offset = 0;
+	uint32_t offset = 0;
+
+	buffer->size = sizeof(uint32_t)*2 + sizeof(t_posicion);
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(msg->id), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
 }
 
 

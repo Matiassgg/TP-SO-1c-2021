@@ -24,6 +24,7 @@
 #include "paquete.h"
 #include "sockets.h"
 #include "nivel-gui/tad_nivel.h"
+#include "nivel-gui/nivel-gui.h"
 
 t_log* iniciar_logger(char*, char*);
 int contar_elementos_array(char**);

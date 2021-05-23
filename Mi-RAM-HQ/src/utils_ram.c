@@ -38,6 +38,7 @@ void serve_client(int* socket_que_nos_pasan) {
 void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 	uint32_t buffer_size;
+	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
 	recv(cliente_fd, &buffer_size, sizeof(uint32_t), MSG_WAITALL);
 
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
@@ -52,7 +53,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			;
 			t_patota* patota = deserializar_iniciar_patota(cliente_fd);
 
-			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
+			log_info(logger, "RAM :: Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
@@ -62,9 +63,12 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case INICIAR_TRIPULANTE:
 			;
-			t_tripulante* tripulante = deserializar_iniciar_tripulante(cliente_fd);
+			tripulante = deserializar_iniciar_tripulante(cliente_fd);
 
-			log_info(logger, "Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
+			log_info(logger, "RAM :: Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
+
+			crear_tripulante(nivel, tripulante);	// todo
+
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
@@ -72,7 +76,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			break;
 		case LISTAR_TRIPULANTES:
 			;
-//			t_tripulante* tripulante = deserializar_listar_tripulantes(cliente_fd);
+//			tripulante = deserializar_listar_tripulantes(cliente_fd);
 
 			log_info(logger, "Nos llego LISTAR_TRIPULANTES");
 
@@ -83,6 +87,25 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 //			log_info(logger, "RAM :: Se enviaron los datos de los tripulantes");
 
 		break;
+		case EXPULSAR_TRIPULANTE:
+			;
+			tripulante = deserializar_expulsar_tripulante(cliente_fd);
+
+			log_info(logger, "RAM :: Nos llego EXPULSAR_TRIPULANTE para el tripulante %i", tripulante->id);
+
+			// Eiminará un tripulante tanto de las estructuras administrativas de la memoria, como también del mapa
+			// EN CASO QUE SEA NECESARIO eliminara su segmento de tareas
+
+			// item_borrar(nivel, tripulante->id);			// todo borrar del mapa
+
+
+			free(tripulante);	// por ahora no hay mucho que hacer uwu
+
+			log_info(logger, "RAM :: Se expulso al tripulante");
+
+		break;
+
+
 	}
 
 }
