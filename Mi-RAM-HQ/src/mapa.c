@@ -33,6 +33,6 @@ void iniciar_mapa_vacio() {
 }
 
 int crear_tripulante(NIVEL* nivel, t_tripulante* tripulante){
-	return personaje_crear(nivel, tripulante->id, tripulante->posicion.pos_x, tripulante->posicion.pos_y);
+	return personaje_crear(nivel, tripulante->id + '0', tripulante->posicion.pos_x, tripulante->posicion.pos_y);
 }
 
