@@ -109,3 +109,22 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	}
 
 }
+
+
+/*
+void eliminar_patota_de_swap(uint32_t idPatota){
+	bool entradas_de_la_patota(void* parametro) {
+		entradaSwap* entrada = (entradaSwap *) parametro;
+		return idPatota == entrada->idPatota;
+	}
+	t_list* marcosEnSwap = list_filter(entradas_swap, entradas_de_la_patota);
+
+	for(int i=0; i < list_size(marcosEnSwap); i++){
+		entradaSwap* entrada = list_get(marcosEnSwap,i);
+		entrada->libre = true;
+
+		borrar_de_swap(entrada->indiceMarcoSwap);
+	}
+
+}
+*/

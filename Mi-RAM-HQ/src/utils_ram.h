@@ -65,6 +65,12 @@ typedef struct {
 	char* discordiador;
 } entradaTablaMarcos;
 
+typedef struct {
+	int indiceMarcoSwap;
+	bool libre;
+	int idPatota;
+	// char* nombreTripulante;
+} entradaSwap;
 
 //---------MAIN--------//
 t_config* config; //1
@@ -95,7 +101,7 @@ pthread_mutex_t mutexFree;
 pthread_mutex_t mutexVictima;
 pthread_mutex_t mutexBuscarSegmento;
 pthread_mutex_t mutexBuscarPagina;
-pthread_mutex_t mutexBuscarInfoPedido;
+pthread_mutex_t mutexBuscarInfoTripulante;
 pthread_mutex_t mutexBuscarSwap;
 
 pthread_t hiloReceive;

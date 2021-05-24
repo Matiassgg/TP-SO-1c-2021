@@ -27,7 +27,7 @@ void iniciar_Mi_RAM_HQ() {
 	pthread_mutex_init(&mutexSwap, NULL);
 	pthread_mutex_init(&mutexBuscarSegmento, NULL);
 	pthread_mutex_init(&mutexBuscarPagina, NULL);
-	pthread_mutex_init(&mutexBuscarInfoPedido, NULL);
+	pthread_mutex_init(&mutexBuscarInfoTripulante, NULL);
 
     iniciar_memoria();
 

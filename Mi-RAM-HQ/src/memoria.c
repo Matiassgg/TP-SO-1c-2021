@@ -80,11 +80,44 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 
 	}
+}
 
+entradaTablaMarcos* buscar_entrada(void* marco){
+	bool el_que_quiero(void* parametro){
+		return ((entradaTablaMarcos*)parametro)->marco == marco;
+	}
+
+	return list_find(tablaDeMarcos, el_que_quiero);
+}
+
+entradaTablaMarcos* asignar_entrada_marco_libre(void){
+	bool este_libre(void* parametro){
+		return ((entradaTablaMarcos*)parametro)->libre;
+	}
+
+	if (!hay_marcos_libres()) {
+		log_info(logger, "No hay marcos libres. Seleccionando victima.");
+
+		pthread_t hilo;
+
+		pthread_mutex_lock(&mutexVictima);
+		pthread_create(&hilo, NULL, (void*) seleccionar_victima, NULL);
+		pthread_join(hilo, 0);
+		pthread_mutex_unlock(&mutexVictima);
+	}
+
+	t_list* entradas_marcos_libres = list_filter(tablaDeMarcos, este_libre);
+
+	entradaTablaMarcos* buscado = list_get(entradas_marcos_libres, 0);
+
+	list_destroy(entradas_marcos_libres);
+
+	return buscado;
+}
 
 void* convertir(char* algoritmo_nombre) {
 	if (!strcmp(algoritmo_nombre, "LRU")) return (void*) seleccionar_victima_LRU;
-	if (!strcmp(algoritmo_nombre, "CLOCK_ME")) return (void*) seleccionar_victima_CLOCK_ME;
+	if (!strcmp(algoritmo_nombre, "CLOCK")) return (void*) seleccionar_victima_CLOCK;
 
 	return NULL;
 	}
@@ -153,7 +186,7 @@ void seleccionar_victima_LRU(void){
 	pthread_mutex_unlock(&mutexFree);
 }
 
-void seleccionar_victima_CLOCK_ME(void){
+void seleccionar_victima_CLOCK(void){
 	int siguiente_posicion(int* posicion_actual){
 		return (*posicion_actual + 1) % cantidad_de_marcos;
 	}
@@ -210,5 +243,43 @@ void seleccionar_victima_CLOCK_ME(void){
 
 	pthread_mutex_unlock(&mutexFree);
 }
+
+bool ambos_bits_apagados(entradaTablaMarcos* entrada){
+	return (!entrada->bitModificado) && (!entrada->bitUso);
 }
+
+bool bit_uso(entradaTablaMarcos* entrada){
+	return entrada->bitUso;
+}
+
+bool bit_modificado(entradaTablaMarcos* entrada){
+	return entrada->bitModificado;
+}
+
+int indice_elemento(t_list* lista, void* elemento){
+	int indice = 0;
+	bool encontrado = false;
+
+	for (int i = 0; i < list_size(lista) && !encontrado; i++) {
+		if(list_get(lista, i) == elemento) encontrado = true;
+		indice = i;
+	}
+
+	return indice;
+}
+
+bool hay_marcos_libres(void){
+	bool este_libre(void* parametro){
+		return ((entradaTablaMarcos*)parametro)->libre;
+	}
+
+	t_list* marcos_libres = list_filter(tablaDeMarcos, este_libre);
+
+	int tamanio = list_size(marcos_libres);
+
+	list_destroy(marcos_libres);
+
+	return tamanio > 0;
+}
+
 
