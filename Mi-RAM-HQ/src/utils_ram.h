@@ -6,6 +6,10 @@
 #include "mapa.h"
 
 
+//---------FUNCIONES--------//
+void* seleccionar_victima;
+//-------------------------//
+
 //---------CONFIG--------//
 char* ip_Mi_RAM_HQ;
 char* puerto_escucha;
@@ -44,10 +48,59 @@ typedef struct {
 
 t_config* config;
 t_log* logger;
-pthread_t hiloReceive;
 
 void* memoria;
 FILE* espacio_swap;
+
+//
+
+typedef struct {
+	uint32_t indice;
+	void* marco;
+	bool libre;
+	bool bitUso;
+	bool bitModificado;
+	char* timeStamp;
+	int idPatota;
+	char* discordiador;
+} entradaTablaMarcos;
+
+
+//---------MAIN--------//
+t_config* config; //1
+t_log* logger; //1
+uint32_t socketConexionApp;//1
+void* memoria;
+FILE* espacio_swap;
+t_list* entradas_swap;
+uint32_t tamanio_pagina;
+t_dictionary* dic_discordiador_tabla_segmentos;
+// uint32_t tamanio_nombre_plato_maximo;
+t_list* patotasCreadas;
+entradaTablaMarcos* punteroMarcoClock;
+t_list* tablaDeMarcos;
+//-------------------------//
+
+//Semaforos
+pthread_mutex_t mutexTablaMarcos;
+pthread_mutex_t mutexEntradasSwap;
+pthread_mutex_t mutexMemoria;
+pthread_mutex_t mutexSwap;
+pthread_mutex_t mutexTablaSegmentos;
+// pthread_mutex_t mutexInfoTripulanteAEnviar;
+pthread_mutex_t mutexEscribirMemoria;
+pthread_mutex_t mutexEliminarDeMemoria;
+pthread_mutex_t mutexPatotasCreados;
+pthread_mutex_t mutexFree;
+pthread_mutex_t mutexVictima;
+pthread_mutex_t mutexBuscarSegmento;
+pthread_mutex_t mutexBuscarPagina;
+pthread_mutex_t mutexBuscarInfoPedido;
+pthread_mutex_t mutexBuscarSwap;
+
+pthread_t hiloReceive;
+
+//Server
 
 void arrancar_servidor(void);
 void serve_client(int*);
