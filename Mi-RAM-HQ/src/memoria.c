@@ -203,7 +203,7 @@ void seleccionar_victima_CLOCK(void){
 	while (!victima_seleccionada) {
 		if (!victima_seleccionada) {
 			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
-				if (ambos_bits_apagados(punteroMarcoClock)) victima_seleccionada = true;
+				if (bit_uso_apagado(punteroMarcoClock)) victima_seleccionada = true;
 				if(!victima_seleccionada){
 					// referencio a la siguiente entrada
 					punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
@@ -213,6 +213,7 @@ void seleccionar_victima_CLOCK(void){
 				}
 			}
 		}
+/* CREO QUE ESTO NO HACE FALTA, CONSULTAR CON LOS PIBARDOS
 
 		if (!victima_seleccionada) {
 			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
@@ -230,6 +231,7 @@ void seleccionar_victima_CLOCK(void){
 				}
 			}
 		}
+*/
 	}
 
 
@@ -244,16 +246,13 @@ void seleccionar_victima_CLOCK(void){
 	pthread_mutex_unlock(&mutexFree);
 }
 
-bool ambos_bits_apagados(entradaTablaMarcos* entrada){
-	return (!entrada->bitModificado) && (!entrada->bitUso);
+
+bool bit_uso_apagado(entradaTablaMarcos* entrada){
+	return !entrada->bitUso;
 }
 
 bool bit_uso(entradaTablaMarcos* entrada){
 	return entrada->bitUso;
-}
-
-bool bit_modificado(entradaTablaMarcos* entrada){
-	return entrada->bitModificado;
 }
 
 int indice_elemento(t_list* lista, void* elemento){

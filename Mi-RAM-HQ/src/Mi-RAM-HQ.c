@@ -42,8 +42,11 @@ void leer_config() {
 	config = config_create(ARCHIVO_CONFIG);
 
 	pthread_mutex_init(&mutexTablaSegmentos, NULL);
+	pthread_mutex_init(&mutexInfoPatotaAEnviar, NULL);
+	pthread_mutex_init(&mutexInfoPatotaAEnviar, NULL);
 	pthread_mutex_init(&mutexEscribirMemoria, NULL);
 	pthread_mutex_init(&mutexEliminarDeMemoria, NULL);
+	pthread_mutex_init(&mutexPatotasCreadas, NULL);
 	pthread_mutex_init(&mutexFree, NULL);
 	pthread_mutex_init(&mutexVictima, NULL);
 
