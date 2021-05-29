@@ -18,9 +18,10 @@ bool hay_marcos_libres(void);
 entradaTablaMarcos* buscar_entrada(void* marco);
 entradaTablaMarcos* asignar_entrada_marco_libre(void);
 bool ambos_bits_apagados(entradaTablaMarcos* entrada);
+bool bit_uso_apagado(entradaTablaMarcos* entrada);
 bool bit_uso(entradaTablaMarcos* entrada);
 bool bit_modificado(entradaTablaMarcos* entrada);
-
+int indice_elemento(t_list* lista, void* elemento);
 int cantidad_de_marcos;
 int cantidad_de_marcos_swap;
 

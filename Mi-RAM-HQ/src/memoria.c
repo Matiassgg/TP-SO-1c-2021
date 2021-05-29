@@ -57,29 +57,48 @@ void preparar_memoria_para_esquema_de_segmentacion() {
 
 
 void preparar_memoria_para_esquema_de_paginacion() {
-	int cantidad_de_marcos = 0;
+	cantidad_de_marcos = 0;
+	cantidad_de_marcos_swap=0;
 
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
 		// Cargar estructuras administrativass
-		// entradaATablaDEMarcos* nuevaEntrada = malloc(sizeof(******));
-
-
-		// list_add(tablaDeMarcos, nuevaEntrada);
-		// log_info(logger, "SE agrega el marco numero: %d", nuevaEntrada->****);
-		cantidad_de_marcos++;
-
+		log_info(logger, "Desplazamiento: %d", offset);
 		void* marco = memoria + offset;
+
+		entradaTablaMarcos* nuevaEntrada = malloc(sizeof(entradaTablaMarcos));
+		nuevaEntrada->indice = cantidad_de_marcos;
+		nuevaEntrada->bitModificado = false;
+		nuevaEntrada->bitUso = false;
+		nuevaEntrada->idPatota = -1;
+		nuevaEntrada->libre = true;
+		nuevaEntrada->marco = marco;
+		nuevaEntrada->discordiador = NULL;
+		nuevaEntrada->timeStamp = NULL;
+
+		list_add(tablaDeMarcos, nuevaEntrada);
+		log_info(logger, "Marco numero: %d", nuevaEntrada->indice);
+		cantidad_de_marcos++;
 	}
 
-	log_info(logger, "Cantidad de Marcos Libres: %d", cantidad_de_marcos);
-
+	int indice=0;
 
 	// Aca viene la parte de swap
 	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
 		void* marco = memoria + offset;
 
+		entradaSwap* nuevaEntrada = malloc(sizeof(entradaSwap));
+		nuevaEntrada->idPatota = -1;
+		nuevaEntrada->libre = true;
+		nuevaEntrada->indiceMarcoSwap = indice;
+		indice ++;
 
+		list_add(entradas_swap, nuevaEntrada);
+		cantidad_de_marcos_swap++;
 	}
+
+	log_info(logger, "Cantidad de Marcos Libres: %d", cantidad_de_marcos);
+	log_info(logger, "Cantidad de Marcos en SWAP: %d",cantidad_de_marcos_swap);
+
 }
 
 entradaTablaMarcos* buscar_entrada(void* marco){

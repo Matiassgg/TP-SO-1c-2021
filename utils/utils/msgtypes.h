@@ -30,7 +30,7 @@ typedef struct {
 	uint32_t pos_x;
 	uint32_t pos_y;
 } t_posicion;
-
+//--------ESTRUCTURAS-------//
 typedef struct{
 	uint32_t pid; //Identificador de la Patota
 	uint32_t tareas; //Dirección lógica del inicio de las Tareas
