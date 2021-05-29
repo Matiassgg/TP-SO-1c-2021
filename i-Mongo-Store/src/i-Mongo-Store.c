@@ -15,17 +15,31 @@ void iniciar_mongo(void) {
 	leer_config();
 	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
     log_info(logger, "Ya obtuvimos la config del mongo\n");
+    FS_RESET();
+    crear_punto_de_montaje();
+}
+
+void FS_RESET(){
+	uint32_t borrarFS;
+	printf("Desea reiniciar el FileSystem? (SI=1 | NO=0) :");
+	scanf("%d",&borrarFS);
+
+	if(borrarFS){
+		char* aux = string_new();
+		string_append_with_format(&aux, "sh eliminadorFS.sh %s", punto_montaje);
+		system(aux);
+		free(aux);
+	}
+}
+
+void crear_punto_de_montaje(void){
+
 }
 
 void leer_config(void) {
 	config = config_create(ARCHIVO_CONFIG);
 
-
-	ip_Mongo_Store = config_get_string_value(config, "IP_I_MONGO_STORE");
-	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
-	ip_Mi_RAM_HQ = config_get_string_value(config, "IP_MI_RAM_HQ");
-	puerto_Mi_RAM_HQ = config_get_string_value(config, "PUERTO_MI_RAM_HQ");
-	ip_discordiador = config_get_string_value(config, "IP_DISCORDIADOR");
-	puerto_discordiador = config_get_string_value(config, "PUERTO_DISCORDIADOR");
+	punto_montaje = config_get_string_value(config,"PUNTO_MONTAJE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 }
+

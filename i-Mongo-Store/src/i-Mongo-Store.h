@@ -8,5 +8,7 @@
 
 void iniciar_mongo(void);
 void leer_config(void);
+void FS_RESET();
+void crear_punto_de_montaje();
 
 #endif /* I_MONGO_STORE_SRC_I_MONGO_STORE_H_ */
