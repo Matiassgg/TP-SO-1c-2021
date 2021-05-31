@@ -11,6 +11,8 @@ void preparar_planificacion(){
 	crear_colas_planificacion();
 	id_tcb = 1;
 
+	pthread_mutex_init(&mutex_cola_ready, NULL);
+
 	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
@@ -43,8 +45,8 @@ void planificar_patota(t_patota* patota){
 }
 
 void iniciar_planificacion(){
-
 	for(int i=0; i<grado_multitarea; i++){
+		log_info(logger, "Se entro al for de iniciar plani");
 		pthread_t planificar_corto;
 		pthread_create(&planificar_corto, NULL, (void*) planificacion_corto_plazo, NULL);
 		pthread_detach(planificar_corto);
@@ -52,18 +54,24 @@ void iniciar_planificacion(){
 }
 
 void planificacion_segun_FIFO() {
+	log_info(logger, "Se entro a FIFO");
 
-	while (!queue_is_empty(cola_ready)) {
-		t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
-//		tripulante->estado = EXEC; // avisar a ram?
+	while(1){
+		while (!queue_is_empty(cola_ready)) {
+			log_info(logger, "Se entro al while");
+			pthread_mutex_lock(&mutex_cola_ready);
+			t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
+			pthread_mutex_unlock(&mutex_cola_ready);
+	//		tripulante->estado = EXEC; // avisar a ram?
 
-		while(quedan_pasos(tripulante)){
-			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+			while(quedan_pasos(tripulante)){
+				enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+			}
+			hacer_tarea(tripulante);
+			// Avisar a ram que se esta haciendo la tarea
+
+			//FALTA SEGUIR :V
 		}
-		hacer_tarea(tripulante);
-		// Avisar a ram que se esta haciendo la tarea
-
-		//FALTA SEGUIR :V
 	}
 }
 

@@ -20,6 +20,7 @@ void iniciar_Mi_RAM_HQ() {
 	tablaDeMarcos = list_create();
 	entradas_swap = list_create();
 	patotasCreadas = list_create();
+	tareas = list_create();
 
 	pthread_mutex_init(&mutexTablaMarcos, NULL);
 	pthread_mutex_init(&mutexEntradasSwap, NULL);
@@ -29,12 +30,12 @@ void iniciar_Mi_RAM_HQ() {
 	pthread_mutex_init(&mutexBuscarPagina, NULL);
 	pthread_mutex_init(&mutexBuscarInfoTripulante, NULL);
 
-    iniciar_memoria();
-
-    // Leer Algoritmo Seleccion de Victima
-    	if ((seleccionar_victima = convertir(algoritmo_reemplazo)) == NULL) {
-    		log_info(logger, "Error al leer el algoritmo de Reemplazo");
-    	} else {log_info(logger, "El algoritmo de reemplazo seleccionado es: %s", algoritmo_reemplazo);}
+//    iniciar_memoria();
+//
+//    // Leer Algoritmo Seleccion de Victima
+//    	if ((seleccionar_victima = convertir(algoritmo_reemplazo)) == NULL) {
+//    		log_info(logger, "Error al leer el algoritmo de Reemplazo");
+//    	} else {log_info(logger, "El algoritmo de reemplazo seleccionado es: %s", algoritmo_reemplazo);}
 
 }
 

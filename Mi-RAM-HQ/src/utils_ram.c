@@ -55,6 +55,8 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
+			obtener_tareas(patota);
+
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
 			list_destroy(patota->posiciones);
@@ -62,12 +64,11 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(patota);
 		break;
 		case INICIAR_TRIPULANTE:
-			;
 			tripulante = deserializar_iniciar_tripulante(cliente_fd);
 
 			log_info(logger, "RAM :: Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
 
-			crear_tripulante(nivel, tripulante);	// todo
+//			crear_tripulante(nivel, tripulante);	// todo
 
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
@@ -75,8 +76,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(tripulante);
 			break;
 		case LISTAR_TRIPULANTES:
-			;
-//			tripulante = deserializar_listar_tripulantes(cliente_fd);
 
 			log_info(logger, "Nos llego LISTAR_TRIPULANTES");
 
@@ -88,7 +87,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 		break;
 		case EXPULSAR_TRIPULANTE:
-			;
 			tripulante = deserializar_expulsar_tripulante(cliente_fd);
 
 			log_info(logger, "RAM :: Nos llego EXPULSAR_TRIPULANTE para el tripulante %i", tripulante->id);
@@ -104,10 +102,26 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "RAM :: Se expulso al tripulante");
 
 		break;
+		case SOLICITAR_TAREA:
+			tripulante = deserializar_solicitar_tarea(cliente_fd);
 
+			log_info(logger, "RAM :: Nos llego SOLICITAR_TAREA para el tripulante %i", tripulante->id);
 
+			t_tarea* tarea = obtener_tarea(tripulante);
+
+			if(tarea == NULL){
+				log_info(logger, "RAM :: Ya no hay mas tareas a esa patota");
+
+			}
+
+			enviar_solicitar_tarea_respuesta(tarea,cliente_fd);
+
+			free(tripulante);
+
+			log_info(logger, "RAM :: Se da la tarea");
+
+		break;
 	}
-
 }
 
 
@@ -128,3 +142,85 @@ void eliminar_patota_de_swap(uint32_t idPatota){
 
 }
 */
+
+
+t_tarea* obtener_tarea(t_tripulante* tripulante){
+	t_queue* pila_tareas = list_get(tareas, tripulante->id_patota_asociado-1);
+
+	if(queue_is_empty(pila_tareas))
+		return NULL;
+
+	t_tarea* tarea = queue_pop(pila_tareas);
+	return tarea;
+}
+
+
+void obtener_tareas(t_patota* patota){
+	t_queue* pila_tareas = queue_create();
+	char* leido = malloc(sizeof(char));
+	int i=0;
+
+	char* path = string_new();
+	path = string_duplicate("/home/utnso/tp-2021-1c-LaMitad-1/discordiador/tareasPatota");
+
+	string_append_with_format(&path, "%s.txt", string_itoa(patota->id_patota));
+
+	printf("%s", path);
+
+	FILE* archivo = fopen(path, "r+");
+
+	while(fread(leido+i,1,1,archivo)){
+		i++;
+		leido= (char*) realloc(leido,i+1);
+	}
+	leido= (char*) realloc(leido,i+1);
+
+	char** lines = string_split(leido, "\n");
+
+	void add_cofiguration(char *line) {
+		if (!string_starts_with(line, "#")) {
+			t_tarea* tarea = obtener_tarea_archivo(line);
+			queue_push(pila_tareas, tarea);
+		}
+	}
+	string_iterate_lines(lines, add_cofiguration);
+	string_iterate_lines(lines, (void*) free);
+
+	list_add(tareas,pila_tareas);
+
+	free(lines);
+}
+
+
+t_tarea* obtener_tarea_archivo(char* tarea_string){
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+
+	char** tarea_parametros = string_n_split(tarea_string, 2, " ");
+	char** parametros = string_n_split(tarea_parametros[1], 4, ";");
+
+	tarea->tarea = obtener_nombre_tarea(tarea_parametros[0]);
+	tarea->parametro = atoi(parametros[0]);
+	tarea->posicion.pos_x = atoi(parametros[1]);
+	tarea->posicion.pos_y = atoi(parametros[2]);
+	tarea->tiempo = atoi(parametros[3]);
+
+	return tarea;
+}
+
+e_tarea obtener_nombre_tarea(char* tarea){
+	if(son_iguales(tarea,"GENERAR_OXIGENO"))
+		return GENERAR_OXIGENO;
+	if(son_iguales(tarea,"CONSUMIR_OXIGENO"))
+		return CONSUMIR_OXIGENO;
+	if(son_iguales(tarea,"GENERAR_COMIDA"))
+		return GENERAR_COMIDA;
+	if(son_iguales(tarea,"CONSUMIR_COMIDA"))
+		return CONSUMIR_COMIDA;
+	if(son_iguales(tarea,"GENERAR_BASURA"))
+		return GENERAR_BASURA;
+	if(son_iguales(tarea,"DESCARTAR_BASURA"))
+		return DESCARTAR_BASURA;
+}
+
+
+

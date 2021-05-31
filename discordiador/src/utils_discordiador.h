@@ -37,6 +37,9 @@ t_queue* cola_exit;
 t_queue* cola_bloq_E_S;
 t_queue* cola_bloq_Emergencia;
 
+
+pthread_mutex_t mutex_cola_ready;
+
 uint32_t cantidad_patotas;
 //t_list* patotas;
 uint32_t id_tcb;

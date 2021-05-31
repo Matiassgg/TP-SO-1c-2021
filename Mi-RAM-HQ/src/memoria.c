@@ -11,10 +11,10 @@ void iniciar_memoria() {
 		return;
 	}
 
-	// FALTA
-	// Dibujar el mapa inicial vacío
-	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
-	pthread_detach(hiloReceive);
+//	// FALTA
+//	// Dibujar el mapa inicial vacío
+//	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
+//	pthread_detach(hiloReceive);
 
 }
 
@@ -31,7 +31,6 @@ void preparar_memoria() {
 		log_info(logger, "El esquema de memoria seleccionado es PAGINACION SIMPLE CON MEMORIA VIRTUAL");
 		preparar_memoria_para_esquema_de_paginacion();
 	}
-
 	else
 		log_warning(logger,"El esquema de memoria seleccionado no coincide con ningun esquema");
 
@@ -43,9 +42,6 @@ void preparar_memoria() {
 		log_info(logger, "El algoritmo de reemplazo seleccionado es CLOCK");
 	else
 		log_warning(logger,"El algoritmo de reemplazo seleccionado no coincide con ningun algoritmo valido");
-
-
-
 }
 
 void preparar_memoria_para_esquema_de_segmentacion() {

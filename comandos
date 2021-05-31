@@ -3,9 +3,14 @@ Discordiador
 ESTAS_ON Mi-RAM-HQ
 ESTAS_ON i-Mongo-Store
 INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4
-INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 3|4
 LISTAR_TRIPULANTES
 EXPULSAR_TRIPULANTE
 INICIAR_PLANIFICACION
 PAUSAR_PLANIFICACION
 OBTENER_BITACORA
+
+
+TEST
+
+INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 3|4
+INICIAR_PLANIFICACION

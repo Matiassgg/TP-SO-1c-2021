@@ -11,6 +11,12 @@ void enviar_iniciar_tripulante(t_tripulante* tripulante, uint32_t socket_conexio
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
+void enviar_solicitar_tarea(t_tripulante* tripulante, uint32_t socket_conexion){
+	t_paquete* paquete_a_enviar = crear_paquete(SOLICITAR_TAREA);
+	serializar_solicitar_tarea(tripulante, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
 void enviar_RAM_listar_tripulantes(t_tripulante* tripulante, uint32_t socket_conexion){
 	t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
 	serializar_listar_tripulantes(tripulante, paquete_a_enviar->buffer);
@@ -163,7 +169,6 @@ void serializar_listar_tripulantes(t_tripulante* msg, t_buffer* buffer) {
 	offset += sizeof(uint32_t);
 }
 
-
 void serializar_expulsar_tripulante(t_tripulante* msg, t_buffer* buffer) {
 	//------------ORDEN------------
 	//1. Id tripulante
@@ -184,4 +189,51 @@ void serializar_expulsar_tripulante(t_tripulante* msg, t_buffer* buffer) {
 
 }
 
+void serializar_solicitar_tarea(t_tripulante* msg, t_buffer* buffer){
+	//------------ORDEN------------
+	//1. Id tripulante
+	//2. Id Patota asociada
+	//-----------------------------
+
+	uint32_t offset = 0;
+
+	buffer->size = sizeof(uint32_t)*2 + sizeof(t_posicion);
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(msg->id), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+}
+
+t_tarea* recibir_tarea(uint32_t socket_cliente){
+	int aux;
+	recv(socket_cliente, &aux, sizeof(op_code), MSG_WAITALL);
+	recv(socket_cliente, &aux, sizeof(uint32_t), MSG_WAITALL);
+
+	return deserializar_solicitar_tarea_respuesta(socket_cliente);
+
+}
+
+t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente) {
+	//------------ORDEN------------
+	//1. Tarea
+	//2. Parametro
+	//3. Posicion X
+	//4. Posicion Y
+	//5. Tiempo
+	//-----------------------------
+
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+
+	recv(socket_cliente, &(tarea->tarea), sizeof(e_tarea), 0);
+	recv(socket_cliente, &(tarea->parametro), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->posicion.pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->posicion.pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->tiempo), sizeof(uint32_t), 0);
+
+	return tarea;
+}
 

@@ -85,6 +85,8 @@ t_dictionary* dic_discordiador_tabla_segmentos;
 t_list* patotasCreadas;
 entradaTablaMarcos* punteroMarcoClock;
 t_list* tablaDeMarcos;
+t_list* tareas;
+char* path_tareas;
 //-------------------------//
 
 //Semaforos
@@ -111,5 +113,9 @@ pthread_t hiloReceive;
 void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
+t_tarea* obtener_tarea(t_tripulante* tripulante);
+void obtener_tareas(t_patota* patota);
+t_tarea* obtener_tarea_archivo(char* tarea_string);
+e_tarea obtener_nombre_tarea(char* tarea);
 
 #endif /* MI_RAM_HQ_SRC_UTILS_RAM_H_ */
