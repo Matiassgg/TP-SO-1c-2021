@@ -31,8 +31,8 @@ int existe_en_array(char** array, char* elemento_buscado) {
 		return 0;
 }
 
-t_posicion obtener_posicion_origen(t_posicion posicion, t_movimiento direccion){
-	t_posicion posicion_anterior = posicion;
+t_posicion obtener_posicion_origen(t_posicion* posicion, t_movimiento direccion){
+	t_posicion posicion_anterior = *posicion;
 
 	switch(direccion){
 		case ARRIBA:

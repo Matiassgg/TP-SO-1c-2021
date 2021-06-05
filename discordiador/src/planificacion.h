@@ -6,7 +6,9 @@
 
 void preparar_planificacion(void);
 void planificar_patota(t_patota*);
+void arrancar_planificacion();
 void iniciar_planificacion(void);
+void pausar_planificacion(void);
 t_pcb* crear_pcb(t_patota*);
 t_list* agregar_tcbs(t_patota*);
 void crear_colas_planificacion(void);

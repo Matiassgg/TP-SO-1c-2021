@@ -55,9 +55,9 @@ void serializar_solicitar_tarea_respuesta(t_tarea* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->parametro), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(msg->posicion.pos_x), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(buffer->stream + offset, &(msg->posicion.pos_y), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
 	memcpy(buffer->stream + offset, &(msg->tiempo), sizeof(uint32_t));

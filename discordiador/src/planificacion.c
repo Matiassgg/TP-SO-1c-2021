@@ -12,6 +12,7 @@ void preparar_planificacion(){
 	id_tcb = 1;
 
 	pthread_mutex_init(&mutex_cola_ready, NULL);
+	sem_init(&semaforo_planificacion, 0, 0);
 
 	planificacion_corto_plazo = convertir(algoritmo);
 
@@ -43,8 +44,7 @@ void planificar_patota(t_patota* patota){
 
 
 }
-
-void iniciar_planificacion(){
+void arrancar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
 		log_info(logger, "Se entro al for de iniciar plani");
 		pthread_t planificar_corto;
@@ -53,9 +53,27 @@ void iniciar_planificacion(){
 	}
 }
 
-void planificacion_segun_FIFO() {
-	log_info(logger, "Se entro a FIFO");
+void iniciar_planificacion(){
+	for(int i=0; i<grado_multitarea; i++){
+		sem_post(&semaforo_planificacion);
+		log_info(logger, "Se inicia plani");
+	}
+}
 
+void pausar_planificacion(){
+	for(int i=0; i<grado_multitarea; i++){
+		sem_wait(&semaforo_planificacion);
+//		 TODO no estaria funcionando, si se bloquea,
+//		pero cuado plani hace el post deberia pasar este
+//		y asi bloquearse los de plani pero estos se
+//		quedan bloqueados y los de plani siguen
+		log_info(logger, "Se pausa plani");
+	}
+}
+
+void planificacion_segun_FIFO() {
+	sem_wait(&semaforo_planificacion);
+	log_info(logger, "Se entro a FIFO");
 	while(1){
 		while (!queue_is_empty(cola_ready)) {
 			log_info(logger, "Se entro al while");
@@ -73,34 +91,40 @@ void planificacion_segun_FIFO() {
 			//FALTA SEGUIR :V
 		}
 	}
+	sem_post(&semaforo_planificacion);
 }
 
 void planificacion_segun_RR() {
-	log_info(logger, "Sin implementar, anda a saber que pasa aca");
-	uint32_t quantum_de_config = quantum;
+	sem_wait(&semaforo_planificacion);
+	log_info(logger, "Se entro a RR");
 
-	while (!queue_is_empty(cola_ready)) {
-		t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
-//		tripulante->estado = EXEC;
+	while(1){
+		uint32_t quantum_de_config = quantum;
 
-		while(quantum_de_config > 0){
+		while (!queue_is_empty(cola_ready)) {
+			t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
+		//		tripulante->estado = EXEC;
 
-			if(quedan_pasos(tripulante)) {
-				enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+			while(quantum_de_config > 0){
+
+				if(quedan_pasos(tripulante)) {
+					enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+				}
+				else {
+					// Si le dio el quantum para llegar a la posicion donde debe hacer la tarea
+					hacer_tarea(tripulante);
+					// Avisar a ram que se esta haciendo la tarea
+				}
+
+				quantum_de_config--;
 			}
-			else {
-				// Si le dio el quantum para llegar a la posicion donde debe hacer la tarea
-				hacer_tarea(tripulante);
-				// Avisar a ram que se esta haciendo la tarea
-			}
-
-			quantum_de_config--;
+			if(quedan_pasos(tripulante))
+				queue_push(cola_ready, tripulante);	// Vuelve a la cola de ready por fin de Q
+			quantum_de_config = quantum;
+			// TODO
 		}
-		queue_push(cola_ready, tripulante);	// VUelve a la cola de ready por fin de Q
-		quantum_de_config = quantum;
-		// TODO
 	}
-
+	sem_post(&semaforo_planificacion);
 
 }
 

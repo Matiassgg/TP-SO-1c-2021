@@ -36,13 +36,14 @@ t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente){
 	//4. Posicion Y
 	//-----------------------------
 	t_tripulante* msg = malloc(sizeof(t_tripulante));
+	msg->posicion = malloc(sizeof(t_posicion));
 
 	recv(socket_cliente, &(msg->id), sizeof(uint32_t), 0);
 
 	recv(socket_cliente, &(msg->id_patota_asociado), sizeof(uint32_t), 0);
 
-	recv(socket_cliente, &(msg->posicion.pos_x), sizeof(uint32_t), 0);
-	recv(socket_cliente, &(msg->posicion.pos_y), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(msg->posicion->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(msg->posicion->pos_y), sizeof(uint32_t), 0);
 
 	return msg;
 }

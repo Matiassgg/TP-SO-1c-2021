@@ -39,6 +39,7 @@ t_queue* cola_bloq_Emergencia;
 
 
 pthread_mutex_t mutex_cola_ready;
+sem_t semaforo_planificacion;
 
 uint32_t cantidad_patotas;
 //t_list* patotas;

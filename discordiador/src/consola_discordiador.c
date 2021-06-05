@@ -146,6 +146,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		log_info(logger, "DISCORDIADOR :: Se esta deteniendo la planificacion");
 
+		pausar_planificacion();
+
 		return;
 	}
 
@@ -172,13 +174,14 @@ t_patota* de_consola_a_patota(char** palabras_del_mensaje){
 	patota->tam_path = string_length(palabras_del_mensaje[2]);
 	patota->path_tareas = string_duplicate(palabras_del_mensaje[2]);
 
-	t_posicion* pos_ini = malloc(sizeof(t_posicion));
 	for(; palabras_del_mensaje[3+cant_posiciones] != NULL; cant_posiciones++){
-		char** posicion = string_split(palabras_del_mensaje[3+cant_posiciones], "|");
+		t_posicion* pos_ini = malloc(sizeof(t_posicion));char** posicion = string_split(palabras_del_mensaje[3+cant_posiciones], "|");
 //		char** posicion = string_get_string_as_array(palabras_del_mensaje[3+cant_posiciones]); si podemos ponerlas como [posX,posY]
 
 		pos_ini->pos_x = (uint32_t) atoi(posicion[0]);
 		pos_ini->pos_y = (uint32_t) atoi(posicion[1]);
+		log_info(logger, "posicion %i,%i", pos_ini->pos_x,pos_ini->pos_y);
+
 		list_add(patota->posiciones, pos_ini);
 
 		string_iterate_lines(posicion, (void*) free);
@@ -186,6 +189,7 @@ t_patota* de_consola_a_patota(char** palabras_del_mensaje){
 
 	if(cant_posiciones < patota->cant_tripulantes) {
 		for(;cant_posiciones < patota->cant_tripulantes; cant_posiciones++){
+			t_posicion* pos_ini = malloc(sizeof(t_posicion));
 			pos_ini->pos_x = 0;
 			pos_ini->pos_y = 0;
 			list_add(patota->posiciones, pos_ini);

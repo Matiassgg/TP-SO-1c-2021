@@ -98,9 +98,9 @@ void serializar_iniciar_tripulante(t_tripulante* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(msg->posicion.pos_x), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(buffer->stream + offset, &(msg->posicion.pos_y), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
 }
 
 void serializar_mover_hacia_RAM(uint32_t id_tripulante, t_movimiento direccion, t_buffer* buffer){
@@ -140,10 +140,10 @@ void serializar_mover_hacia_Mongo(t_tripulante* tripulante,t_movimiento direccio
 	memcpy(buffer->stream + offset, &(posicion_origen.pos_y), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(tripulante->posicion.pos_x), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(tripulante->posicion->pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(tripulante->posicion.pos_y), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(tripulante->posicion->pos_y), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 }
 
@@ -227,11 +227,12 @@ t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente) {
 	//-----------------------------
 
 	t_tarea* tarea = malloc(sizeof(t_tarea));
+	tarea->posicion = malloc(sizeof(t_posicion));
 
 	recv(socket_cliente, &(tarea->tarea), sizeof(e_tarea), 0);
 	recv(socket_cliente, &(tarea->parametro), sizeof(uint32_t), 0);
-	recv(socket_cliente, &(tarea->posicion.pos_x), sizeof(uint32_t), 0);
-	recv(socket_cliente, &(tarea->posicion.pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->posicion->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->posicion->pos_y), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(tarea->tiempo), sizeof(uint32_t), 0);
 
 	return tarea;

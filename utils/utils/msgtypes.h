@@ -57,7 +57,7 @@ typedef enum {
 typedef struct {
 	e_tarea tarea;
     uint32_t parametro;
-	t_posicion posicion;
+	t_posicion* posicion;
     uint32_t tiempo;
 } t_tarea;
 
@@ -65,7 +65,7 @@ typedef struct {
 typedef struct {
 	uint32_t id;
 	uint32_t id_patota_asociado;
-	t_posicion posicion;
+	t_posicion* posicion;
 	t_tarea* tarea_act;
 	t_estado estado;
 	bool quantum;

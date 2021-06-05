@@ -145,10 +145,17 @@ void eliminar_patota_de_swap(uint32_t idPatota){
 
 
 t_tarea* obtener_tarea(t_tripulante* tripulante){
+	if(list_is_empty(tareas)){
+		log_warning(logger, "No hay tareas");
+		return NULL;
+	}
+
 	t_queue* pila_tareas = list_get(tareas, tripulante->id_patota_asociado-1);
 
-	if(queue_is_empty(pila_tareas))
+	if(queue_is_empty(pila_tareas)){
+		log_warning(logger, "No hay quedan tareas para la patota");
 		return NULL;
+	}
 
 	t_tarea* tarea = queue_pop(pila_tareas);
 	return tarea;
@@ -165,7 +172,7 @@ void obtener_tareas(t_patota* patota){
 
 	string_append_with_format(&path, "%s.txt", string_itoa(patota->id_patota));
 
-	printf("%s", path);
+	log_info(logger,"%s", path);
 
 	FILE* archivo = fopen(path, "r+");
 
@@ -180,6 +187,7 @@ void obtener_tareas(t_patota* patota){
 	void add_cofiguration(char *line) {
 		if (!string_starts_with(line, "#")) {
 			t_tarea* tarea = obtener_tarea_archivo(line);
+			log_info(logger, "La tarea esta en la posicion %i,%i", tarea->posicion->pos_x, tarea->posicion->pos_y);
 			queue_push(pila_tareas, tarea);
 		}
 	}
@@ -194,15 +202,18 @@ void obtener_tareas(t_patota* patota){
 
 t_tarea* obtener_tarea_archivo(char* tarea_string){
 	t_tarea* tarea = malloc(sizeof(t_tarea));
+	tarea->posicion = malloc(sizeof(t_posicion));
 
 	char** tarea_parametros = string_n_split(tarea_string, 2, " ");
 	char** parametros = string_n_split(tarea_parametros[1], 4, ";");
 
 	tarea->tarea = obtener_nombre_tarea(tarea_parametros[0]);
 	tarea->parametro = atoi(parametros[0]);
-	tarea->posicion.pos_x = atoi(parametros[1]);
-	tarea->posicion.pos_y = atoi(parametros[2]);
+	tarea->posicion->pos_x = atoi(parametros[1]);
+	tarea->posicion->pos_y = atoi(parametros[2]);
 	tarea->tiempo = atoi(parametros[3]);
+
+	log_info(logger, "La tarea esta en la posicion %i,%i", tarea->posicion->pos_x, tarea->posicion->pos_y);
 
 	return tarea;
 }

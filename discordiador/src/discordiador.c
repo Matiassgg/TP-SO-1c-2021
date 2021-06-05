@@ -21,6 +21,7 @@ void iniciar_discordiador() {
 
     conectar_modulos(); // TAL VEZ NO SEA ASI
     preparar_planificacion();
+    arrancar_planificacion();
 }
 void iniciar_patotas(){
 	cantidad_patotas = 0;
