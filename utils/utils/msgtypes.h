@@ -38,7 +38,7 @@ typedef struct{
 
 typedef struct{
 	uint32_t tid; // Identificador del tripulante
-	t_estado estado; // Estado del tripulante (N/R/E/B)
+	char estado; // Estado del tripulante (N/R/E/B)
 	t_posicion* posicion; // Posición del tripulante
 	uint32_t prox_instruccion; // Dirección lógica del PCB del tripulante
 	uint32_t puntero_pcb; // Identificador de la próxima instrucción a ejecutar

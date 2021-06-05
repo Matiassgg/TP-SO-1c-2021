@@ -33,6 +33,8 @@ void iniciar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 }
 
 void hacer_tarea(t_tripulante* tripulante){
+	rafaga_cpu();
+
 	switch(tripulante->tarea_act->tarea){
 		case GENERAR_OXIGENO:
 			log_info(logger, "GENERAR_OXIGENO");
@@ -59,7 +61,6 @@ void hacer_tarea(t_tripulante* tripulante){
 			;
 		break;
 	}
-	sleep(1);
 }
 
 bool quedan_pasos(t_tripulante* tripulante){
@@ -97,7 +98,7 @@ t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta) 
 			}
 		}
 	}
-	sleep(2);
+	rafaga_cpu();
 	log_info(logger, "El tripulante %i esta ahora en la posicion %i,%i yendo a %i,%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y, posicion_meta->pos_x, posicion_meta->pos_y);
 	return direccion;
 }

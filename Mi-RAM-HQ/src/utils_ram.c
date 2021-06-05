@@ -55,7 +55,13 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
+//			t_pcb* pcb_nuevo = crear_pcb(patota);
+//
 			obtener_tareas(patota);
+//
+//			escribir_en_memoria(pcb_nuevo);
+
+//			guardar_memoria_pcb();
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
@@ -162,7 +168,7 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 }
 
 
-void obtener_tareas(t_patota* patota){
+void obtener_tareas(t_pcb* pcb){
 	t_queue* pila_tareas = queue_create();
 	char* leido = malloc(sizeof(char));
 	int i=0;
@@ -170,9 +176,7 @@ void obtener_tareas(t_patota* patota){
 	char* path = string_new();
 	path = string_duplicate("/home/utnso/tp-2021-1c-LaMitad-1/discordiador/tareasPatota");
 
-	string_append_with_format(&path, "%s.txt", string_itoa(patota->id_patota));
-
-	log_info(logger,"%s", path);
+	string_append_with_format(&path, "%s.txt", string_itoa(pcb->pid));
 
 	FILE* archivo = fopen(path, "r+");
 
@@ -187,7 +191,7 @@ void obtener_tareas(t_patota* patota){
 	void add_cofiguration(char *line) {
 		if (!string_starts_with(line, "#")) {
 			t_tarea* tarea = obtener_tarea_archivo(line);
-			log_info(logger, "La tarea esta en la posicion %i,%i", tarea->posicion->pos_x, tarea->posicion->pos_y);
+//			guardar_memoria_tarea(pcb, tarea);
 			queue_push(pila_tareas, tarea);
 		}
 	}
@@ -212,8 +216,6 @@ t_tarea* obtener_tarea_archivo(char* tarea_string){
 	tarea->posicion->pos_x = atoi(parametros[1]);
 	tarea->posicion->pos_y = atoi(parametros[2]);
 	tarea->tiempo = atoi(parametros[3]);
-
-	log_info(logger, "La tarea esta en la posicion %i,%i", tarea->posicion->pos_x, tarea->posicion->pos_y);
 
 	return tarea;
 }

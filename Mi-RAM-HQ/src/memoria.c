@@ -44,6 +44,34 @@ void preparar_memoria() {
 		log_warning(logger,"El algoritmo de reemplazo seleccionado no coincide con ningun algoritmo valido");
 }
 
+t_pcb* crear_pcb(t_patota* patota){
+	log_info(logger, "RAM :: Se crea el PCB para la patota %d", patota->id_patota);
+	t_pcb* pcb = malloc(sizeof(t_pcb));
+
+	pcb->tareas = 0;
+	pcb->pid = patota->id_patota;
+
+	return pcb;
+}
+
+t_tcb* crear_tcbs(t_tripulante* tripulante){
+		log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
+
+		t_tcb* tcb = malloc(sizeof(t_tcb));
+
+		tcb->tid = tripulante->id;
+		tcb->estado = 'N';
+		tcb->prox_instruccion = 0;
+		tcb->posicion = tripulante->posicion;
+		tcb->puntero_pcb = 0;
+
+		log_info(logger, "RAM :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
+
+
+	return tcb;
+}
+
+
 void preparar_memoria_para_esquema_de_segmentacion() {
 
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
@@ -97,6 +125,76 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 }
 
+void escribir_en_memoria_paginacion(t_pcb* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado) {
+//	entradaTablaMarcos* entradaDeLaTabla;
+//
+//	if (esta_en_memoria) {
+//
+//		// Busco el marco de ese plato/pagina
+//		t_list* entradasDelPedido = entradas_segun_pedido(idPedido);
+//
+//		int cantidadMarcos = list_size(entradasDelPedido);
+//		bool encont = false;
+//		entradaTablaMarcos* entrada;
+//
+//		for (int i = 0; i < cantidadMarcos && !encont; i++) {
+//			entradaDeLaTabla = list_get(entradasDelPedido, i);
+//			int offset = 8;
+//			char* nombreEnMarco = malloc(24);
+//			memcpy(nombreEnMarco, (entradaDeLaTabla->marco + offset), 24);
+//
+//			if (!strcmp(pagina->nombrePlato, nombreEnMarco))
+//				encont = true;
+//			free(nombreEnMarco);
+//		}
+//
+//		if (!strcmp(algoritmo_reemplazo, "LRU")) {
+//			entradaDeLaTabla->timeStamp = temporal_get_string_time();
+//		}
+//
+//		if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
+//			entradaDeLaTabla->bitUso = true;
+//			entradaDeLaTabla->bitModificado = modificado;
+//		}
+//	} else {
+//		entradaDeLaTabla = asignar_entrada_marco_libre();
+//		entradaDeLaTabla->libre = false;
+//		entradaDeLaTabla->idPedido = idPedido;
+//
+//		log_info(logger, "Marco seleccionado: %d", entradaDeLaTabla->indice);
+//
+//		// Agrego a lista de timestamp por marco
+//		if (!strcmp(algoritmo_reemplazo, "LRU")) {
+//			entradaDeLaTabla->timeStamp = temporal_get_string_time();
+//			log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", entradaDeLaTabla->indice, entradaDeLaTabla->timeStamp);
+//		}
+//
+//		// Agrego a lista de timestamp por marco
+//		if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
+//			entradaDeLaTabla->bitModificado = modificado;
+//			entradaDeLaTabla->bitUso = true;
+//			log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d - bit de modificado %d .", entradaDeLaTabla->indice, entradaDeLaTabla->bitUso, entradaDeLaTabla->bitModificado);
+//		}
+//
+////		// Agrego el marco a la lista de marcos del pedido
+////		t_list* marcos_del_pedido_en_memoria = entradas_segun_pedido(idPedido);
+////		list_add(marcos_del_pedido_en_memoria, marco_libre);
+////		log_info(logger, "Se agrego el marco a la lista de marcos del pedido");
+//	}
+//
+//	int offset = 0;
+//
+//	// Escribo
+//	memcpy(entradaDeLaTabla->marco + offset, &(pagina->cantidadLista), sizeof(uint32_t));
+//	offset += sizeof(uint32_t);
+//
+//	memcpy(entradaDeLaTabla->marco + offset, &(pagina->cantidadPlato), sizeof(uint32_t));
+//	offset += sizeof(uint32_t);
+//
+//	memcpy(entradaDeLaTabla->marco + offset, pagina->nombrePlato, 24);
+//
+//	log_info(logger, "Escrito con exito");
+}
 entradaTablaMarcos* buscar_entrada(void* marco){
 	bool el_que_quiero(void* parametro){
 		return ((entradaTablaMarcos*)parametro)->marco == marco;

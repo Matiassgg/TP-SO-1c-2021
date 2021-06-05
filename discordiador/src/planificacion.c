@@ -30,9 +30,6 @@ void preparar_planificacion(){
 
 void planificar_patota(t_patota* patota){
 	log_info(logger, "DISCORDIADOR :: Crearemos los tripulantes de la patota");
-//	LA RE FLASHE PARECE QUE PARA PLANI ESTOS VAN A ESTAR PIDIENDO T0DO A MEMORIA UNA PAJA SI ES ASI UwU
-//	t_pcb* pcb_nuevo = crear_pcb(patota);
-//	t_list* lista_tcbs_aux = agregar_tcbs(patota);
 
 	for(int i=0; i < patota->cant_tripulantes; i++){
 		t_tripulante* tripulante = obtener_tripulante_de_patota(patota, i);
@@ -63,18 +60,15 @@ void iniciar_planificacion(){
 void pausar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
 		sem_wait(&semaforo_planificacion);
-//		 TODO no estaria funcionando, si se bloquea,
-//		pero cuado plani hace el post deberia pasar este
-//		y asi bloquearse los de plani pero estos se
-//		quedan bloqueados y los de plani siguen
 		log_info(logger, "Se pausa plani");
 	}
 }
 
 void planificacion_segun_FIFO() {
-	sem_wait(&semaforo_planificacion);
 	log_info(logger, "Se entro a FIFO");
 	while(1){
+		verificar_planificacion_activa();
+
 		while (!queue_is_empty(cola_ready)) {
 			log_info(logger, "Se entro al while");
 			pthread_mutex_lock(&mutex_cola_ready);
@@ -83,15 +77,25 @@ void planificacion_segun_FIFO() {
 	//		tripulante->estado = EXEC; // avisar a ram?
 
 			while(quedan_pasos(tripulante)){
+				verificar_planificacion_activa();
 				enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 			}
+			verificar_planificacion_activa();
 			hacer_tarea(tripulante);
 			// Avisar a ram que se esta haciendo la tarea
 
 			//FALTA SEGUIR :V
 		}
 	}
+}
+
+void verificar_planificacion_activa(){
+	sem_wait(&semaforo_planificacion);
 	sem_post(&semaforo_planificacion);
+}
+
+void rafaga_cpu(){
+	sleep(retardo_ciclo_cpu);
 }
 
 void planificacion_segun_RR() {
@@ -127,40 +131,40 @@ void planificacion_segun_RR() {
 	sem_post(&semaforo_planificacion);
 
 }
-
-t_pcb* crear_pcb(t_patota* patota){
-	log_info(logger, "DISCORDIADOR :: Se crea el PCB para la patota %d", patota->id_patota);
-	t_pcb* pcb = malloc(sizeof(t_pcb));
-
-	pcb->tareas = 0; // cosa de ram
-	pcb->pid = patota->id_patota;
-
-//	list_add(lista_tcbs, pcb);
-	return pcb;
-}
-
-t_list* agregar_tcbs(t_patota* patota){
-	t_list* lista_tcbs_aux = list_create();
-	for(int i=0; i < patota->cant_tripulantes; i++){
-		log_info(logger, "DISCORDIADOR :: Se crea el TCB para el tripualante %d de la patota %d", i, patota->id_patota);
-
-		t_tcb* tcb = malloc(sizeof(t_tcb));
-
-		tcb->tid = id_tcb++; // empieza en 1 y va a ir subiendo
-		tcb->estado = NEW;
-		tcb->prox_instruccion = 0; // cosa de ram
-		tcb->posicion = (t_posicion*) list_get(patota->posiciones, i);
-		tcb->puntero_pcb = 0; // cosa de ram
-
-		log_info(logger, "DISCORDIADOR :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
-
-//		list_add(lista_tcbs, tcb);
-		list_add(lista_tcbs_aux, tcb);
-		queue_push(cola_new, tcb);
-	}
-
-	return lista_tcbs_aux;
-}
+//
+//t_pcb* crear_pcb(t_patota* patota){
+//	log_info(logger, "DISCORDIADOR :: Se crea el PCB para la patota %d", patota->id_patota);
+//	t_pcb* pcb = malloc(sizeof(t_pcb));
+//
+//	pcb->tareas = 0; // cosa de ram
+//	pcb->pid = patota->id_patota;
+//
+////	list_add(lista_tcbs, pcb);
+//	return pcb;
+//}
+//
+//t_list* agregar_tcbs(t_patota* patota){
+//	t_list* lista_tcbs_aux = list_create();
+//	for(int i=0; i < patota->cant_tripulantes; i++){
+//		log_info(logger, "DISCORDIADOR :: Se crea el TCB para el tripualante %d de la patota %d", i, patota->id_patota);
+//
+//		t_tcb* tcb = malloc(sizeof(t_tcb));
+//
+//		tcb->tid = id_tcb++; // empieza en 1 y va a ir subiendo
+//		tcb->estado = NEW;
+//		tcb->prox_instruccion = 0; // cosa de ram
+//		tcb->posicion = (t_posicion*) list_get(patota->posiciones, i);
+//		tcb->puntero_pcb = 0; // cosa de ram
+//
+//		log_info(logger, "DISCORDIADOR :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
+//
+////		list_add(lista_tcbs, tcb);
+//		list_add(lista_tcbs_aux, tcb);
+//		queue_push(cola_new, tcb);
+//	}
+//
+//	return lista_tcbs_aux;
+//}
 
 void crear_colas_planificacion() {
 	cola_new = queue_create();

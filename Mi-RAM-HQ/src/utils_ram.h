@@ -45,10 +45,6 @@ typedef struct {
 	uint32_t tamanio;
 } t_tabla_paginas;
 
-
-t_config* config;
-t_log* logger;
-
 void* memoria;
 FILE* espacio_swap;
 
@@ -114,7 +110,7 @@ void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 t_tarea* obtener_tarea(t_tripulante* tripulante);
-void obtener_tareas(t_patota* patota);
+void obtener_tareas(t_pcb* pcb);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
 e_tarea obtener_nombre_tarea(char* tarea);
 

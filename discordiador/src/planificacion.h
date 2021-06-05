@@ -9,10 +9,12 @@ void planificar_patota(t_patota*);
 void arrancar_planificacion();
 void iniciar_planificacion(void);
 void pausar_planificacion(void);
-t_pcb* crear_pcb(t_patota*);
-t_list* agregar_tcbs(t_patota*);
+//t_pcb* crear_pcb(t_patota*);
+//t_list* crear_tcbs(t_patota*);
 void crear_colas_planificacion(void);
-void liberar_pcb_patota(t_patota*);
+//void liberar_pcb_patota(t_patota*);
+void verificar_planificacion_activa();
+void rafaga_cpu();
 void planificacion_segun_FIFO(void);
 void planificacion_segun_RR(void);
 
