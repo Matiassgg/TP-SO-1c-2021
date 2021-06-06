@@ -169,7 +169,7 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 
 
 void obtener_tareas(t_pcb* pcb){
-	t_queue* pila_tareas = queue_create();
+//	t_queue* pila_tareas = queue_create();
 	char* leido = malloc(sizeof(char));
 	int i=0;
 
@@ -186,21 +186,24 @@ void obtener_tareas(t_pcb* pcb){
 	}
 	leido= (char*) realloc(leido,i+1);
 
-	char** lines = string_split(leido, "\n");
+//	char** lines = string_split(leido, "\n");
+//
+//	void add_cofiguration(char *line) {
+//		if (!string_starts_with(line, "#")) {
+//			t_tarea* tarea = obtener_tarea_archivo(line);
+////			guardar_memoria_tarea(pcb, tarea);
+//			queue_push(pila_tareas, tarea);
+//		}
+//	}
+//	string_iterate_lines(lines, add_cofiguration);
+//	string_iterate_lines(lines, (void*) free);
+//
+//	list_add(tareas,pila_tareas);
+//
+//	free(lines);
 
-	void add_cofiguration(char *line) {
-		if (!string_starts_with(line, "#")) {
-			t_tarea* tarea = obtener_tarea_archivo(line);
-//			guardar_memoria_tarea(pcb, tarea);
-			queue_push(pila_tareas, tarea);
-		}
-	}
-	string_iterate_lines(lines, add_cofiguration);
-	string_iterate_lines(lines, (void*) free);
+	escribir_en_memoria(leido, TAREAS);
 
-	list_add(tareas,pila_tareas);
-
-	free(lines);
 }
 
 

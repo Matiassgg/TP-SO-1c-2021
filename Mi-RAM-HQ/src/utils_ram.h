@@ -4,6 +4,8 @@
 #include "../../utils/utils/utils.h"
 #include "msg_RAM.h"
 #include "mapa.h"
+#include "signal.h"
+#include "unistd.h"
 
 
 //---------FUNCIONES--------//
@@ -21,6 +23,14 @@ uint32_t tamanio_pagina;
 uint32_t tamanio_swap;
 char* path_swap;
 char* algoritmo_reemplazo;
+char* esquema_memoria;
+char* criterio_seleccion;
+
+typedef enum {
+	TAREAS,
+	PCB,
+	TCB
+} e_tipo_dato;
 
 //---------Segmentación pura--------//
 // Se vera :v
@@ -29,7 +39,6 @@ typedef struct {
 	uint32_t nro_segmento;
 	uint32_t inicio;
 	uint32_t tamanio;
-
 } t_segmento;
 
 //---------Paginación simple--------//
@@ -44,9 +53,6 @@ typedef struct {
 	t_estado_marco estado;
 	uint32_t tamanio;
 } t_tabla_paginas;
-
-void* memoria;
-FILE* espacio_swap;
 
 //
 
@@ -76,9 +82,8 @@ void* memoria;
 FILE* espacio_swap;
 t_list* entradas_swap;
 uint32_t tamanio_pagina;
-t_dictionary* dic_discordiador_tabla_segmentos;
-// uint32_t tamanio_nombre_plato_maximo;
-t_list* patotasCreadas;
+t_list* tabla_segmentos;
+t_list* patotas_creadas;
 entradaTablaMarcos* punteroMarcoClock;
 t_list* tablaDeMarcos;
 t_list* tareas;

@@ -4,13 +4,6 @@ void iniciar_memoria() {
 	// Reservar el espacio de memoria
 	preparar_memoria();
 
-	// TODAVIA no es necesario esto
-
-	if((espacio_swap = fopen(path_swap,"wb+")) == NULL){
-		log_error(logger, "No se pudo crear el espacio de SWAP");
-		return;
-	}
-
 //	// FALTA
 //	// Dibujar el mapa inicial vacío
 //	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
@@ -55,34 +48,34 @@ t_pcb* crear_pcb(t_patota* patota){
 }
 
 t_tcb* crear_tcbs(t_tripulante* tripulante){
-		log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
+	log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
+	t_tcb* tcb = malloc(sizeof(t_tcb));
 
-		t_tcb* tcb = malloc(sizeof(t_tcb));
+	tcb->tid = tripulante->id;
+	tcb->estado = 'N';
+	tcb->prox_instruccion = 0;
+	tcb->posicion = tripulante->posicion;
+	tcb->puntero_pcb = 0;
 
-		tcb->tid = tripulante->id;
-		tcb->estado = 'N';
-		tcb->prox_instruccion = 0;
-		tcb->posicion = tripulante->posicion;
-		tcb->puntero_pcb = 0;
-
-		log_info(logger, "RAM :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
-
+	log_info(logger, "RAM :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
 
 	return tcb;
 }
 
 
 void preparar_memoria_para_esquema_de_segmentacion() {
-
-	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
-		// Cargar estructuras administrativass
-	}
+	tabla_segmentos = list_create();
 }
 
 
 void preparar_memoria_para_esquema_de_paginacion() {
 	cantidad_de_marcos = 0;
 	cantidad_de_marcos_swap=0;
+
+	if((espacio_swap = fopen(path_swap,"wb+")) == NULL){
+		log_error(logger, "No se pudo crear el espacio de SWAP");
+//		return; taria bien?
+	}
 
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
 		// Cargar estructuras administrativass
@@ -125,7 +118,32 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 }
 
-void escribir_en_memoria_paginacion(t_pcb* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado) {
+void escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
+	switch(tipo_dato){
+		case TAREAS:
+			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+				escribir_en_memoria_segmentacion(informacion);
+			}
+			else{
+
+			}
+
+		break;
+		case PCB:
+			;
+		break;
+		case TCB:
+			;
+		break;
+
+	}
+}
+
+void escribir_en_memoria_segmentacion(void* informacion){
+
+}
+
+void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb, bool esta_en_memoria, uint32_t idPedido, bool modificado) {
 //	entradaTablaMarcos* entradaDeLaTabla;
 //
 //	if (esta_en_memoria) {

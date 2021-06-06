@@ -19,7 +19,7 @@ void iniciar_Mi_RAM_HQ() {
 	//dic_discordiador_tabla_segmentos = dictionary_create();// REVISAR ESTO
 	tablaDeMarcos = list_create();
 	entradas_swap = list_create();
-	patotasCreadas = list_create();
+	patotas_creadas = list_create();
 	tareas = list_create();
 
 	pthread_mutex_init(&mutexTablaMarcos, NULL);
@@ -56,10 +56,15 @@ void leer_config() {
 	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
 	tamanio_memoria = config_get_int_value(config, "TAMANIO_MEMORIA");
 	esquema_memoria = config_get_string_value(config, "ESQUEMA_MEMORIA");
-	tamanio_pagina = config_get_int_value(config, "TAMANIO_PAGINA");
-	tamanio_swap = config_get_int_value(config, "TAMANIO_SWAP");
-	path_swap = config_get_string_value(config, "PATH_SWAP");
-	algoritmo_reemplazo = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
+	if(son_iguales(esquema_memoria,"PAGINACION")){
+		tamanio_pagina = config_get_int_value(config, "TAMANIO_PAGINA");
+		tamanio_swap = config_get_int_value(config, "TAMANIO_SWAP");
+		path_swap = config_get_string_value(config, "PATH_SWAP");
+		algoritmo_reemplazo = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
+	}
+	else{
+		criterio_seleccion = config_get_string_value(config, "CRITERIO_SELECCION");
+	}
 }
 
 void finalizar_mi_ram() {
