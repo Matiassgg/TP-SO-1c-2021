@@ -182,9 +182,9 @@ t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size){
 	t_segmento* segmento_nuevo = malloc(sizeof(t_segmento));
 
 	segmento_nuevo->esta_libre = true;
-	segmento_nuevo->inicio =+ size;
-	segmento_nuevo->tamanio =- size;
-	segmento_nuevo->nro_segmento++; // TODO ESTO NO ES ASI, ARREGLAR
+	segmento_nuevo->inicio = segmento->inicio + size;
+	segmento_nuevo->tamanio = segmento->tamanio - size;
+	segmento_nuevo->nro_segmento = segmento->nro_segmento++; // TODO ESTO NO ES ASI, ARREGLAR
 
 	return segmento_nuevo;
 }
