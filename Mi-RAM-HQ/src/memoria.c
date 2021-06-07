@@ -47,7 +47,54 @@ t_pcb* crear_pcb(t_patota* patota){
 	return pcb;
 }
 
-t_tcb* crear_tcbs(t_tripulante* tripulante){
+void cargar_memoria_patota(t_patota* patota){
+	t_pcb* pcb_nuevo = crear_pcb(patota);
+
+	char* tareas = obtener_tareas(pcb_nuevo);
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		t_asociador_segmento* asociador_segmento = malloc(sizeof(t_asociador_segmento));
+
+		asociador_segmento->nro_segmento = escribir_en_memoria(tareas,TAREAS);
+		asociador_segmento->id_asociado = pcb_nuevo->pid;
+		asociador_segmento->tipo_dato = TAREAS;
+
+		list_add(tabla_asociadores_segmentos, asociador_segmento);
+
+		t_asociador_segmento* asociador_segmento_pcb = malloc(sizeof(t_asociador_segmento));
+
+		asociador_segmento_pcb->nro_segmento = escribir_en_memoria(pcb_nuevo,PCB);
+		asociador_segmento_pcb->id_asociado = pcb_nuevo->pid;
+		asociador_segmento_pcb->tipo_dato = PCB;
+
+		list_add(tabla_asociadores_segmentos, asociador_segmento_pcb);
+	}
+	else{
+
+	}
+
+}
+void cargar_memoria_tripulante(t_tripulante* tripulante){
+	t_tcb* tcb = crear_tcb(tripulante);
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		t_asociador_segmento* asociador_segmento = malloc(sizeof(t_asociador_segmento));
+
+		//TODO CONSEGUIR TAREA?
+
+		asociador_segmento->nro_segmento = escribir_en_memoria(tcb,TCB);
+		asociador_segmento->id_asociado = tcb->tid;
+		asociador_segmento->tipo_dato = TCB;
+
+		list_add(tabla_asociadores_segmentos, asociador_segmento);
+	}
+	else{
+
+	}
+
+}
+
+t_tcb* crear_tcb(t_tripulante* tripulante){
 	log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
 	t_tcb* tcb = malloc(sizeof(t_tcb));
 
@@ -65,6 +112,7 @@ t_tcb* crear_tcbs(t_tripulante* tripulante){
 
 void preparar_memoria_para_esquema_de_segmentacion() {
 	tabla_segmentos = list_create();
+	tabla_asociadores_segmentos = list_create();
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->inicio = 0;
@@ -165,6 +213,58 @@ uint32_t escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
 	return 0;
 }
 
+void* leer_memoria(void* informacion, e_tipo_dato tipo_dato){
+	switch(tipo_dato){
+		case TAREAS:
+			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+				return leer_memoria_segmentacion(serializar_memoria_tareas((char*) informacion));
+			}
+			else{
+
+			}
+		break;
+		case PCB:
+			;
+			t_pcb* pcb = (t_pcb*) informacion;
+
+			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+				return escribir_en_memoria_segmentacion(serializar_memoria_pcb(pcb));
+			}
+			else{
+
+			}
+		break;
+		case TCB:
+			;
+			t_tcb* tcb = (t_tcb*) informacion;
+
+			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+				return escribir_en_memoria_segmentacion(serializar_memoria_tcb(tcb));
+			}
+			else{
+
+			}
+		break;
+
+	}
+}
+
+t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
+	bool es_id(t_segmento* segmento){
+		return segmento->nro_segmento == id;
+	}
+
+	return list_remove_by_condition(tabla_segmentos, esta_libre);
+}
+
+void* leer_memoria_segmentacion(t_segmento* segmento){
+	void* dato_requerido = malloc(segmento->tamanio);
+
+	memcpy(dato_requerido, memoria + segmento->inicio, segmento->tamanio);
+
+	return dato_requerido;
+}
+
 uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer){
 	t_segmento* segmento_libre = buscar_segmento_libre(buffer->size);
 	t_segmento* segmeto_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
@@ -175,7 +275,7 @@ uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer){
 	subir_segmento(segmento_libre, buffer->stream);
 	subir_segmento(segmeto_nuevo, buffer->stream);
 
-	return segmento_libre->inicio;
+	return segmento_libre->nro_segmento;
 }
 
 t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size){

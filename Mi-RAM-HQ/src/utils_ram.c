@@ -55,10 +55,8 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
-//			t_pcb* pcb_nuevo = crear_pcb(patota);
-//
-			obtener_tareas(patota);
-//
+			cargar_memoria_patota(patota);
+
 //			escribir_en_memoria(pcb_nuevo);
 
 //			guardar_memoria_pcb();
@@ -168,7 +166,7 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 }
 
 
-void obtener_tareas(t_pcb* pcb){
+char* obtener_tareas(t_pcb* pcb){
 //	t_queue* pila_tareas = queue_create();
 	char* leido = malloc(sizeof(char));
 	int i=0;
@@ -202,7 +200,7 @@ void obtener_tareas(t_pcb* pcb){
 //
 //	free(lines);
 
-	escribir_en_memoria(leido, TAREAS);
+	return leido;
 
 }
 

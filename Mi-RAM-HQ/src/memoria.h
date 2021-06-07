@@ -9,7 +9,7 @@ pthread_t hiloReceiveMapa;
 void iniciar_memoria(void);
 void preparar_memoria(void);
 t_pcb* crear_pcb(t_patota* patota);
-t_tcb* crear_tcbs(t_tripulante* tripulante);
+t_tcb* crear_tcb(t_tripulante* tripulante);
 void preparar_memoria_para_esquema_de_segmentacion(void);
 void preparar_memoria_para_esquema_de_paginacion(void);
 

@@ -42,6 +42,12 @@ typedef struct {
 	bool esta_libre;
 } t_segmento;
 
+typedef struct {
+	uint32_t nro_segmento;
+	uint32_t id_asociado;
+	e_tipo_dato tipo_dato;
+} t_asociador_segmento;
+
 //---------Paginación simple--------//
 typedef enum {
 	LIBRE,
@@ -84,6 +90,7 @@ FILE* espacio_swap;
 t_list* entradas_swap;
 uint32_t tamanio_pagina;
 t_list* tabla_segmentos;
+t_list* tabla_asociadores_segmentos;
 t_list* patotas_creadas;
 entradaTablaMarcos* punteroMarcoClock;
 t_list* tablaDeMarcos;
@@ -116,7 +123,7 @@ void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 t_tarea* obtener_tarea(t_tripulante* tripulante);
-void obtener_tareas(t_pcb* pcb);
+char* obtener_tareas(t_pcb* pcb);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
 e_tarea obtener_nombre_tarea(char* tarea);
 
