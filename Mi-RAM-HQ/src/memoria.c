@@ -65,6 +65,15 @@ t_tcb* crear_tcbs(t_tripulante* tripulante){
 
 void preparar_memoria_para_esquema_de_segmentacion() {
 	tabla_segmentos = list_create();
+	t_segmento* segmento = malloc(sizeof(t_segmento));
+
+	segmento->inicio = 0;
+	segmento->nro_segmento = 0;
+	segmento->tamanio = tamanio_memoria;
+	segmento->esta_libre = true;
+
+	list_add(tabla_segmentos, segmento);
+
 }
 
 
@@ -118,29 +127,88 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 }
 
-void escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
+uint32_t escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
 	switch(tipo_dato){
 		case TAREAS:
 			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				escribir_en_memoria_segmentacion(informacion);
+				return escribir_en_memoria_segmentacion(serializar_memoria_tareas((char*) informacion));
 			}
 			else{
 
 			}
-
 		break;
 		case PCB:
 			;
+			t_pcb* pcb = (t_pcb*) informacion;
+
+			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+				return escribir_en_memoria_segmentacion(serializar_memoria_pcb(pcb));
+			}
+			else{
+
+			}
 		break;
 		case TCB:
 			;
+			t_tcb* tcb = (t_tcb*) informacion;
+
+			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+				return escribir_en_memoria_segmentacion(serializar_memoria_tcb(tcb));
+			}
+			else{
+
+			}
 		break;
 
 	}
+
+	return 0;
 }
 
-void escribir_en_memoria_segmentacion(void* informacion){
+uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer){
+	t_segmento* segmento_libre = buscar_segmento_libre(buffer->size);
+	t_segmento* segmeto_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
 
+	segmento_libre->esta_libre = false;
+	segmento_libre->tamanio = buffer->size;
+
+	subir_segmento(segmento_libre, buffer->stream);
+	subir_segmento(segmeto_nuevo, buffer->stream);
+
+	return segmento_libre->inicio;
+}
+
+t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size){
+	t_segmento* segmento_nuevo = malloc(sizeof(t_segmento));
+
+	segmento_nuevo->esta_libre = true;
+	segmento_nuevo->inicio =+ size;
+	segmento_nuevo->tamanio =- size;
+	segmento_nuevo->nro_segmento++; // TODO ESTO NO ES ASI, ARREGLAR
+
+	return segmento_nuevo;
+}
+
+void subir_segmento(t_segmento* segmento, void* stream){
+	bool ordenar_segmentos(t_segmento* segmento_1, t_segmento* segmento_2){
+		return (segmento_1->nro_segmento < segmento_2->nro_segmento);
+	}
+
+	if(segmento->esta_libre)
+		;
+	else
+		memcpy(memoria + segmento->inicio, &(stream), segmento->tamanio);
+
+	list_add(tabla_segmentos, segmento);
+	list_sort(tabla_segmentos, ordenar_segmentos);
+}
+
+t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
+	bool esta_libre(t_segmento* segmento){
+		return (segmento->esta_libre && (espacio_requerido <= segmento->tamanio));
+	}
+
+	return list_remove_by_condition(tabla_segmentos, esta_libre);
 }
 
 void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb, bool esta_en_memoria, uint32_t idPedido, bool modificado) {
