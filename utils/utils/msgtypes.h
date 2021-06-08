@@ -68,7 +68,6 @@ typedef struct {
 	t_posicion* posicion;
 	t_tarea* tarea_act;
 	t_estado estado;
-	bool quantum;
 	int socket_conexion_RAM;
 	int socket_conexion_Mongo;
 } t_tripulante;

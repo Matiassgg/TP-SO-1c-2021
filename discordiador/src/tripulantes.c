@@ -7,12 +7,13 @@ t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
 	tripulante->id_patota_asociado = patota->id_patota;
 	tripulante->posicion = list_get(patota->posiciones,i);
 	tripulante->id = ++cantidad_tripulantes;
-	log_info(logger, "El i es %i y el tripulante %i esta en la posicion %i,%i", i, tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y);
+	log_info(logger, "El tripulante %i esta en la posicion %i,%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y);
 	tripulante->tarea_act = NULL;
 	tripulante->estado = NEW;
 
 	return tripulante;
 }
+
 
 void solicitar_tarea(t_tripulante* tripulante){
 	enviar_solicitar_tarea(tripulante, tripulante->socket_conexion_RAM);
@@ -20,7 +21,7 @@ void solicitar_tarea(t_tripulante* tripulante){
 	tripulante->tarea_act = recibir_tarea(tripulante->socket_conexion_RAM);
 }
 
-void iniciar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
+void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);

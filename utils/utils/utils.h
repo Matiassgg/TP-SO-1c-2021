@@ -32,6 +32,7 @@ int son_iguales(char*, char*);
 int chequear_argumentos_del_mensaje(char**, int);
 int existe_en_array(char**, char*);
 t_posicion obtener_posicion_origen(t_posicion* posicion, t_movimiento direccion);
+
 void helloWorld(void);
 
 #endif

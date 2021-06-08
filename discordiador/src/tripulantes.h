@@ -5,7 +5,7 @@
 #include "msg_discordiador.h"
 
 t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i);
-void iniciar_tripulante(t_tripulante* tripulante);
+void ejecutar_tripulante(t_tripulante* tripulante);
 bool puedo_seguir(p_tripulante* tripulante_plani);
 void hacer_tarea(t_tripulante* tripulante);
 bool quedan_pasos(t_tripulante* tripulante);

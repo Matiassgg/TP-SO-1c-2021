@@ -57,6 +57,8 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			cargar_memoria_patota(patota);
 
+			log_info(logger, "RAM :: Cargamos a memoria la patota %i y sus tareas", patota->id_patota);
+
 //			escribir_en_memoria(pcb_nuevo);
 
 //			guardar_memoria_pcb();
@@ -73,6 +75,8 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "RAM :: Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
 
 			cargar_memoria_tripulante(tripulante);
+
+			log_info(logger, "RAM :: Cargamos a memoria el tripulante %i de la patota %i", tripulante->id, tripulante->id_patota_asociado);
 //			crear_tripulante(nivel, tripulante);	// todo
 
 
@@ -173,6 +177,23 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 //	t_tarea* tarea = queue_pop(pila_tareas);
 //	return tarea;
 	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, TAREAS);
+	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);
+
+	char** lines = string_split(tareas, "\n");
+	log_info(logger, "RAM :: Tarea obtenida:\n%s", lines[0]);
+	t_tarea* tarea = obtener_tarea_archivo(lines[0]);
+
+//	void add_cofiguration(char *line) {
+//		if (!string_starts_with(line, "#")) {
+//			t_tarea* tarea = obtener_tarea_archivo(line);
+//		}
+//	}
+//	string_iterate_lines(lines, add_cofiguration);
+//	string_iterate_lines(lines, (void*) free);
+
+	free(lines);
+
+	return tarea;
 }
 
 

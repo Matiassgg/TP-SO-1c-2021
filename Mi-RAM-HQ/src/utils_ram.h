@@ -113,6 +113,7 @@ pthread_mutex_t mutexBuscarSegmento;
 pthread_mutex_t mutexBuscarPagina;
 pthread_mutex_t mutexBuscarInfoTripulante;
 pthread_mutex_t mutexBuscarSwap;
+pthread_mutex_t mutex_tocar_memoria;
 
 pthread_t hiloReceive;
 

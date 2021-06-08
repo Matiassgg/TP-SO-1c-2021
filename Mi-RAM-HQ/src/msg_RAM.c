@@ -97,6 +97,7 @@ t_buffer* serializar_memoria_tareas(char* tareas){
 
 	buffer->size = string_length(tareas);
 	buffer->stream = string_duplicate(tareas);
+	log_info(logger, "RAM :: Tareas obtenida:\n%s", buffer->stream);
 
 	return buffer;
 }
@@ -130,7 +131,7 @@ t_buffer* serializar_memoria_tcb(t_tcb* tcb){
 	//-----------------------------
 	t_buffer* buffer = crear_buffer();
 
-	buffer->size = malloc(sizeof(uint32_t)*5+sizeof(char));
+	buffer->size = sizeof(uint32_t)*5+sizeof(char);
 	buffer->stream = malloc(buffer->size);
 
 	uint32_t offset = 0;

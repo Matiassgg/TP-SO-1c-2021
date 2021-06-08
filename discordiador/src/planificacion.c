@@ -35,7 +35,7 @@ void planificar_patota(t_patota* patota){
 		t_tripulante* tripulante = obtener_tripulante_de_patota(patota, i);
 		log_info(logger, "DISCORDIADOR :: Se crea el tripulante %i", tripulante->id);
 		pthread_t hiloTripulante;
-		pthread_create(&hiloTripulante, NULL, (void*) iniciar_tripulante, tripulante);
+		pthread_create(&hiloTripulante, NULL, (void*) ejecutar_tripulante, tripulante);
 		pthread_detach(hiloTripulante);
 	}
 

@@ -23,14 +23,12 @@ void preparar_memoria() {
 	else if(son_iguales(esquema_memoria, "PAGINACION")) {
 		log_info(logger, "El esquema de memoria seleccionado es PAGINACION SIMPLE CON MEMORIA VIRTUAL");
 		preparar_memoria_para_esquema_de_paginacion();
-		if(algoritmo_reemplazo == NULL)
-			log_error(logger, "Error al leer el algoritmo de reemplazo");
-		else if(son_iguales(algoritmo_reemplazo, "LRU"))
-			log_info(logger, "El algoritmo de reemplazo seleccionado es LRU");
-		else if(son_iguales(algoritmo_reemplazo, "CLOCK"))
-			log_info(logger, "El algoritmo de reemplazo seleccionado es CLOCK");
-		else
-			log_warning(logger,"El algoritmo de reemplazo seleccionado no coincide con ningun algoritmo valido");
+
+	    // Leer Algoritmo Seleccion de Victima
+	    if ((seleccionar_victima = convertir(algoritmo_reemplazo)) == NULL)
+	    	log_warning(logger, "Error al leer el algoritmo de Reemplazo");
+	    else
+	    	log_info(logger, "El algoritmo de reemplazo seleccionado es: %s", algoritmo_reemplazo);
 	}
 	else
 		log_warning(logger,"El esquema de memoria seleccionado no coincide con ningun esquema");
@@ -55,7 +53,10 @@ void cargar_memoria_patota(t_patota* patota){
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		t_asociador_segmento* asociador_segmento = malloc(sizeof(t_asociador_segmento));
 
+		pthread_mutex_lock(&mutex_tocar_memoria);
 		asociador_segmento->nro_segmento = escribir_en_memoria(tareas,TAREAS);
+		pthread_mutex_unlock(&mutex_tocar_memoria);
+		log_info(logger, "Se subio a memoria la tarea en el segmento nro %i", asociador_segmento->nro_segmento);
 		asociador_segmento->id_asociado = pcb_nuevo->pid;
 		asociador_segmento->tipo_dato = TAREAS;
 
@@ -63,7 +64,10 @@ void cargar_memoria_patota(t_patota* patota){
 
 		t_asociador_segmento* asociador_segmento_pcb = malloc(sizeof(t_asociador_segmento));
 
+		pthread_mutex_lock(&mutex_tocar_memoria);
 		asociador_segmento_pcb->nro_segmento = escribir_en_memoria(pcb_nuevo,PCB);
+		pthread_mutex_unlock(&mutex_tocar_memoria);
+		log_info(logger, "Se subio a memoria la patota en el segmento nro %i", asociador_segmento_pcb->nro_segmento);
 		asociador_segmento_pcb->id_asociado = pcb_nuevo->pid;
 		asociador_segmento_pcb->tipo_dato = PCB;
 
@@ -82,7 +86,10 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 		//TODO CONSEGUIR TAREA?
 
+		pthread_mutex_lock(&mutex_tocar_memoria);
 		asociador_segmento->nro_segmento = escribir_en_memoria(tcb,TCB);
+		pthread_mutex_unlock(&mutex_tocar_memoria);
+		log_info(logger, "Se subio a memoria el tripulante en el segmento nro %i", asociador_segmento->nro_segmento);
 		asociador_segmento->id_asociado = tcb->tid;
 		asociador_segmento->tipo_dato = TCB;
 
@@ -116,7 +123,7 @@ void preparar_memoria_para_esquema_de_segmentacion() {
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->inicio = 0;
-	segmento->nro_segmento = 0;
+	segmento->nro_segmento = 1;
 	segmento->tamanio = tamanio_memoria;
 	segmento->esta_libre = true;
 
@@ -214,12 +221,14 @@ uint32_t escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
 }
 
 void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		return leer_memoria_segmentacion(buscar_segmento_id(id, tipo_dato));
 	}
 	else{
 
 	}
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
@@ -227,10 +236,10 @@ t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
 		return asociador->id_asociado == id && asociador->tipo_dato == tipo_dato;
 	}
 
-	uint32_t nro_segmento = ((t_asociador_segmento*) list_find(tabla_segmentos, buscar_segmento))->nro_segmento;
+	t_asociador_segmento* asociador_segmento = (t_asociador_segmento*) list_find(tabla_asociadores_segmentos, buscar_segmento);
 
 	bool es_segmento(t_segmento* segmento){
-		return segmento->nro_segmento == nro_segmento;
+		return segmento->nro_segmento == asociador_segmento->nro_segmento;
 	}
 
 	return list_find(tabla_segmentos, es_segmento);
@@ -238,15 +247,20 @@ t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
 
 void* leer_memoria_segmentacion(t_segmento* segmento){
 	void* dato_requerido = malloc(segmento->tamanio);
+	void* aux = memoria + segmento->inicio;
 
-	memcpy(dato_requerido, memoria + segmento->inicio, segmento->tamanio);
+	memcpy(dato_requerido, &(aux), segmento->tamanio);
+	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+	log_info(logger, "RAM :: Tareas obtenida en leer:\n%s", (char*) dato_requerido);
 
 	return dato_requerido;
 }
 
 uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer){
 	t_segmento* segmento_libre = buscar_segmento_libre(buffer->size);
+	log_info(logger, "Segmento libre %i", segmento_libre->nro_segmento);
 	t_segmento* segmeto_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
+	log_info(logger, "Segmento nuevo %i", segmeto_nuevo->nro_segmento);
 
 	segmento_libre->esta_libre = false;
 	segmento_libre->tamanio = buffer->size;
@@ -263,7 +277,7 @@ t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size){
 	segmento_nuevo->esta_libre = true;
 	segmento_nuevo->inicio = segmento->inicio + size;
 	segmento_nuevo->tamanio = segmento->tamanio - size;
-	segmento_nuevo->nro_segmento = segmento->nro_segmento++; // TODO ESTO NO ES ASI, ARREGLAR
+	segmento_nuevo->nro_segmento = segmento->nro_segmento+1; // TODO ESTO NO ES ASI, ARREGLAR
 
 	return segmento_nuevo;
 }
@@ -275,8 +289,10 @@ void subir_segmento(t_segmento* segmento, void* stream){
 
 	if(segmento->esta_libre)
 		;
-	else
+	else{
 		memcpy(memoria + segmento->inicio, &(stream), segmento->tamanio);
+		log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+	}
 
 	list_add(tabla_segmentos, segmento);
 	list_sort(tabla_segmentos, ordenar_segmentos);
@@ -287,7 +303,7 @@ t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
 		return (segmento->esta_libre && (espacio_requerido <= segmento->tamanio));
 	}
 
-	return list_remove_by_condition(tabla_segmentos, esta_libre);
+	return (t_segmento*) list_remove_by_condition(tabla_segmentos, esta_libre);
 }
 
 void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb, bool esta_en_memoria, uint32_t idPedido, bool modificado) {

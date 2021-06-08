@@ -52,7 +52,6 @@ t_posicion obtener_posicion_origen(t_posicion* posicion, t_movimiento direccion)
 	return posicion_anterior;
 }
 
-
 // El buen helloWorld, nada le gana
 void helloWorld() {
     puts("Hello world with shared!\n!");
