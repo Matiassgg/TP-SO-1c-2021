@@ -239,6 +239,7 @@ t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
 	t_asociador_segmento* asociador_segmento = (t_asociador_segmento*) list_find(tabla_asociadores_segmentos, buscar_segmento);
 
 	bool es_segmento(t_segmento* segmento){
+		log_info(logger, "segmento %i - asociador %i",segmento->nro_segmento, asociador_segmento->nro_segmento);
 		return segmento->nro_segmento == asociador_segmento->nro_segmento;
 	}
 
@@ -247,11 +248,10 @@ t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
 
 void* leer_memoria_segmentacion(t_segmento* segmento){
 	void* dato_requerido = malloc(segmento->tamanio);
-	void* aux = memoria + segmento->inicio;
 
-	memcpy(dato_requerido, &(aux), segmento->tamanio);
+	memcpy(dato_requerido, memoria + segmento->inicio, segmento->tamanio);
 	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
-	log_info(logger, "RAM :: Tareas obtenida en leer:\n%s", (char*) dato_requerido);
+	log_info(logger, "RAM :: Tareas obtenida en leer:\n%s\nMemoria:\n%s\n\n", (char*) dato_requerido, (char*) memoria);
 
 	return dato_requerido;
 }
@@ -290,8 +290,10 @@ void subir_segmento(t_segmento* segmento, void* stream){
 	if(segmento->esta_libre)
 		;
 	else{
-		memcpy(memoria + segmento->inicio, &(stream), segmento->tamanio);
+		memcpy(memoria + segmento->inicio, stream, segmento->tamanio);
 		log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+		log_info(logger, "RAM :: Stream:\n%s\n\n", (char*) stream);
+		log_info(logger, "RAM :: Memoria:\n%s\n\n", (char*) memoria);
 	}
 
 	list_add(tabla_segmentos, segmento);

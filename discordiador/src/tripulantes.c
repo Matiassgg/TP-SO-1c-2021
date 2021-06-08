@@ -29,7 +29,6 @@ void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 
 	solicitar_tarea(tripulante);
 	while(tripulante->tarea_act){
-
 		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
 		tripulante_plani->tripulante = tripulante;
 		tripulante_plani->esta_activo = true;

@@ -95,7 +95,7 @@ void serializar_solicitar_tarea_respuesta(t_tarea* msg, t_buffer* buffer){
 t_buffer* serializar_memoria_tareas(char* tareas){
 	t_buffer* buffer = crear_buffer();
 
-	buffer->size = string_length(tareas);
+	buffer->size = string_length(tareas)+1;
 	buffer->stream = string_duplicate(tareas);
 	log_info(logger, "RAM :: Tareas obtenida:\n%s", buffer->stream);
 
