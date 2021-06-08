@@ -72,6 +72,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
 
+			cargar_memoria_tripulante(tripulante);
 //			crear_tripulante(nivel, tripulante);	// todo
 
 
@@ -114,7 +115,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			t_tarea* tarea = obtener_tarea(tripulante);
 
 			if(tarea == NULL){
-				log_info(logger, "RAM :: Ya no hay mas tareas a esa patota");
+				log_warning(logger, "RAM :: Ya no hay mas tareas a esa patota");
 
 			}
 
@@ -123,6 +124,14 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(tripulante);
 
 			log_info(logger, "RAM :: Se da la tarea");
+
+		break;
+		case MOVER_HACIA:
+			;
+			uint32_t id_tripulante = deserializar_mover_hacia_id(cliente_fd);
+			t_movimiento direccion = deserializar_mover_hacia_direccion(cliente_fd);
+
+			log_info(logger, "RAM :: Nos llego MOVER_HACIA del tripulante %i", id_tripulante);
 
 		break;
 	}
@@ -149,20 +158,21 @@ void eliminar_patota_de_swap(uint32_t idPatota){
 
 
 t_tarea* obtener_tarea(t_tripulante* tripulante){
-	if(list_is_empty(tareas)){
-		log_warning(logger, "No hay tareas");
-		return NULL;
-	}
-
-	t_queue* pila_tareas = list_get(tareas, tripulante->id_patota_asociado-1);
-
-	if(queue_is_empty(pila_tareas)){
-		log_warning(logger, "No hay quedan tareas para la patota");
-		return NULL;
-	}
-
-	t_tarea* tarea = queue_pop(pila_tareas);
-	return tarea;
+//	if(list_is_empty(tareas)){
+//		log_warning(logger, "No hay tareas");
+//		return NULL;
+//	}
+//
+//	t_queue* pila_tareas = list_get(tareas, tripulante->id_patota_asociado-1);
+//
+//	if(queue_is_empty(pila_tareas)){
+//		log_warning(logger, "No hay quedan tareas para la patota");
+//		return NULL;
+//	}
+//
+//	t_tarea* tarea = queue_pop(pila_tareas);
+//	return tarea;
+	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, TAREAS);
 }
 
 

@@ -72,16 +72,16 @@ void planificacion_segun_FIFO() {
 		while (!queue_is_empty(cola_ready)) {
 			log_info(logger, "Se entro al while");
 			pthread_mutex_lock(&mutex_cola_ready);
-			t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
+			p_tripulante* tripulante_plani = (t_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
+			t_tripulante* tripulante = tripulante_plani->tripulante;
 	//		tripulante->estado = EXEC; // avisar a ram?
 
-			while(quedan_pasos(tripulante)){
-				verificar_planificacion_activa();
-				enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
+				pthread_mutex_unlock(&tripulante_plani->mutex_ready);
 			}
-			verificar_planificacion_activa();
-			hacer_tarea(tripulante);
+//			verificar_planificacion_activa();
+//			hacer_tarea(tripulante);
 			// Avisar a ram que se esta haciendo la tarea
 
 			//FALTA SEGUIR :V
@@ -89,9 +89,11 @@ void planificacion_segun_FIFO() {
 	}
 }
 
-void verificar_planificacion_activa(){
+bool verificar_planificacion_activa(){
 	sem_wait(&semaforo_planificacion);
 	sem_post(&semaforo_planificacion);
+
+	return true;
 }
 
 void rafaga_cpu(){

@@ -6,6 +6,7 @@
 
 t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i);
 void iniciar_tripulante(t_tripulante* tripulante);
+bool puedo_seguir(p_tripulante* tripulante_plani);
 void hacer_tarea(t_tripulante* tripulante);
 bool quedan_pasos(t_tripulante* tripulante);
 bool esta_en_el_lugar(t_posicion* posicion1, t_posicion* posicion2);

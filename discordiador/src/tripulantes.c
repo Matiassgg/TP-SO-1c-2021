@@ -24,12 +24,43 @@ void iniciar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
+//	TODO no hay que enviar el tripulante sino que ram debe crear todo con la patota
 
 	solicitar_tarea(tripulante);
-	log_info(logger, "Se agrega tripulante a ready");
-	pthread_mutex_lock(&mutex_cola_ready);
-	queue_push(cola_ready, tripulante);
-	pthread_mutex_unlock(&mutex_cola_ready);
+	while(tripulante->tarea_act){
+
+		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
+		tripulante_plani->tripulante = tripulante;
+		tripulante_plani->esta_activo = true;
+		pthread_mutex_init(&tripulante_plani->mutex_ready, NULL);
+		pthread_mutex_lock(&tripulante_plani->mutex_ready);
+
+		log_info(logger, "Se agrega tripulante a ready");
+		pthread_mutex_lock(&mutex_cola_ready);
+		queue_push(cola_ready, tripulante_plani);
+		pthread_mutex_unlock(&mutex_cola_ready);
+
+		pthread_mutex_lock(&tripulante_plani->mutex_ready);
+
+		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
+			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+		}
+		puedo_seguir(tripulante_plani);
+		hacer_tarea(tripulante);
+		tripulante_plani->esta_activo = false;
+
+		solicitar_tarea(tripulante);
+	}
+//	TODO finalizar tripulante
+
+
+	//TODO supongo que plani dira che vos movete y este wacho se mueve, asi?
+}
+
+bool puedo_seguir(p_tripulante* tripulante_plani){
+	pthread_mutex_lock(&tripulante_plani->mutex_ready);
+
+	return true;
 }
 
 void hacer_tarea(t_tripulante* tripulante){
@@ -77,8 +108,6 @@ bool quedan_movimientos(uint32_t posicion1, uint32_t posicion2) {
 
 t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta) {
 	t_movimiento direccion;
-	log_info(logger, "El tripulante %i esta en la posicion %i,%i yendo a %i,%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y, posicion_meta->pos_x, posicion_meta->pos_y);
-
 	if (quedan_movimientos(tripulante->posicion->pos_x, posicion_meta->pos_x)) {
 		if (tripulante->posicion->pos_x < posicion_meta->pos_x) {
 			tripulante->posicion->pos_x++;

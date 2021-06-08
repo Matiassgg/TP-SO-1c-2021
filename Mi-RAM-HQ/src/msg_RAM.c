@@ -28,6 +28,29 @@ t_tripulante* deserializar_solicitar_tarea(uint32_t socket_cliente){
 	return tripulante;
 }
 
+uint32_t deserializar_mover_hacia_id(uint32_t socket_cliente){
+	//------------ORDEN------------
+	//1. Id tripulante
+	//-----------------------------
+
+	uint32_t id_tripulante;
+
+	recv(socket_cliente, &(id_tripulante), sizeof(uint32_t), 0);
+
+	return id_tripulante;
+}
+
+t_movimiento deserializar_mover_hacia_direccion(uint32_t socket_cliente){
+	//------------ORDEN------------
+	//1. Direccion
+	//-----------------------------
+
+	t_movimiento direccion;
+
+	recv(socket_cliente, &(direccion), sizeof(t_movimiento), 0);
+
+	return direccion;
+}
 
 void enviar_solicitar_tarea_respuesta(t_tarea* tarea, uint32_t socket_cliente){
 
@@ -46,21 +69,27 @@ void serializar_solicitar_tarea_respuesta(t_tarea* msg, t_buffer* buffer){
 	//-----------------------------
 	uint32_t offset = 0;
 
-	buffer->size = sizeof(uint32_t)*4 + sizeof(e_tarea);
-	buffer->stream = malloc(buffer->size);
+	if(msg){
+		buffer->size = sizeof(uint32_t)*4 + sizeof(e_tarea);
+		buffer->stream = malloc(buffer->size);
 
-	memcpy(buffer->stream + offset, &(msg->tarea), sizeof(e_tarea));
-	offset += sizeof(e_tarea);
+		memcpy(buffer->stream + offset, &(msg->tarea), sizeof(e_tarea));
+		offset += sizeof(e_tarea);
 
-	memcpy(buffer->stream + offset, &(msg->parametro), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+		memcpy(buffer->stream + offset, &(msg->parametro), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+		memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(msg->tiempo), sizeof(uint32_t));
+		memcpy(buffer->stream + offset, &(msg->tiempo), sizeof(uint32_t));
+	}
+	else{
+		buffer->size=0;
+		buffer->stream=NULL;
+	}
 }
 
 t_buffer* serializar_memoria_tareas(char* tareas){

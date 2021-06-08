@@ -23,18 +23,18 @@ void preparar_memoria() {
 	else if(son_iguales(esquema_memoria, "PAGINACION")) {
 		log_info(logger, "El esquema de memoria seleccionado es PAGINACION SIMPLE CON MEMORIA VIRTUAL");
 		preparar_memoria_para_esquema_de_paginacion();
+		if(algoritmo_reemplazo == NULL)
+			log_error(logger, "Error al leer el algoritmo de reemplazo");
+		else if(son_iguales(algoritmo_reemplazo, "LRU"))
+			log_info(logger, "El algoritmo de reemplazo seleccionado es LRU");
+		else if(son_iguales(algoritmo_reemplazo, "CLOCK"))
+			log_info(logger, "El algoritmo de reemplazo seleccionado es CLOCK");
+		else
+			log_warning(logger,"El algoritmo de reemplazo seleccionado no coincide con ningun algoritmo valido");
 	}
 	else
 		log_warning(logger,"El esquema de memoria seleccionado no coincide con ningun esquema");
 
-	if(algoritmo_reemplazo == NULL)
-		log_error(logger, "Error al leer el algoritmo de reemplazo");
-	else if(son_iguales(algoritmo_reemplazo, "LRU"))
-		log_info(logger, "El algoritmo de reemplazo seleccionado es LRU");
-	else if(son_iguales(algoritmo_reemplazo, "CLOCK"))
-		log_info(logger, "El algoritmo de reemplazo seleccionado es CLOCK");
-	else
-		log_warning(logger,"El algoritmo de reemplazo seleccionado no coincide con ningun algoritmo valido");
 }
 
 t_pcb* crear_pcb(t_patota* patota){
@@ -121,6 +121,7 @@ void preparar_memoria_para_esquema_de_segmentacion() {
 	segmento->esta_libre = true;
 
 	list_add(tabla_segmentos, segmento);
+	log_info(logger, "Creamos las estructuras necesarias para segmentacion");
 
 }
 
@@ -146,7 +147,6 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		nuevaEntrada->idPatota = -1;
 		nuevaEntrada->libre = true;
 		nuevaEntrada->marco = marco;
-		nuevaEntrada->discordiador = NULL;
 		nuevaEntrada->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevaEntrada);
@@ -213,48 +213,27 @@ uint32_t escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
 	return 0;
 }
 
-void* leer_memoria(void* informacion, e_tipo_dato tipo_dato){
-	switch(tipo_dato){
-		case TAREAS:
-			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				return leer_memoria_segmentacion(serializar_memoria_tareas((char*) informacion));
-			}
-			else{
-
-			}
-		break;
-		case PCB:
-			;
-			t_pcb* pcb = (t_pcb*) informacion;
-
-			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				return escribir_en_memoria_segmentacion(serializar_memoria_pcb(pcb));
-			}
-			else{
-
-			}
-		break;
-		case TCB:
-			;
-			t_tcb* tcb = (t_tcb*) informacion;
-
-			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				return escribir_en_memoria_segmentacion(serializar_memoria_tcb(tcb));
-			}
-			else{
-
-			}
-		break;
+void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato){
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		return leer_memoria_segmentacion(buscar_segmento_id(id, tipo_dato));
+	}
+	else{
 
 	}
 }
 
 t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
-	bool es_id(t_segmento* segmento){
-		return segmento->nro_segmento == id;
+	bool buscar_segmento(t_asociador_segmento* asociador){
+		return asociador->id_asociado == id && asociador->tipo_dato == tipo_dato;
 	}
 
-	return list_remove_by_condition(tabla_segmentos, esta_libre);
+	uint32_t nro_segmento = ((t_asociador_segmento*) list_find(tabla_segmentos, buscar_segmento))->nro_segmento;
+
+	bool es_segmento(t_segmento* segmento){
+		return segmento->nro_segmento == nro_segmento;
+	}
+
+	return list_find(tabla_segmentos, es_segmento);
 }
 
 void* leer_memoria_segmentacion(t_segmento* segmento){

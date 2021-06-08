@@ -71,7 +71,6 @@ typedef struct {
 	bool bitModificado;
 	char* timeStamp;
 	int idPatota;
-	char* discordiador;
 } entradaTablaMarcos;
 
 typedef struct {

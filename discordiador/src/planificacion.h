@@ -13,7 +13,7 @@ void pausar_planificacion(void);
 //t_list* crear_tcbs(t_patota*);
 void crear_colas_planificacion(void);
 //void liberar_pcb_patota(t_patota*);
-void verificar_planificacion_activa();
+bool verificar_planificacion_activa();
 void rafaga_cpu();
 void planificacion_segun_FIFO(void);
 void planificacion_segun_RR(void);

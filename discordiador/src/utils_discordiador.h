@@ -37,6 +37,12 @@ t_queue* cola_exit;
 t_queue* cola_bloq_E_S;
 t_queue* cola_bloq_Emergencia;
 
+typedef struct {
+	t_tripulante* tripulante;
+	pthread_mutex_t mutex_ready;
+//	semt_t semaforo; quiza haya que usar
+	bool esta_activo;
+} p_tripulante;
 
 pthread_mutex_t mutex_cola_ready;
 sem_t semaforo_planificacion;
