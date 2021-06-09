@@ -31,4 +31,9 @@ typedef struct {
 	t_posicion* posicion_destino;
 } mover_hacia;
 
+typedef struct {
+	u_int32_t id;
+	e_tarea tarea;
+} tarea_Mongo;
+
 #endif /* I_MONGO_STORE_SRC_UTILS_MONGO_H_ */

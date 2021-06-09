@@ -28,6 +28,7 @@ typedef enum {
 	ARRANCAR_TAREAS,					// 1.	Informar al módulo Mi-RAM HQ que desea iniciar, indicando a qué patota pertenece
 	MOVER_HACIA,
 	SOLICITAR_TAREA,
+	COMENZAR_EJECUCION_TAREA,
 //	GENERAR_OXIGENO,
 //	CONSUMIR_OXIGENO,
 //	GENERAR_COMIDA,
