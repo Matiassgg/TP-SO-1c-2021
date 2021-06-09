@@ -31,7 +31,7 @@ void enviar_RAM_expulsar_tripulante(t_tripulante* msg, uint32_t socket_conexion)
 
 void enviar_Mongo_bitacora_tarea(t_tripulante* msg, uint32_t socket_conexion) {
 	t_paquete* paquete_a_enviar = crear_paquete(COMENZAR_EJECUCION_TAREA);
-	serializar_bitacora_tarea(msg, paquete_a_enviar->buffer);
+	serializar_bitacora_tarea(msg->id,msg->tarea_act->tarea, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 

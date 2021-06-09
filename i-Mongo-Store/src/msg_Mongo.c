@@ -30,5 +30,4 @@ tarea_Mongo* desearilizar_ejecutar_tarea(uint32_t socket_cliente) {
 	recv(socket_cliente, &(tarea->tarea), sizeof(uint32_t), 0);
 
 	return tarea;
-
 }
