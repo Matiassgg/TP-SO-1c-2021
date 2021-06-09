@@ -6,10 +6,10 @@ void arrancar_servidor(void){
 	while(1){
 		uint32_t socket_cliente = esperar_cliente(logger,socket_servidor);
 
-		int *socket_paraPasar = malloc(sizeof(int));
-		*socket_paraPasar = socket_cliente;
+		int *socket_para_pasar = malloc(sizeof(int));
+		*socket_para_pasar = socket_cliente;
 
-		pthread_create(&thread, NULL, (void*) serve_client, socket_paraPasar);
+		pthread_create(&thread, NULL, (void*) serve_client, socket_para_pasar);
 		pthread_detach(thread);
 	}
 }
