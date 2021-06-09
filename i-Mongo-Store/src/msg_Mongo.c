@@ -1,8 +1,19 @@
-/*
- * msg_Mongo.c
- *
- *  Created on: 8 jun. 2021
- *      Author: utnso
- */
+#include "msg_Mongo.h"
 
+mover_hacia* deserializar_mover_hacia_posicion(uint32_t socket_cliente){
+	//------------ORDEN------------
+		//1. ID
+		//2. Posicion origen
+		//3. Posicion destino
+		//-----------------------------
 
+	mover_hacia* posicion = malloc(sizeof(mover_hacia));
+
+	recv(socket_cliente, &(posicion->id), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(posicion->posicion_origen->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(posicion->posicion_origen->pos_y), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(posicion->posicion_destino->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(posicion->posicion_destino->pos_y), sizeof(uint32_t), 0);
+
+	return posicion;
+}

@@ -36,16 +36,16 @@ t_posicion obtener_posicion_origen(t_posicion* posicion, t_movimiento direccion)
 
 	switch(direccion){
 		case ARRIBA:
-			posicion_anterior.pos_y--;
-		break;
-		case ABAJO:
 			posicion_anterior.pos_y++;
 		break;
+		case ABAJO:
+			posicion_anterior.pos_y--;
+		break;
 		case DERECHA:
-			posicion_anterior.pos_x++;
+			posicion_anterior.pos_x--;
 		break;
 		case IZQUIERDA:
-			posicion_anterior.pos_x--;
+			posicion_anterior.pos_x++;
 		break;
 	}
 
