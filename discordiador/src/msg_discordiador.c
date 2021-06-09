@@ -29,9 +29,9 @@ void enviar_RAM_expulsar_tripulante(t_tripulante* msg, uint32_t socket_conexion)
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
-void enviar_Mongo_ejecutar_tarea(t_tripulante* msg, uint32_t socket_conexion) {
+void enviar_Mongo_bitacora_tarea(t_tripulante* msg, uint32_t socket_conexion) {
 	t_paquete* paquete_a_enviar = crear_paquete(COMENZAR_EJECUCION_TAREA);
-	serializar_ejecutar_tarea(msg, paquete_a_enviar->buffer);
+	serializar_bitacora_tarea(msg, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
@@ -109,23 +109,7 @@ void serializar_iniciar_tripulante(t_tripulante* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
 }
 
-void serializar_ejecutar_tarea(uint32_t id_tripulante, e_tarea tarea, t_buffer* buffer) {
-	//------------ORDEN------------
-	//1. ID
-	//2. Tarea
-	//-----------------------------
-	uint32_t offset = 0;
-
-	buffer->size = sizeof(uint32_t) + sizeof(e_tarea);
-	buffer->stream = malloc(buffer->size);
-
-	memcpy(buffer->stream + offset, &(id_tripulante), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(buffer->stream + offset, &(tarea), sizeof(e_tarea));
-}
-
-void serializar_finalizar_tarea(uint32_t id_tripulante, e_tarea tarea, t_buffer* buffer) {
+void serializar_bitacora_tarea(uint32_t id_tripulante, e_tarea tarea, t_buffer* buffer) {
 	//------------ORDEN------------
 	//1. ID
 	//2. Tarea
