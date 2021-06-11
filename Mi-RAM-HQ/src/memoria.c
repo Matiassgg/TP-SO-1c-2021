@@ -239,7 +239,8 @@ t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
 	t_asociador_segmento* asociador_segmento = (t_asociador_segmento*) list_find(tabla_asociadores_segmentos, buscar_segmento);
 
 	bool es_segmento(t_segmento* segmento){
-		log_info(logger, "segmento %i - asociador %i",segmento->nro_segmento, asociador_segmento->nro_segmento);
+		log_info(logger, "segmento %i",segmento->nro_segmento);
+		log_info(logger, "asociador %i", asociador_segmento->nro_segmento);
 		return segmento->nro_segmento == asociador_segmento->nro_segmento;
 	}
 

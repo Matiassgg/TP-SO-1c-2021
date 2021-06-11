@@ -25,7 +25,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
-//	TODO no hay que enviar el tripulante sino que ram debe crear todo con la patota
+//	TODO no hay que enviar el tripulante sino que ram debe crear todo con la patota ONO
 
 	solicitar_tarea(tripulante);
 	while(tripulante->tarea_act){
@@ -35,9 +35,13 @@ void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 		pthread_mutex_init(&tripulante_plani->mutex_ready, NULL);
 		pthread_mutex_lock(&tripulante_plani->mutex_ready);
 
+		hacer_tarea(tripulante);
+
 		log_info(logger, "Se agrega tripulante a ready");
 		pthread_mutex_lock(&mutex_cola_ready);
 		queue_push(cola_ready, tripulante_plani);
+//		p_tripulante* tripulante_plani2 = (p_tripulante*) queue_pop(cola_ready);
+//		queue_push(cola_ready, tripulante_plani);
 		pthread_mutex_unlock(&mutex_cola_ready);
 
 		pthread_mutex_lock(&tripulante_plani->mutex_ready);

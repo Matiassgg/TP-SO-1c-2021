@@ -69,10 +69,10 @@ void planificacion_segun_FIFO() {
 	while(1){
 		verificar_planificacion_activa();
 
+		pthread_mutex_lock(&mutex_cola_ready);
 		while (!queue_is_empty(cola_ready)) {
 			log_info(logger, "Se entro al while");
-			pthread_mutex_lock(&mutex_cola_ready);
-			p_tripulante* tripulante_plani = (t_tripulante*) queue_pop(cola_ready);
+			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
 			t_tripulante* tripulante = tripulante_plani->tripulante;
 	//		tripulante->estado = EXEC; // avisar a ram?
