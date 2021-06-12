@@ -132,10 +132,11 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case MOVER_HACIA:
 			;
-			uint32_t id_tripulante = deserializar_mover_hacia_id(cliente_fd);
-			t_movimiento direccion = deserializar_mover_hacia_direccion(cliente_fd);
+			mover_hacia* mover_hacia =  deserializar_mover_hacia(cliente_fd);
 
-			log_info(logger, "RAM :: Nos llego MOVER_HACIA del tripulante %i", id_tripulante);
+			log_info(logger, "RAM :: Nos llego MOVER_HACIA del tripulante %i", mover_hacia->id_tripulante);
+
+			free(mover_hacia);
 
 		break;
 	}

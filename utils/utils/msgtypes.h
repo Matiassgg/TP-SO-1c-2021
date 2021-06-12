@@ -81,6 +81,13 @@ typedef struct {
     t_list* posiciones;
 } t_patota;
 
+
+typedef struct {
+	uint32_t id_tripulante;
+    t_movimiento direccion;
+	uint32_t id_patota_asociado;
+} mover_hacia;
+
 t_patota* deserializar_iniciar_patota(uint32_t);
 t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente);
 t_respuesta recibir_respuesta(uint32_t);
