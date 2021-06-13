@@ -43,6 +43,12 @@ typedef struct {
 } t_segmento;
 
 typedef struct {
+	t_list* segmentos;
+	uint32_t id_patota_asociada;
+	uint32_t tareas_dadas;
+} tabla_segmentos;
+
+typedef struct {
 	uint32_t nro_segmento;
 	uint32_t id_asociado;
 	e_tipo_dato tipo_dato;
@@ -88,7 +94,8 @@ void* memoria;
 FILE* espacio_swap;
 t_list* entradas_swap;
 uint32_t tamanio_pagina;
-t_list* tabla_segmentos;
+t_list* lista_segmentos;
+t_list* lista_tablas_segmentos;
 t_list* tabla_asociadores_segmentos;
 t_list* patotas_creadas;
 entradaTablaMarcos* punteroMarcoClock;

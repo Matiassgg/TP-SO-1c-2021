@@ -35,7 +35,7 @@ mover_hacia* deserializar_mover_hacia(uint32_t socket_cliente){
 	//3. Id patota asociada
 	//-----------------------------
 
-	mover_hacia* mover_hacia = mallocccccc(sizeof(mover_hacia));
+	mover_hacia* mover_hacia = malloc(sizeof(mover_hacia));
 
 	recv(socket_cliente, &(mover_hacia->id_tripulante), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(mover_hacia->direccion), sizeof(t_movimiento), 0);
