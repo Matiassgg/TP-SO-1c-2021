@@ -86,6 +86,8 @@ typedef struct {
 	uint32_t id_tripulante;
     t_movimiento direccion;
 	uint32_t id_patota_asociado;
+	t_posicion* posicion_origen;
+	t_posicion* posicion_destino;
 } mover_hacia;
 
 t_patota* deserializar_iniciar_patota(uint32_t);

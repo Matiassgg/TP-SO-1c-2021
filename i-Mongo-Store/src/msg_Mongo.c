@@ -9,7 +9,7 @@ mover_hacia* deserializar_mover_hacia_posicion(uint32_t socket_cliente){
 
 	mover_hacia* posicion = malloc(sizeof(mover_hacia));
 
-	recv(socket_cliente, &(posicion->id), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(posicion->id_tripulante), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(posicion->posicion_origen->pos_x), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(posicion->posicion_origen->pos_y), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(posicion->posicion_destino->pos_x), sizeof(uint32_t), 0);

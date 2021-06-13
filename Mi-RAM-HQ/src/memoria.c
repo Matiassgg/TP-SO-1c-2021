@@ -56,34 +56,20 @@ void cargar_memoria_patota(t_patota* patota){
 		tabla_semgento_patota->tareas_dadas = 0;
 		tabla_semgento_patota->id_patota_asociada = pcb_nuevo->pid;
 
-		t_asociador_segmento* asociador_segmento = malloc(sizeof(t_asociador_segmento));
-
 		pthread_mutex_lock(&mutex_tocar_memoria);
-		asociador_segmento->nro_segmento = escribir_en_memoria(tareas,TAREAS);
+		uint32_t nro_segmento_tareas = escribir_en_memoria(tareas,TAREAS);
 		pthread_mutex_unlock(&mutex_tocar_memoria);
-		log_info(logger, "Se subio a memoria la tarea en el segmento nro %i", asociador_segmento->nro_segmento);
-		asociador_segmento->id_asociado = pcb_nuevo->pid;
-		asociador_segmento->tipo_dato = TAREAS;
+		log_info(logger, "Se subio a memoria la tarea en el segmento nro %i", nro_segmento_tareas);
 
-		list_add(tabla_asociadores_segmentos, asociador_segmento);
-
-		t_segmento* segmento_tareas = buscar_segmento_id(asociador_segmento->nro_segmento,asociador_segmento->tipo_dato);
+		t_segmento* segmento_tareas = buscar_segmento_id(nro_segmento_tareas,TAREAS);
 		pcb_nuevo->tareas = segmento_tareas->inicio;
 
-		t_asociador_segmento* asociador_segmento_pcb = malloc(sizeof(t_asociador_segmento));
-
 		pthread_mutex_lock(&mutex_tocar_memoria);
-		asociador_segmento_pcb->nro_segmento = escribir_en_memoria(pcb_nuevo,PCB);
+		uint32_t nro_segmento_patota = escribir_en_memoria(pcb_nuevo,PCB);
 		pthread_mutex_unlock(&mutex_tocar_memoria);
-		log_info(logger, "Se subio a memoria la patota en el segmento nro %i", asociador_segmento_pcb->nro_segmento);
-		asociador_segmento_pcb->id_asociado = pcb_nuevo->pid;
-		asociador_segmento_pcb->tipo_dato = PCB;
+		log_info(logger, "Se subio a memoria la patota en el segmento nro %i", nro_segmento_patota);
 
-		list_add(tabla_asociadores_segmentos, asociador_segmento_pcb);
-
-
-		t_segmento* segmento_pcb = buscar_segmento_id(asociador_segmento_pcb->nro_segmento,asociador_segmento_pcb->tipo_dato);
-
+		t_segmento* segmento_pcb = buscar_segmento_id(nro_segmento_patota, PCB);
 
 		list_add(tabla_semgento_patota->segmentos, segmento_tareas);
 		list_add(tabla_semgento_patota->segmentos, segmento_pcb);
@@ -237,6 +223,17 @@ uint32_t escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
 	return 0;
 }
 
+t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
+	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, TAREAS);
+	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);
+
+	char** lines = string_split(tareas, "\n");
+	log_info(logger, "RAM :: Tarea obtenida:\n%s", lines[0]);
+	t_tarea* tarea = obtener_tarea_archivo(lines[0]);
+
+	return tarea;
+}
+
 void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato){
 	pthread_mutex_lock(&mutex_tocar_memoria);
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
@@ -248,13 +245,15 @@ void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato){
 	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
-t_segmento* buscar_segmento_id(uint32_t id, e_tipo_dato tipo_dato){
-	bool buscar_segmento(t_asociador_segmento* asociador){
-		return asociador->id_asociado == id && asociador->tipo_dato == tipo_dato;
+tabla_segmentos* buscar_tabla_segmentos(uint32_t id){
+	bool buscar_segmento(tabla_segmentos* tabla){
+		return tabla->id_patota_asociada == id;
 	}
 
-	t_asociador_segmento* asociador_segmento = (t_asociador_segmento*) list_find(tabla_asociadores_segmentos, buscar_segmento);
+	return (tabla_segmentos*) list_find(lista_tablas_segmentos, buscar_segmento);
+}
 
+t_segmento* buscar_segmento_id(uint32_t id, tabla_segmentos* tabla_segmentos_patota, e_tipo_dato tipo_dato){
 	bool es_segmento(t_segmento* segmento){
 		log_info(logger, "segmento %i",segmento->nro_segmento);
 		log_info(logger, "asociador %i", asociador_segmento->nro_segmento);

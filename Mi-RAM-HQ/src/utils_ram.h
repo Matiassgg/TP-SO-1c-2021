@@ -44,6 +44,7 @@ typedef struct {
 
 typedef struct {
 	t_list* segmentos;
+	t_list* asociador;
 	uint32_t id_patota_asociada;
 	uint32_t tareas_dadas;
 } tabla_segmentos;

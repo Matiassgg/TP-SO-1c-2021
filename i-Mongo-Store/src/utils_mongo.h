@@ -27,12 +27,6 @@ void procesar_mensaje_recibido(int, int);
 
 typedef struct {
 	u_int32_t id;
-	t_posicion* posicion_origen;
-	t_posicion* posicion_destino;
-} mover_hacia;
-
-typedef struct {
-	u_int32_t id;
 	e_tarea tarea;
 } tarea_Mongo;
 
