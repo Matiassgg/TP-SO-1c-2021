@@ -40,7 +40,6 @@ void leer_config() {
 
 	pthread_mutex_init(&mutexTablaSegmentos, NULL);
 	pthread_mutex_init(&mutexInfoPatotaAEnviar, NULL);
-	pthread_mutex_init(&mutexInfoPatotaAEnviar, NULL);
 	pthread_mutex_init(&mutexEscribirMemoria, NULL);
 	pthread_mutex_init(&mutexEliminarDeMemoria, NULL);
 	pthread_mutex_init(&mutexPatotasCreadas, NULL);

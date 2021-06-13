@@ -33,6 +33,32 @@ void preparar_memoria() {
 	else
 		log_warning(logger,"El esquema de memoria seleccionado no coincide con ningun esquema");
 
+	if((espacio_swap = fopen("/home/utnso/tp-2020-2c-breakfastClub/espacio_swap.bin","wb+")) == NULL){
+				log_info(logger, "Error, no se pudo crear el SWAP");
+				return;
+		}
+
+	cantidad_de_marcos = 0;
+	cantidad_de_marcos_swap = 0;
+
+	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
+			log_info(logger, "Desplazamiento: %d", offset);
+			void* marco = memoria + offset;
+
+			entradaTablaMarcos* nuevaEntrada = malloc(sizeof(entradaTablaMarcos));
+			nuevaEntrada->indice = cantidad_de_marcos;
+			nuevaEntrada->marco = marco;
+			nuevaEntrada->libre = true;
+			nuevaEntrada->bitUso = false;
+			nuevaEntrada->bitModificado = false;
+			nuevaEntrada->timeStamp = NULL;
+			nuevaEntrada->idPatota = -1;
+
+			list_add(tablaDeMarcos, nuevaEntrada);
+			log_info(logger, "Marco numero: %d", nuevaEntrada->indice);
+			cantidad_de_marcos++;
+		}
+
 }
 
 t_pcb* crear_pcb(t_patota* patota){
@@ -526,25 +552,7 @@ void seleccionar_victima_CLOCK(void){
 				}
 			}
 		}
-/* CREO QUE ESTO NO HACE FALTA, CONSULTAR CON LOS PIBARDOS
 
-		if (!victima_seleccionada) {
-			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
-				if (!bit_uso(punteroMarcoClock) && bit_modificado(punteroMarcoClock)) {
-					victima_seleccionada = true;
-				} else {
-					punteroMarcoClock->bitUso = false;
-				}
-				if(!victima_seleccionada){
-					// referencio a la siguiente entrada
-					punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
-
-					// aumento el indice del puntero
-					posicion_puntero_actual = ((posicion_puntero_actual + 1) % cantidad_de_marcos);
-				}
-			}
-		}
-*/
 	}
 
 
