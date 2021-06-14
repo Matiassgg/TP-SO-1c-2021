@@ -33,32 +33,6 @@ void preparar_memoria() {
 	else
 		log_warning(logger,"El esquema de memoria seleccionado no coincide con ningun esquema");
 
-	if((espacio_swap = fopen("/home/utnso/tp-2020-2c-breakfastClub/espacio_swap.bin","wb+")) == NULL){
-				log_info(logger, "Error, no se pudo crear el SWAP");
-				return;
-		}
-
-	cantidad_de_marcos = 0;
-	cantidad_de_marcos_swap = 0;
-
-	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
-			log_info(logger, "Desplazamiento: %d", offset);
-			void* marco = memoria + offset;
-
-			entradaTablaMarcos* nuevaEntrada = malloc(sizeof(entradaTablaMarcos));
-			nuevaEntrada->indice = cantidad_de_marcos;
-			nuevaEntrada->marco = marco;
-			nuevaEntrada->libre = true;
-			nuevaEntrada->bitUso = false;
-			nuevaEntrada->bitModificado = false;
-			nuevaEntrada->timeStamp = NULL;
-			nuevaEntrada->idPatota = -1;
-
-			list_add(tablaDeMarcos, nuevaEntrada);
-			log_info(logger, "Marco numero: %d", nuevaEntrada->indice);
-			cantidad_de_marcos++;
-		}
-
 }
 
 t_pcb* crear_pcb(t_patota* patota){
@@ -77,10 +51,10 @@ void cargar_memoria_patota(t_patota* patota){
 	char* tareas = obtener_tareas(pcb_nuevo);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		tabla_segmentos* tabla_semgento_patota = malloc(sizeof(tabla_segmentos));
-		tabla_semgento_patota->segmentos = list_create();
-		tabla_semgento_patota->tareas_dadas = 0;
-		tabla_semgento_patota->id_patota_asociada = pcb_nuevo->pid;
+		tabla_segmentos* tabla_segmento_patota = malloc(sizeof(tabla_segmentos));
+		tabla_segmento_patota->segmentos = list_create();
+		tabla_segmento_patota->tareas_dadas = 0;
+		tabla_segmento_patota->id_patota_asociada = pcb_nuevo->pid;
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		uint32_t nro_segmento_tareas = escribir_en_memoria(tareas,TAREAS);
@@ -97,15 +71,41 @@ void cargar_memoria_patota(t_patota* patota){
 
 		t_segmento* segmento_pcb = buscar_segmento_id(nro_segmento_patota, PCB);
 
-		list_add(tabla_semgento_patota->segmentos, segmento_tareas);
-		list_add(tabla_semgento_patota->segmentos, segmento_pcb);
-		list_add(lista_tablas_segmentos, tabla_semgento_patota);
+		list_add(tabla_segmento_patota->segmentos, segmento_tareas);
+		list_add(tabla_segmento_patota->segmentos, segmento_pcb);
+		list_add(lista_tablas_segmentos, tabla_segmento_patota);
 	}
 	else{
+		if(son_iguales(esquema_memoria, "PAGINACION")){
+
+		}
 
 	}
 
+	typedef struct {
+		uint32_t nro_pagina;
+		uint32_t nro_marco;
+		t_estado_marco estado;
+		uint32_t tamanio;
+	} t_tabla_paginas;
+
 }
+
+t_tcb* crear_tcb(t_tripulante* tripulante){
+	log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
+	t_tcb* tcb = malloc(sizeof(t_tcb));
+
+	tcb->tid = tripulante->id;
+	tcb->estado = 'N';
+	tcb->prox_instruccion = 0;
+	tcb->posicion = tripulante->posicion;
+	tcb->puntero_pcb = 0;
+
+	log_info(logger, "RAM :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
+
+	return tcb;
+}
+
 void cargar_memoria_tripulante(t_tripulante* tripulante){
 	t_tcb* tcb = crear_tcb(tripulante);
 
@@ -124,24 +124,11 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 		list_add(tabla_asociadores_segmentos, asociador_segmento);
 	}
 	else{
+		if(son_iguales(esquema_memoria, "PAGINACION")){
 
+				}
 	}
 
-}
-
-t_tcb* crear_tcb(t_tripulante* tripulante){
-	log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
-	t_tcb* tcb = malloc(sizeof(t_tcb));
-
-	tcb->tid = tripulante->id;
-	tcb->estado = 'N';
-	tcb->prox_instruccion = 0;
-	tcb->posicion = tripulante->posicion;
-	tcb->puntero_pcb = 0;
-
-	log_info(logger, "RAM :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
-
-	return tcb;
 }
 
 
@@ -266,7 +253,7 @@ void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato){
 		return leer_memoria_segmentacion(buscar_segmento_id(id, tipo_dato));
 	}
 	else{
-
+		return leer_memoria_paginacion();
 	}
 	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
