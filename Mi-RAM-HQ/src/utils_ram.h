@@ -68,6 +68,31 @@ typedef struct {
 	uint32_t tamanio;
 } t_tabla_paginas;
 
+/*
+typedef struct {
+	void* inicioMemoria;
+	uint32_t numeroPagina;
+	t_frame_en_swap* frameEnSwap;
+} t_pagina;
+
+
+typedef struct
+{
+	void* inicio;
+	//t_pagina* paginaALaQuePertenece; //estaOcupado
+	uint32_t estaSiendoUsado;
+}t_frame_en_memoria;
+
+typedef struct
+{
+	void* inicio;
+	t_frame_en_memoria* frameAsignado;
+	uint8_t presente;
+	uint32_t LRU;
+	uint8_t modificado;
+	uint8_t usado;
+}t_frame_en_swap;
+*/
 //
 
 typedef struct {

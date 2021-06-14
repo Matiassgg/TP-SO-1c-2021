@@ -408,6 +408,8 @@ void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb,
 //
 //	log_info(logger, "Escrito con exito");
 }
+
+
 entradaTablaMarcos* buscar_entrada(void* marco){
 	bool el_que_quiero(void* parametro){
 		return ((entradaTablaMarcos*)parametro)->marco == marco;

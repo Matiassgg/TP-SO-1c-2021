@@ -267,6 +267,53 @@ e_tarea obtener_nombre_tarea(char* tarea){
 	if(son_iguales(tarea,"DESCARTAR_BASURA"))
 		return DESCARTAR_BASURA;
 }
+/*
+bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
+	t_list* marcosEnMemoria = entradas_segun_pedido(idPatota);
+	int cantidadMarcos = list_size(marcosEnMemoria);
+	int offset = 0;
+	bool encontrado = false;
+
+	for (int i = 0; i < cantidadMarcos && !encontrado; i++) {
+		entradaTablaMarcos* entrada = list_get(marcosEnMemoria, i);
+		uint32_t cantidadLista;
+		uint32_t cantidadPlato;
+		char* nombrePlato = malloc(24);
+
+		memcpy(&cantidadLista, entrada->marco + offset, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		memcpy(&cantidadPlato, entrada->marco + offset, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		memcpy(nombrePlato, entrada->marco + offset, 24);
+
+		if (!strcmp(pagina->nombrePlato, nombrePlato)) {
+			encontrado = true;
+		} else {
+			encontrado = false;
+		}
+
+		offset = 0;
+
+		free(nombrePlato);
+	}
+
+	list_destroy(marcosEnMemoria);
+
+	return encontrado;
+}
+*/
+t_list* entradas_segun_patota(uint32_t idPatota){
+	bool buscar_entradas_patota(void* parametro){
+		entradaTablaMarcos* entradaEnMem = (entradaTablaMarcos*) parametro;
+		return idPatota == entradaEnMem->idPatota;
+	}
+
+	t_list* entradas = list_filter(tablaDeMarcos, buscar_entradas_patota);
+
+	return entradas;
+}
 
 
 
