@@ -76,9 +76,6 @@ void cargar_memoria_patota(t_patota* patota){
 		list_add(lista_tablas_segmentos, tabla_segmento_patota);
 	}
 	else{
-		if(son_iguales(esquema_memoria, "PAGINACION")){
-
-		}
 
 	}
 
@@ -124,9 +121,7 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 		list_add(tabla_asociadores_segmentos, asociador_segmento);
 	}
 	else{
-		if(son_iguales(esquema_memoria, "PAGINACION")){
 
-				}
 	}
 
 }
