@@ -12,10 +12,10 @@ int main(int argc, char* argv[]) {
 }
 
 void iniciar_mongo(void) {
-	leer_config();
 	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
-    log_info(logger, "Ya obtuvimos la config del mongo\n");
-    FS_RESET();
+	leer_config();
+    log_info(logger, "Ya obtuvimos la config del mongo");
+    //FS_RESET();
     crear_punto_de_montaje();
 }
 
@@ -32,14 +32,30 @@ void FS_RESET(){
 	}
 }
 
-void crear_punto_de_montaje(void){
-
-}
-
 void leer_config(void) {
 	config = config_create(ARCHIVO_CONFIG);
 
 	punto_montaje = config_get_string_value(config,"PUNTO_MONTAJE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
+	tiempo_sincronizacion = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
+	posiciones_sabotaje = list_create();
+	obtener_posiciones_sabotaje();
 }
 
+void obtener_posiciones_sabotaje() {
+	char** posiciones_sabotaje_strings = config_get_array_value(config, "POSICIONES_SABOTAJE");
+	for(uint32_t i = 0; posiciones_sabotaje_strings[i] != NULL; i++) {
+		t_posicion* posicion = malloc(sizeof(t_posicion));
+		char** posicion_string = string_split(posiciones_sabotaje_strings[i], "|");
+
+		posicion->pos_x = (uint32_t) atoi(posicion_string[0]);
+		posicion->pos_y = (uint32_t) atoi(posicion_string[1]);
+
+		list_add(posiciones_sabotaje, posicion);
+		string_iterate_lines(posicion_string, (void*) free);
+	}
+}
+
+void crear_punto_de_montaje(){
+
+}
