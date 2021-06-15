@@ -284,14 +284,14 @@ void* leer_memoria_segmentacion(t_segmento* segmento){
 uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer){
 	t_segmento* segmento_libre = buscar_segmento_libre(buffer->size);
 	log_info(logger, "Segmento libre %i", segmento_libre->nro_segmento);
-	t_segmento* segmeto_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
-	log_info(logger, "Segmento nuevo %i", segmeto_nuevo->nro_segmento);
+	t_segmento* segmento_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
+	log_info(logger, "Segmento nuevo %i", segmento_nuevo->nro_segmento);
 
 	segmento_libre->esta_libre = false;
 	segmento_libre->tamanio = buffer->size;
 
 	subir_segmento(segmento_libre, buffer->stream);
-	subir_segmento(segmeto_nuevo, buffer->stream);
+	subir_segmento(segmento_nuevo, buffer->stream);
 
 	return segmento_libre->nro_segmento;
 }
@@ -333,7 +333,7 @@ t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
 	return (t_segmento*) list_remove_by_condition(lista_segmentos, esta_libre);
 }
 
-void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb, bool esta_en_memoria, uint32_t idPedido, bool modificado) {
+void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pagina* pagina, bool esta_en_memoria, uint32_t idPatota, bool modificado) {
 //	entradaTablaMarcos* entradaDeLaTabla;
 //
 //	if (esta_en_memoria) {
@@ -362,7 +362,6 @@ void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb,
 //
 //		if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
 //			entradaDeLaTabla->bitUso = true;
-//			entradaDeLaTabla->bitModificado = modificado;
 //		}
 //	} else {
 //		entradaDeLaTabla = asignar_entrada_marco_libre();
@@ -379,7 +378,6 @@ void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pcb* tcb,
 //
 //		// Agrego a lista de timestamp por marco
 //		if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
-//			entradaDeLaTabla->bitModificado = modificado;
 //			entradaDeLaTabla->bitUso = true;
 //			log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d - bit de modificado %d .", entradaDeLaTabla->indice, entradaDeLaTabla->bitUso, entradaDeLaTabla->bitModificado);
 //		}

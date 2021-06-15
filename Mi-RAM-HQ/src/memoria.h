@@ -23,7 +23,7 @@ t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size);
 void subir_segmento(t_segmento* segmento, void* stream);
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido);
 
-void escribir_en_memoria_paginacion(t_pcb* tcb, bool esta_en_memoria, uint32_t idPedido, bool modificado);
+void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);
 
 void* convertir(char* algoritmo_nombre);
 void seleccionar_victima_LRU(void);
@@ -34,7 +34,6 @@ entradaTablaMarcos* asignar_entrada_marco_libre(void);
 bool ambos_bits_apagados(entradaTablaMarcos* entrada);
 bool bit_uso_apagado(entradaTablaMarcos* entrada);
 bool bit_uso(entradaTablaMarcos* entrada);
-bool bit_modificado(entradaTablaMarcos* entrada);
 int indice_elemento(t_list* lista, void* elemento);
 int cantidad_de_marcos;
 int cantidad_de_marcos_swap;
