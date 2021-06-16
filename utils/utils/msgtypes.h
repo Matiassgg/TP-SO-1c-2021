@@ -8,6 +8,12 @@ typedef enum {
 	FAIL
 } t_respuesta;
 
+typedef struct {
+	uint32_t id_tripulante;
+	uint32_t id_patota;
+	char estado;					// (N/R/E/B)
+} t_respuesta_listar_tripulantes;
+
 //---------ESTADO--------//
 typedef enum {
 	NEW,

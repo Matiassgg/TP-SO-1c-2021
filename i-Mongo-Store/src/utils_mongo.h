@@ -1,7 +1,7 @@
 #ifndef I_MONGO_STORE_SRC_UTILS_MONGO_H_
 #define I_MONGO_STORE_SRC_UTILS_MONGO_H_
 
-#include "../../utils/utils/utils.h"	// Incluyo la shared
+#include "../../utils/utils/utils.h"
 
 char* ip_Mongo_Store;
 char* puerto_escucha;
@@ -16,6 +16,9 @@ uint32_t socket_discordiador;
 
 char* punto_montaje;
 char* archivo_log;
+
+uint32_t tiempo_sincronizacion;
+t_list* posiciones_sabotaje;
 
 t_config* config;
 t_log* logger;
