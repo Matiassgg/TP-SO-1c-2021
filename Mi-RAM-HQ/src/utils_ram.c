@@ -85,14 +85,15 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(tripulante);
 			break;
 		case LISTAR_TRIPULANTES:
+			log_info(logger, "RAM :: Nos llego LISTAR_TRIPULANTES de DISCORDIADOR");
+			log_info(logger, "Se procede a obtener la info de los tripulantes");
 
-			log_info(logger, "Nos llego LISTAR_TRIPULANTES");
+			// FALTA VER ESTO
+			//t_list* lista_tripulantes = list_create();
+			//obtener_listado_tripulantes(lista_tripulantes);
 
-			// Obtener el listado de todos los tripulantes con su estado y su patota correspondiente
-
-//			enviar_discordiador_listar_tripulantes_respuesta(tripulantes, cliente_fd); es necesario????
-
-//			log_info(logger, "RAM :: Se enviaron los datos de los tripulantes");
+			//enviar_respuesta_listado_tripulantes(lista_tripulantes, cliente_fd);
+			log_info(logger, "RAM :: Se enviaron los datos de los tripulantes");
 
 		break;
 		case EXPULSAR_TRIPULANTE:
@@ -314,6 +315,19 @@ t_list* entradas_segun_patota(uint32_t idPatota){
 
 	return entradas;
 }
+/*
+void obtener_listado_tripulantes(t_list* lista_tripulantes) {
+	t_respuesta_listar_tripulantes* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulantes));
 
+	// TODO HARDCODEADO : SOLO ES PRUEBA AHORA
+	respuesta_prueba->id_tripulante = 1;
+	respuesta_prueba->id_patota= 1;
+	respuesta_prueba->estado = 'N';
+	list_add(lista_tripulantes, respuesta_prueba);
+
+	// Libero memoria pero se tiene que mandar a discordiador la lista
+	list_destroy_and_destroy_elements(lista_tripulantes, (void*) free);
+	free(respuesta_prueba);
+}*/
 
 

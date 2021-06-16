@@ -141,5 +141,6 @@ t_tarea* obtener_tarea(t_tripulante* tripulante);
 char* obtener_tareas(t_pcb* pcb);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
 e_tarea obtener_nombre_tarea(char* tarea);
+void obtener_listado_tripulantes(t_list*);
 
 #endif /* MI_RAM_HQ_SRC_UTILS_RAM_H_ */
