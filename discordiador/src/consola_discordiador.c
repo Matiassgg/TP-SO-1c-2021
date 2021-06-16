@@ -46,18 +46,6 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 	if(son_iguales(palabras_del_mensaje[0] ,"INICIAR_PATOTA")) {
 
-		/*
-			Iniciar patota
-			Recibirá como parámetro la cantidad de tripulantes que tendrá la patota,
-			un archivo de tareas que deberán ejecutar los tripulantes de la patota
-			(se indica el formato en la siguiente sección)
-			y una lista de posiciones iniciales de los tripulantes.
-			Por defecto, si no se especifica la posición de la totalidad de los tripulantes,
-			se asume que los restantes inician en 0|0.
-
-		Ejemplo:
-			INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4
-		 */
 		log_info(logger, "DISCORDIADOR :: Iniciaremos la patota %i", ++cantidad_patotas);
 
 		t_patota* patota = de_consola_a_patota(palabras_del_mensaje);
@@ -71,9 +59,6 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		planificar_patota(patota);
 //		list_add(patotas, patota); VER SI ES NECESARIO
 
-//		VER QUE HACER CON LA PATOTA
-//		CREAR TRIPULANTES?
-//		AVISAR A LOS MODULOS
 		return;
 	}
 
@@ -81,24 +66,39 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 	if(son_iguales(palabras_del_mensaje[0] ,"LISTAR_TRIPULANTES")) {
 
-		// No hace falta cortar la funcion aca o ni hace falta el cheque nose
-		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 0))
-			log_warning(logger, "No metas la pata, aca no hacen faltan argumentos");
+		log_info(logger, "--------------------------------------------------------");
+		log_info(logger, "DISCORDIADOR :: Estado de la nave: %s", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+		log_info(logger, "--------------------------------------------------------");
 
-		/*
-			Este mensaje devolverá el listado de tripulantes con su estado actual
-			y la patota a la que pertenecen
-		*/
+		// Envio mensaje a RAM
+		t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
+		enviar_paquete(paquete_a_enviar, socket_Mi_RAM_HQ);
 
-		log_info(logger, "------------------------------------------------------------------------");
-		log_info(logger, "DISCORDIADOR :: Estado de la nave: %s\n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
-		log_info(logger, "------------------------------------------------------------------------");
+		// Obtengo el listado a partir de RAM
+		t_list* lista_tripulantes_respuesta = list_create();
+		obtener_listado_tripulantes(lista_tripulantes_respuesta);
+		uint32_t cantidad_tripulantes = list_size(lista_tripulantes_respuesta);
 
-		t_tripulante* tripulante;
-//		QUE TAL SI MEJOR USAMOS TRIPUALNTE :V Y EL STATUS SE HACE UNA FUNCION NOC COMO PERO SE VERA
-		enviar_RAM_listar_tripulantes(tripulante, socket_Mi_RAM_HQ);
+		if (cantidad_tripulantes == 0)
+			log_warning(logger, "DISCORDIADOR :: No pudimos obtener info. de los tripulante de Mi-RAM");
+		else {
+			log_info(logger, "DISCORDIADOR :: Recorremos a los tripulantes");
+			t_respuesta_listar_tripulantes* respuesta = malloc(sizeof(t_respuesta_listar_tripulantes));
 
-
+			for(int i = 0; i < cantidad_tripulantes; i++) {
+				respuesta = (t_respuesta_listar_tripulantes*) list_get(lista_tripulantes_respuesta, i);
+				log_info(
+						logger,
+						"Tripulante: %i\t Patota: %i\t Estado: %s",
+						respuesta->id_tripulante,
+						respuesta->id_patota,
+						obtener_estado_segun_caracter(respuesta->estado)
+					);
+				// SON VARIOS TRIPULANTES, POR AHORA SE PRUEBA CON UNO HARDCODEADO NADA MAS
+			}
+			free(respuesta);
+		}
+		log_info(logger, "--------------------------------------------------------");
 
 		return;
 	}
@@ -113,7 +113,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		log_info(logger, "DISCORDIADOR :: Expulsamos al tripulante %d", palabras_del_mensaje[1]);
 
-		t_tripulante* tripulante;
+		t_tripulante* tripulante = malloc(sizeof(t_tripulante));
 
 		enviar_RAM_expulsar_tripulante(tripulante,socket_Mi_RAM_HQ);
 
@@ -163,6 +163,17 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		return;
 	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+
+	if(son_iguales(palabras_del_mensaje[0] ,"SABOTAJE")) {
+		log_info(logger, "DISCORDIADOR :: Nos llego SABOTAJE de i-Mongo-Store");
+
+		// Este mensaje llega a discordiador cuando le llega la señal al mongo
+		// Falta resolver como averiguar la posicion de sabotaje desde aca
+
+		return;
+	}
 }
 
 t_patota* de_consola_a_patota(char** palabras_del_mensaje){
@@ -175,8 +186,8 @@ t_patota* de_consola_a_patota(char** palabras_del_mensaje){
 	patota->path_tareas = string_duplicate(palabras_del_mensaje[2]);
 
 	for(; palabras_del_mensaje[3+cant_posiciones] != NULL; cant_posiciones++){
-		t_posicion* pos_ini = malloc(sizeof(t_posicion));char** posicion = string_split(palabras_del_mensaje[3+cant_posiciones], "|");
-//		char** posicion = string_get_string_as_array(palabras_del_mensaje[3+cant_posiciones]); si podemos ponerlas como [posX,posY]
+		t_posicion* pos_ini = malloc(sizeof(t_posicion));
+		char** posicion = string_split(palabras_del_mensaje[3+cant_posiciones], "|");
 
 		pos_ini->pos_x = (uint32_t) atoi(posicion[0]);
 		pos_ini->pos_y = (uint32_t) atoi(posicion[1]);
@@ -197,4 +208,38 @@ t_patota* de_consola_a_patota(char** palabras_del_mensaje){
 	}
 	return patota;
 }
+
+char* obtener_estado_segun_caracter(char estado) {
+	char* estado_string;
+	switch(estado) {
+		case 'N':
+			estado_string = "NEW";
+			break;
+		case 'R':
+			estado_string =  "READY";
+			break;
+		case 'B':
+			estado_string =  "BLOCK I/O";
+			break;
+		case 'E':
+			estado_string =  "EXEC";
+			break;
+		default:
+			estado_string = "ERROR";
+			break;
+	}
+	return estado_string;
+}
+
+// ESTO VA EN RAM
+void obtener_listado_tripulantes(t_list* lista_tripulantes) {
+	t_respuesta_listar_tripulantes* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulantes));
+
+	// TODO HARDCODEADO : SOLO ES PRUEBA : SE PIDE A MEMORIA
+	respuesta_prueba->id_tripulante = 1;
+	respuesta_prueba->id_patota= 1;
+	respuesta_prueba->estado = 'N';
+	list_add(lista_tripulantes, respuesta_prueba);
+}
+
 

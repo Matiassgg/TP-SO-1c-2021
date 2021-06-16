@@ -54,5 +54,6 @@ uint32_t cantidad_tripulantes;
 void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
+void rafaga_cpu(void);
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */

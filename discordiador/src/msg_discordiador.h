@@ -10,6 +10,7 @@ void enviar_RAM_expulsar_tripulante(t_tripulante*, uint32_t);
 void enviar_RAM_listar_tripulantes(t_tripulante*, uint32_t);
 void enviar_mover_hacia(t_tripulante* tripulante, t_movimiento direccion);
 void enviar_Mongo_bitacora_tarea(t_tripulante* msg, uint32_t socket_conexion);
+void enviar_solicitar_tarea(t_tripulante* tripulante, uint32_t socket_conexion);
 
 //---------SERIALIZACION--------//
 void serializar_expulsar_tripulante(t_tripulante*, t_buffer*);
