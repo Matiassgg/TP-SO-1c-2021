@@ -63,16 +63,23 @@ typedef enum {
 
 typedef struct {
 	t_list* paginas;
-	//seguro falta más info
+	uint32_t id_patota_asociada;
+	uint32_t tareas_dadas;
 } t_tabla_paginas;
 
 
 typedef struct {
 	uint32_t numeroPagina;
-	uint32_t nro_marco;
-	t_estado_marco estado;
-	//seguro falta más info
+	t_asociador_pagina asociador;
+	uint32_t numeroMarco;
 } t_pagina;
+
+
+typedef struct {
+	uint32_t nro_pagina;
+	uint32_t id_asociado;
+	e_tipo_dato tipo_dato;
+} t_asociador_pagina;
 
 
 //

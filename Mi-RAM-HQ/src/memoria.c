@@ -76,16 +76,40 @@ void cargar_memoria_patota(t_patota* patota){
 		list_add(lista_tablas_segmentos, tabla_segmento_patota);
 	}
 	else{
+		//revisar toda esta cagada que hice para empezar algo
+		if(son_iguales(esquema_memoria, "PAGINACION")){
+			t_tabla_paginas* tabla_pagina_patota = malloc(sizeof(t_tabla_paginas));
+			tabla_pagina_patota->id_patota_asociada = pcb_nuevo->pid;
+			tabla_pagina_patota->paginas = list_create();
+			tabla_pagina_patota->tareas_dadas = 0;
+
+			pthread_mutex_lock(&mutex_tocar_memoria);
+			uint32_t nro_pagina_tareas = escribir_en_memoria(tareas,TAREAS);
+			pthread_mutex_unlock(&mutex_tocar_memoria);
+			log_info(logger, "Se subio a memoria la tarea en la pagina nro %i", nro_pagina_tareas);
+
+			t_pagina* pagina_tareas = buscar_pagina_id(nro_pagina_tareas,TAREAS);
+			pcb_nuevo->tareas = pagina_tareas->inicio;
+
+			pthread_mutex_lock(&mutex_tocar_memoria);
+			uint32_t nro_pagina_patota = escribir_en_memoria(pcb_nuevo,PCB);
+			pthread_mutex_unlock(&mutex_tocar_memoria);
+			log_info(logger, "Se subio a memoria la pagina en el segmento nro %i", nro_pagina_patota);
+
+			t_pagina* pagina_pcb = buscar_pagina_id(nro_pagina_patota, PCB);
+
+			list_add(tabla_pagina_patota->paginas, pagina_tareas);
+			list_add(tabla_pagina_patota->paginas, pagina_pcb);
+			list_add(lista_tablas_segmentos, tabla_segmento_patota);
+		}
 
 	}
 
 	typedef struct {
-		uint32_t nro_pagina;
-		uint32_t nro_marco;
-		t_estado_marco estado;
-		uint32_t tamanio;
+		t_list* paginas;
+		uint32_t id_patota_asociada;
+		uint32_t tareas_dadas;
 	} t_tabla_paginas;
-
 }
 
 t_tcb* crear_tcb(t_tripulante* tripulante){
