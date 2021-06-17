@@ -62,6 +62,8 @@ void serializar_solicitar_tarea_respuesta(t_tarea* msg, t_buffer* buffer){
 	uint32_t offset = 0;
 
 	if(msg){
+		msg->tamanio_tarea = string_length(msg->tarea);
+
 		buffer->size = sizeof(uint32_t)*5 + msg->tamanio_tarea;
 		buffer->stream = malloc(buffer->size);
 

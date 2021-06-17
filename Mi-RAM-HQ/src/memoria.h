@@ -14,17 +14,17 @@ t_tcb* crear_tcb(t_tripulante* tripulante);
 void preparar_memoria_para_esquema_de_segmentacion(void);
 void preparar_memoria_para_esquema_de_paginacion(void);
 
-void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato);
+void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 void* leer_memoria_segmentacion(t_segmento* segmento);
 
-uint32_t escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato);
-uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size);
 void subir_segmento_memoria(t_segmento* segmento, void* stream);
 void subir_segmento_libre(t_segmento* segmento);
 t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota);
-uint32_t subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, e_tipo_dato tipo_dato);
+void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido);
 
 void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);

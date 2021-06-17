@@ -38,6 +38,7 @@ void planificar_patota(t_patota* patota){
 		pthread_t hiloTripulante;
 		pthread_create(&hiloTripulante, NULL, (void*) ejecutar_tripulante, tripulante);
 		pthread_detach(hiloTripulante);
+		sleep(5); // TODO NO VA
 	}
 
 

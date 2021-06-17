@@ -260,10 +260,13 @@ t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente) {
 	tarea->posicion = malloc(sizeof(t_posicion));
 
 	recv(socket_cliente, &(tarea->tamanio_tarea), sizeof(uint32_t), 0);
+	tarea->tarea = malloc(tarea->tamanio_tarea);
 	recv(socket_cliente, tarea->tarea, tarea->tamanio_tarea, 0);
 	recv(socket_cliente, &(tarea->parametro), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(tarea->posicion->pos_x), sizeof(uint32_t), 0);
+	log_info(logger, "pos_x: %i", tarea->posicion->pos_x);
 	recv(socket_cliente, &(tarea->posicion->pos_y), sizeof(uint32_t), 0);
+	log_info(logger, "pos_x: %i", tarea->posicion->pos_y);
 	recv(socket_cliente, &(tarea->tiempo), sizeof(uint32_t), 0);
 
 	return tarea;

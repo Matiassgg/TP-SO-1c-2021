@@ -27,6 +27,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
 //	TODO no hay que enviar el tripulante sino que ram debe crear todo con la patota ONO
 
+	sleep(5); // TODO NO VA
 	solicitar_tarea(tripulante);
 	while(tripulante->tarea_act){
 		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));

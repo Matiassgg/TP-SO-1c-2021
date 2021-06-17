@@ -39,8 +39,12 @@ typedef struct {
 	uint32_t nro_segmento;
 	uint32_t inicio;
 	uint32_t tamanio;
-//	bool esta_libre;
 } t_segmento;
+
+typedef struct {
+	t_segmento segmento;
+	uint32_t id_tripulante;
+} t_segmento_tcb;
 
 typedef struct {
 	t_segmento* segmento_pcb;
@@ -49,6 +53,7 @@ typedef struct {
 	uint32_t id_patota_asociada;
 	uint32_t tareas_dadas;
 	uint32_t cant_segmentos;
+	pthread_mutex_t mutex_obtener_tareas;
 } t_tabla_segmentos;
 
 typedef struct {

@@ -117,7 +117,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Nos llego SOLICITAR_TAREA para el tripulante %i", tripulante->id);
 
-			t_tarea* tarea = obtener_tarea(tripulante);
+			t_tarea* tarea = obtener_tarea_memoria(tripulante);
 
 			if(tarea == NULL){
 				log_warning(logger, "RAM :: Ya no hay mas tareas a esa patota");
@@ -164,34 +164,12 @@ void eliminar_patota_de_swap(uint32_t idPatota){
 
 
 t_tarea* obtener_tarea(t_tripulante* tripulante){
-//	if(list_is_empty(tareas)){
-//		log_warning(logger, "No hay tareas");
-//		return NULL;
-//	}
-//
-//	t_queue* pila_tareas = list_get(tareas, tripulante->id_patota_asociado-1);
-//
-//	if(queue_is_empty(pila_tareas)){
-//		log_warning(logger, "No hay quedan tareas para la patota");
-//		return NULL;
-//	}
-//
-//	t_tarea* tarea = queue_pop(pila_tareas);
-//	return tarea;
-	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, TAREAS);
+	char* tareas = (char*) leer_memoria(tripulante->id, tripulante->id_patota_asociado, TAREAS);
 	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);
 
 	char** lines = string_split(tareas, "\n");
 	log_info(logger, "RAM :: Tarea obtenida:\n%s", lines[0]);
 	t_tarea* tarea = obtener_tarea_archivo(lines[0]);
-
-//	void add_cofiguration(char *line) {
-//		if (!string_starts_with(line, "#")) {
-//			t_tarea* tarea = obtener_tarea_archivo(line);
-//		}
-//	}
-//	string_iterate_lines(lines, add_cofiguration);
-//	string_iterate_lines(lines, (void*) free);
 
 	free(lines);
 
@@ -245,11 +223,19 @@ t_tarea* obtener_tarea_archivo(char* tarea_string){
 	char** tarea_parametros = string_n_split(tarea_string, 2, " ");
 	char** parametros = string_n_split(tarea_parametros[1], 4, ";");
 
-	tarea->tarea = obtener_nombre_tarea(tarea_parametros[0]);
+	for(int i=0;i<4;i++)
+		log_info(logger, "parametro[%i]: %s | %i", i, parametros[i], atoi(parametros[i]));
+
+	tarea->tarea = string_duplicate(tarea_parametros[0]);
+	log_info(logger, "tarea: %s", tarea->tarea);
 	tarea->parametro = atoi(parametros[0]);
+	log_info(logger, "parametro: %i", tarea->parametro);
 	tarea->posicion->pos_x = atoi(parametros[1]);
+	log_info(logger, "pos_x: %i", tarea->posicion->pos_x);
 	tarea->posicion->pos_y = atoi(parametros[2]);
+	log_info(logger, "pos_y: %i", tarea->posicion->pos_y);
 	tarea->tiempo = atoi(parametros[3]);
+	log_info(logger, "tiempo: %i", tarea->tiempo);
 
 	return tarea;
 }
