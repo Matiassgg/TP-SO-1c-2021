@@ -41,9 +41,9 @@ void enviar_mover_hacia(t_tripulante* tripulante, t_movimiento direccion){
 	serializar_mover_hacia_RAM(tripulante, direccion, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_RAM);
 //	MONGO
-	paquete_a_enviar = crear_paquete(MOVER_HACIA);
-	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
-	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
+//	paquete_a_enviar = crear_paquete(MOVER_HACIA);
+//	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
+//	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
 
 }
 void serializar_iniciar_patota(t_patota* msg, t_buffer* buffer){
@@ -137,7 +137,7 @@ void serializar_mover_hacia_RAM(t_tripulante* tripulante, t_movimiento direccion
 	//-----------------------------
 	uint32_t offset = 0;
 
-	buffer->size = sizeof(uint32_t) + sizeof(t_movimiento);
+	buffer->size = 2*sizeof(uint32_t) + sizeof(t_movimiento);
 	buffer->stream = malloc(buffer->size);
 
 	memcpy(buffer->stream + offset, &(tripulante->id), sizeof(uint32_t));
@@ -227,23 +227,23 @@ void serializar_solicitar_tarea(t_tripulante* msg, t_buffer* buffer){
 
 	uint32_t offset = 0;
 
-	buffer->size = sizeof(uint32_t)*2 + sizeof(t_posicion);
+	buffer->size = 2 * sizeof(uint32_t);
 	buffer->stream = malloc(buffer->size);
 
 	memcpy(buffer->stream + offset, &(msg->id), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
 	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
 }
 
 t_tarea* recibir_tarea(uint32_t socket_cliente){
 	int aux;
 	recv(socket_cliente, &aux, sizeof(op_code), MSG_WAITALL);
 	recv(socket_cliente, &aux, sizeof(uint32_t), MSG_WAITALL);
-
-	return deserializar_solicitar_tarea_respuesta(socket_cliente);
+	if(aux)
+		return deserializar_solicitar_tarea_respuesta(socket_cliente);
+	else
+		return NULL;
 
 }
 

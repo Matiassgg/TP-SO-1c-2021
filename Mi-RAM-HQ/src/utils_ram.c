@@ -53,7 +53,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			;
 			t_patota* patota = deserializar_iniciar_patota(cliente_fd);
 
-			log_info(logger, "RAM :: Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
+			log_info(logger, "RAM :: Nos llego INICIAR_PATOTA de la patota %i del socket %i", patota->id_patota, cliente_fd);
 
 			cargar_memoria_patota(patota);
 
@@ -121,7 +121,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			if(tarea == NULL){
 				log_warning(logger, "RAM :: Ya no hay mas tareas a esa patota");
-
 			}
 
 			enviar_solicitar_tarea_respuesta(tarea,cliente_fd);
@@ -133,7 +132,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case MOVER_HACIA:
 			;
-			mover_hacia* mover_hacia =  deserializar_mover_hacia(cliente_fd);
+			t_mover_hacia* mover_hacia =  deserializar_mover_hacia(cliente_fd);
 
 			log_info(logger, "RAM :: Nos llego MOVER_HACIA del tripulante %i", mover_hacia->id_tripulante);
 

@@ -23,6 +23,7 @@ void solicitar_tarea(t_tripulante* tripulante){
 
 void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+	log_info(logger, "El tripulante %i tiene el socket %i con RAM", tripulante->id, tripulante->socket_conexion_RAM);
 
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
 //	TODO no hay que enviar el tripulante sino que ram debe crear todo con la patota ONO

@@ -87,7 +87,7 @@ typedef struct {
 	uint32_t id_patota_asociado;
 	t_posicion* posicion_origen;
 	t_posicion* posicion_destino;
-} mover_hacia;
+} t_mover_hacia;
 
 t_patota* deserializar_iniciar_patota(uint32_t);
 t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente);

@@ -47,12 +47,9 @@ typedef struct {
 } t_segmento_tcb;
 
 typedef struct {
-	t_segmento* segmento_pcb;
-	t_segmento* segmento_tareas;
-	t_list* segmentos_tripulantes;
+	t_dictionary* diccionario_segmentos;
 	uint32_t id_patota_asociada;
 	uint32_t tareas_dadas;
-	uint32_t cant_segmentos;
 	pthread_mutex_t mutex_obtener_tareas;
 } t_tabla_segmentos;
 

@@ -24,7 +24,7 @@ t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size);
 void subir_segmento_memoria(t_segmento* segmento, void* stream);
 void subir_segmento_libre(t_segmento* segmento);
 t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota);
-void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, e_tipo_dato tipo_dato);
+void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_tripulante, e_tipo_dato tipo_dato);
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido);
 
 void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);

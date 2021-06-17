@@ -38,12 +38,9 @@ void preparar_memoria() {
 t_tabla_segmentos* crear_tabla(uint32_t id_patota){
 	log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
 	t_tabla_segmentos* tabla = malloc(sizeof(t_tabla_segmentos));
-	tabla->segmento_pcb = malloc(sizeof(t_segmento));
-	tabla->segmento_tareas = malloc(sizeof(t_segmento));
+	tabla->diccionario_segmentos = dictionary_create();
 
-	tabla->cant_segmentos = 0;
 	tabla->id_patota_asociada = id_patota;
-	tabla->segmentos_tripulantes = list_create();
 	tabla->tareas_dadas = 0;
 	pthread_mutex_init(&tabla->mutex_obtener_tareas, NULL);
 
@@ -260,12 +257,15 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	char** lines = string_split(tareas, "\n");
 
 	t_tabla_segmentos* tabla = dar_tabla_segmentos(tripulante->id_patota_asociado);
-	pthread_mutex_lock(&tabla->mutex_obtener_tareas);
-	log_info(logger, "RAM :: Tarea obtenida:\n%s", lines[tabla->tareas_dadas]);
-	t_tarea* tarea = obtener_tarea_archivo(lines[tabla->tareas_dadas]);
-	tabla->tareas_dadas++;
-	pthread_mutex_unlock(&tabla->mutex_obtener_tareas);
-	return tarea;
+	if(lines[tabla->tareas_dadas]){
+		pthread_mutex_lock(&tabla->mutex_obtener_tareas);
+		log_info(logger, "RAM :: Tarea obtenida:\n%s", lines[tabla->tareas_dadas]);
+		t_tarea* tarea = obtener_tarea_archivo(lines[tabla->tareas_dadas]);
+		tabla->tareas_dadas++;
+		pthread_mutex_unlock(&tabla->mutex_obtener_tareas);
+		return tarea;
+	}
+	return NULL;
 }
 
 void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
@@ -281,23 +281,25 @@ void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
 	return informacion;
 }
 
+char* dar_key_tripulante(uint32_t id_tripulante){
+	char* key_tripulante = string_duplicate("TCB");
+	string_append(&key_tripulante,string_itoa(id_tripulante));
+
+	return key_tripulante;
+}
+
 t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
 	t_tabla_segmentos* tabla = dar_tabla_segmentos(id_patota);
 
 	switch(tipo_dato){
 		case TAREAS:
-			return tabla->segmento_tareas;
+			return dictionary_get(tabla->diccionario_segmentos,"TAREAS");
 		break;
 		case PCB:
-			return tabla->segmento_pcb;
+			return dictionary_get(tabla->diccionario_segmentos,"PCB");
 		break;
 		case TCB:
-			;
-			bool es_segmento(t_segmento_tcb* segmento_tripualnte){
-				return (segmento_tripualnte->id_tripulante == id);
-			}
-
-			return list_find(tabla->segmentos_tripulantes, es_segmento);
+			return dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(id));
 
 		break;
 	}
@@ -323,7 +325,10 @@ void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada
 	subir_segmento_memoria(segmento_libre, buffer->stream);
 	subir_segmento_libre(segmento_nuevo);
 
-	subir_tabla_segmento(segmento_libre, patota_asociada, tipo_dato);
+	uint32_t id_tripulante = 0;
+	if(tipo_dato == TCB)
+		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
+	subir_tabla_segmento(segmento_libre, patota_asociada, id_tripulante, tipo_dato);
 }
 
 t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota){
@@ -334,19 +339,18 @@ t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota){
 	return (t_tabla_segmentos*) list_find(lista_tablas_segmentos, el_que_quiero);
 }
 
-void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, e_tipo_dato tipo_dato){
+void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_tripulante, e_tipo_dato tipo_dato){
 	t_tabla_segmentos* tabla_segmentos = dar_tabla_segmentos(id_patota);
-	segmento->nro_segmento = (tabla_segmentos->cant_segmentos++);
 
 	switch(tipo_dato){
 		case TAREAS:
-			tabla_segmentos->segmento_tareas = segmento;
+			dictionary_put(tabla_segmentos->diccionario_segmentos,"TAREAS", segmento);
 		break;
 		case PCB:
-			tabla_segmentos->segmento_pcb = segmento;
+			dictionary_put(tabla_segmentos->diccionario_segmentos,"PCB", segmento);
 		break;
 		case TCB:
-			list_add(tabla_segmentos->segmentos_tripulantes, segmento);
+			dictionary_put(tabla_segmentos->diccionario_segmentos, dar_key_tripulante(id_tripulante), segmento);
 		break;
 	}
 
