@@ -39,15 +39,17 @@ typedef struct {
 	uint32_t nro_segmento;
 	uint32_t inicio;
 	uint32_t tamanio;
-	bool esta_libre;
+//	bool esta_libre;
 } t_segmento;
 
 typedef struct {
-	t_list* segmentos;
-	t_list* asociador;
+	t_segmento* segmento_pcb;
+	t_segmento* segmento_tareas;
+	t_list* segmentos_tripulantes;
 	uint32_t id_patota_asociada;
 	uint32_t tareas_dadas;
-} tabla_segmentos;
+	uint32_t cant_segmentos;
+} t_tabla_segmentos;
 
 typedef struct {
 	uint32_t nro_segmento;
@@ -67,19 +69,17 @@ typedef struct {
 	uint32_t tareas_dadas;
 } t_tabla_paginas;
 
-
-typedef struct {
-	uint32_t numeroPagina;
-	t_asociador_pagina asociador;
-	uint32_t numeroMarco;
-} t_pagina;
-
-
 typedef struct {
 	uint32_t nro_pagina;
 	uint32_t id_asociado;
 	e_tipo_dato tipo_dato;
 } t_asociador_pagina;
+
+typedef struct {
+	uint32_t numeroPagina;
+	t_asociador_pagina* asociador;
+	uint32_t numeroMarco;
+} t_pagina;
 
 
 //
@@ -109,7 +109,7 @@ void* memoria;
 FILE* espacio_swap;
 t_list* entradas_swap;
 uint32_t tamanio_pagina;
-t_list* lista_segmentos;
+t_list* lista_segmentos_libres;
 t_list* lista_tablas_segmentos;
 t_list* tabla_asociadores_segmentos;
 t_list* patotas_creadas;
@@ -136,6 +136,7 @@ pthread_mutex_t mutexBuscarPagina;
 pthread_mutex_t mutexBuscarInfoTripulante;
 pthread_mutex_t mutexBuscarSwap;
 pthread_mutex_t mutex_tocar_memoria;
+pthread_mutex_t mutex_tablas_segmentos;
 
 pthread_t hiloReceive;
 
@@ -147,7 +148,6 @@ void procesar_mensaje_recibido(int, int);
 t_tarea* obtener_tarea(t_tripulante* tripulante);
 char* obtener_tareas(t_pcb* pcb);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
-e_tarea obtener_nombre_tarea(char* tarea);
 void obtener_listado_tripulantes(t_list*);
 
 #endif /* MI_RAM_HQ_SRC_UTILS_RAM_H_ */

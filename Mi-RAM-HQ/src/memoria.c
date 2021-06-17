@@ -35,6 +35,21 @@ void preparar_memoria() {
 
 }
 
+t_tabla_segmentos* crear_tabla(uint32_t id_patota){
+	log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
+	t_tabla_segmentos* tabla = malloc(sizeof(t_tabla_segmentos));
+
+	tabla->cant_segmentos = 0;
+	tabla->id_patota_asociada = id_patota;
+	tabla->segmentos_tripulantes = list_create();
+	tabla->tareas_dadas = 0;
+
+	pthread_mutex_lock(&mutex_tablas_segmentos);
+	list_add(lista_tablas_segmentos, tabla);
+	pthread_mutex_unlock(&mutex_tablas_segmentos);
+
+	return tabla;
+}
 t_pcb* crear_pcb(t_patota* patota){
 	log_info(logger, "RAM :: Se crea el PCB para la patota %d", patota->id_patota);
 	t_pcb* pcb = malloc(sizeof(t_pcb));
@@ -51,13 +66,10 @@ void cargar_memoria_patota(t_patota* patota){
 	char* tareas = obtener_tareas(pcb_nuevo);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		tabla_segmentos* tabla_segmento_patota = malloc(sizeof(tabla_segmentos));
-		tabla_segmento_patota->segmentos = list_create();
-		tabla_segmento_patota->tareas_dadas = 0;
-		tabla_segmento_patota->id_patota_asociada = pcb_nuevo->pid;
+		t_tabla_segmentos* tabla_nueva = crear_tabla(pcb_nuevo->pid);
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
-		uint32_t nro_segmento_tareas = escribir_en_memoria(tareas,TAREAS);
+		uint32_t nro_segmento_tareas = escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
 		pthread_mutex_unlock(&mutex_tocar_memoria);
 		log_info(logger, "Se subio a memoria la tarea en el segmento nro %i", nro_segmento_tareas);
 
@@ -65,15 +77,10 @@ void cargar_memoria_patota(t_patota* patota){
 		pcb_nuevo->tareas = segmento_tareas->inicio;
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
-		uint32_t nro_segmento_patota = escribir_en_memoria(pcb_nuevo,PCB);
+		uint32_t nro_segmento_patota = escribir_en_memoria(pcb_nuevo, pcb_nuevo->pid, PCB);
 		pthread_mutex_unlock(&mutex_tocar_memoria);
 		log_info(logger, "Se subio a memoria la patota en el segmento nro %i", nro_segmento_patota);
 
-		t_segmento* segmento_pcb = buscar_segmento_id(nro_segmento_patota, PCB);
-
-		list_add(tabla_segmento_patota->segmentos, segmento_tareas);
-		list_add(tabla_segmento_patota->segmentos, segmento_pcb);
-		list_add(lista_tablas_segmentos, tabla_segmento_patota);
 	}
 	else{
 		//revisar toda esta cagada que hice para empezar algo
@@ -89,7 +96,7 @@ void cargar_memoria_patota(t_patota* patota){
 			log_info(logger, "Se subio a memoria la tarea en la pagina nro %i", nro_pagina_tareas);
 
 			t_pagina* pagina_tareas = buscar_pagina_id(nro_pagina_tareas,TAREAS);
-			pcb_nuevo->tareas = pagina_tareas->inicio;
+//			pcb_nuevo->tareas = pagina_tareas->inicio; TODO ??
 
 			pthread_mutex_lock(&mutex_tocar_memoria);
 			uint32_t nro_pagina_patota = escribir_en_memoria(pcb_nuevo,PCB);
@@ -100,16 +107,17 @@ void cargar_memoria_patota(t_patota* patota){
 
 			list_add(tabla_pagina_patota->paginas, pagina_tareas);
 			list_add(tabla_pagina_patota->paginas, pagina_pcb);
-			list_add(lista_tablas_segmentos, tabla_segmento_patota);
+//			list_add(lista_tablas_segmentos, tabla_segmento_patota); TODO SEGMENTOS?
 		}
 
 	}
 
-	typedef struct {
-		t_list* paginas;
-		uint32_t id_patota_asociada;
-		uint32_t tareas_dadas;
-	} t_tabla_paginas;
+//	typedef struct {
+//		t_list* paginas;
+//		uint32_t id_patota_asociada;
+//		uint32_t tareas_dadas;
+//	} t_tabla_paginas;
+//	// TODO KE
 }
 
 t_tcb* crear_tcb(t_tripulante* tripulante){
@@ -152,17 +160,19 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 
 void preparar_memoria_para_esquema_de_segmentacion() {
-	lista_segmentos = list_create();
+	lista_segmentos_libres = list_create();
 	lista_tablas_segmentos = list_create();
 	tabla_asociadores_segmentos = list_create();
+
+	pthread_mutex_init(&mutex_tablas_segmentos, NULL);
+
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->inicio = 0;
-	segmento->nro_segmento = 1;
+	segmento->nro_segmento = 0;
 	segmento->tamanio = tamanio_memoria;
-	segmento->esta_libre = true;
 
-	list_add(lista_segmentos, segmento);
+	list_add(lista_segmentos_libres, segmento);
 	log_info(logger, "Creamos las estructuras necesarias para segmentacion");
 
 }
@@ -217,41 +227,26 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 }
 
-uint32_t escribir_en_memoria(void* informacion, e_tipo_dato tipo_dato){
+uint32_t escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	t_buffer* buffer;
 	switch(tipo_dato){
 		case TAREAS:
-			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				return escribir_en_memoria_segmentacion(serializar_memoria_tareas((char*) informacion));
-			}
-			else{
-
-			}
+			buffer = serializar_memoria_tareas((char*) informacion);
 		break;
 		case PCB:
-			;
-			t_pcb* pcb = (t_pcb*) informacion;
-
-			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				return escribir_en_memoria_segmentacion(serializar_memoria_pcb(pcb));
-			}
-			else{
-
-			}
+			buffer = serializar_memoria_pcb((t_pcb*) informacion);
 		break;
 		case TCB:
-			;
-			t_tcb* tcb = (t_tcb*) informacion;
-
-			if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-				return escribir_en_memoria_segmentacion(serializar_memoria_tcb(tcb));
-			}
-			else{
-
-			}
+			buffer = serializar_memoria_tcb((t_tcb*) informacion);
 		break;
-
 	}
 
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		return escribir_en_memoria_segmentacion(buffer, patota_asociada, tipo_dato);
+	}
+	else{
+
+	}
 	return 0;
 }
 
@@ -277,22 +272,21 @@ void* leer_memoria(uint32_t id, e_tipo_dato tipo_dato){
 	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
-tabla_segmentos* buscar_tabla_segmentos(uint32_t id){
-	bool buscar_segmento(tabla_segmentos* tabla){
+t_tabla_segmentos* buscar_tabla_segmentos(uint32_t id){
+	bool buscar_segmento(t_tabla_segmentos* tabla){
 		return tabla->id_patota_asociada == id;
 	}
 
-	return (tabla_segmentos*) list_find(lista_tablas_segmentos, buscar_segmento);
+	return (t_tabla_segmentos*) list_find(lista_tablas_segmentos, buscar_segmento);
 }
 
-t_segmento* buscar_segmento_id(uint32_t id, tabla_segmentos* tabla_segmentos_patota, e_tipo_dato tipo_dato){
-	bool es_segmento(t_segmento* segmento){
-		log_info(logger, "segmento %i",segmento->nro_segmento);
-		log_info(logger, "asociador %i", asociador_segmento->nro_segmento);
-		return segmento->nro_segmento == asociador_segmento->nro_segmento;
-	}
+t_segmento* buscar_segmento_id(uint32_t nro_segmento, uint32_t id_patota, e_tipo_dato tipo_dato){
+	t_tabla_segmentos* tabla = dar_tabla_segmentos(id_patota);
 
-	return list_find(lista_segmentos, es_segmento);
+	bool es_segmento(t_segmento* segmento){
+		return segmento->nro_segmento == tabla->nro_segmento;
+	}
+	return list_find(lista_segmentos_libres, es_segmento);
 }
 
 void* leer_memoria_segmentacion(t_segmento* segmento){
@@ -305,56 +299,85 @@ void* leer_memoria_segmentacion(t_segmento* segmento){
 	return dato_requerido;
 }
 
-uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer){
+uint32_t escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 	t_segmento* segmento_libre = buscar_segmento_libre(buffer->size);
 	log_info(logger, "Segmento libre %i", segmento_libre->nro_segmento);
 	t_segmento* segmento_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
 	log_info(logger, "Segmento nuevo %i", segmento_nuevo->nro_segmento);
 
-	segmento_libre->esta_libre = false;
 	segmento_libre->tamanio = buffer->size;
 
-	subir_segmento(segmento_libre, buffer->stream);
-	subir_segmento(segmento_nuevo, buffer->stream);
+	subir_segmento_memoria(segmento_libre, buffer->stream);
+	subir_segmento_libre(segmento_nuevo);
 
-	return segmento_libre->nro_segmento;
+	return subir_tabla_segmento(segmento_libre, patota_asociada, tipo_dato);
+}
+
+t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota){
+	bool el_que_quiero(t_tabla_segmentos* tabla){
+		return tabla->id_patota_asociada == id_patota;
+	}
+
+	return list_find(lista_tablas_segmentos, el_que_quiero);
+}
+
+uint32_t subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, e_tipo_dato tipo_dato){
+	t_tabla_segmentos* tabla_segmentos = dar_tabla_segmentos(id_patota);
+	segmento->nro_segmento = (tabla_segmentos->cant_segmentos++);
+
+	switch(tipo_dato){
+		case TAREAS:
+			tabla_segmentos->segmento_tareas = segmento;
+		break;
+		case PCB:
+			tabla_segmentos->segmento_pcb = segmento;
+		break;
+		case TCB:
+			list_add(tabla_segmentos->segmentos_tripulantes, segmento);
+		break;
+	}
+
+	return segmento->nro_segmento;
+
 }
 
 t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size){
 	t_segmento* segmento_nuevo = malloc(sizeof(t_segmento));
 
-	segmento_nuevo->esta_libre = true;
 	segmento_nuevo->inicio = segmento->inicio + size;
 	segmento_nuevo->tamanio = segmento->tamanio - size;
-	segmento_nuevo->nro_segmento = segmento->nro_segmento+1; // TODO ESTO NO ES ASI, ARREGLAR
+	segmento_nuevo->nro_segmento = 0; // TODO ESTO NO ES ASI, ARREGLAR
 
 	return segmento_nuevo;
 }
 
-void subir_segmento(t_segmento* segmento, void* stream){
+void subir_segmento_memoria(t_segmento* segmento, void* stream){
 	bool ordenar_segmentos(t_segmento* segmento_1, t_segmento* segmento_2){
 		return (segmento_1->nro_segmento < segmento_2->nro_segmento);
 	}
 
-	if(segmento->esta_libre)
-		;
-	else{
-		memcpy(memoria + segmento->inicio, stream, segmento->tamanio);
-		log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
-		log_info(logger, "RAM :: Stream:\n%s\n\n", (char*) stream);
-		log_info(logger, "RAM :: Memoria:\n%s\n\n", (char*) memoria);
+	memcpy(memoria + segmento->inicio, stream, segmento->tamanio);
+	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+	log_info(logger, "RAM :: Stream:\n%s\n\n", (char*) stream);
+	log_info(logger, "RAM :: Memoria:\n%s\n\n", (char*) memoria);
+
+}
+
+void subir_segmento_libre(t_segmento* segmento){
+	bool ordenar_segmentos(t_segmento* segmento_1, t_segmento* segmento_2){
+		return (segmento_1->tamanio < segmento_2->tamanio);
 	}
 
-	list_add(lista_segmentos, segmento);
-	list_sort(lista_segmentos, ordenar_segmentos);
+	list_add(lista_segmentos_libres, segmento);
+	list_sort(lista_segmentos_libres, ordenar_segmentos); // TODO HAY QUE ORDENAR? QUIZA SI ES BF SIRVE PA ESO Y ORDENAMOS POR TAMAÑO
 }
 
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
-	bool esta_libre(t_segmento* segmento){
-		return (segmento->esta_libre && (espacio_requerido <= segmento->tamanio));
+	bool esta_libre(t_segmento* segmento){ // TODO SE VA A VER SI ES FF O BF
+		return (espacio_requerido <= segmento->tamanio);
 	}
 
-	return (t_segmento*) list_remove_by_condition(lista_segmentos, esta_libre);
+	return (t_segmento*) list_remove_by_condition(lista_segmentos_libres, esta_libre);
 }
 
 void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pagina* pagina, bool esta_en_memoria, uint32_t idPatota, bool modificado) {

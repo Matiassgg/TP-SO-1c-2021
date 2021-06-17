@@ -4,6 +4,6 @@
 #include "utils_mongo.h"
 
 void leer_consola(void);
-void procesar_mensajes_en_consola_mongo(char**, int);
+void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje);
 
 #endif /* I_MONGO_STORE_SRC_CONSOLA_MONGO_H_ */

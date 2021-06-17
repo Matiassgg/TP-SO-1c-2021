@@ -109,20 +109,24 @@ void serializar_iniciar_tripulante(t_tripulante* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
 }
 
-void serializar_bitacora_tarea(uint32_t id_tripulante, e_tarea tarea, t_buffer* buffer) {
+void serializar_bitacora_tarea(uint32_t id_tripulante, char* tarea, t_buffer* buffer) {
 	//------------ORDEN------------
 	//1. ID
 	//2. Tarea
 	//-----------------------------
 	uint32_t offset = 0;
+	uint32_t tamanio_tarea = string_length(tarea) + 1;
 
-	buffer->size = sizeof(uint32_t) + sizeof(e_tarea);
+	buffer->size = 2*sizeof(uint32_t) + tamanio_tarea;
 	buffer->stream = malloc(buffer->size);
 
 	memcpy(buffer->stream + offset, &(id_tripulante), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(tarea), sizeof(e_tarea));
+	memcpy(buffer->stream + offset, &(tamanio_tarea), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, tarea, sizeof(tamanio_tarea));
 }
 
 void serializar_mover_hacia_RAM(t_tripulante* tripulante, t_movimiento direccion, t_buffer* buffer){
@@ -255,7 +259,8 @@ t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente) {
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 	tarea->posicion = malloc(sizeof(t_posicion));
 
-	recv(socket_cliente, &(tarea->tarea), sizeof(e_tarea), 0);
+	recv(socket_cliente, &(tarea->tamanio_tarea), sizeof(uint32_t), 0);
+	recv(socket_cliente, tarea->tarea, tarea->tamanio_tarea, 0);
 	recv(socket_cliente, &(tarea->parametro), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(tarea->posicion->pos_x), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(tarea->posicion->pos_y), sizeof(uint32_t), 0);

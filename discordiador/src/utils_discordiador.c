@@ -51,3 +51,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	}
 
 }
+
+void rafaga_cpu(uint32_t tiempo){
+	sleep(retardo_ciclo_cpu * tiempo);
+}

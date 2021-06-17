@@ -30,7 +30,8 @@ void procesar_mensaje_recibido(int, int);
 
 typedef struct {
 	u_int32_t id;
-	e_tarea tarea;
+	uint32_t tamanio_tarea;
+	char* tarea;
 } tarea_Mongo;
 
 #endif /* I_MONGO_STORE_SRC_UTILS_MONGO_H_ */

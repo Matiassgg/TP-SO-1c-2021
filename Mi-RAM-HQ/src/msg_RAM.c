@@ -62,11 +62,14 @@ void serializar_solicitar_tarea_respuesta(t_tarea* msg, t_buffer* buffer){
 	uint32_t offset = 0;
 
 	if(msg){
-		buffer->size = sizeof(uint32_t)*4 + sizeof(e_tarea);
+		buffer->size = sizeof(uint32_t)*5 + msg->tamanio_tarea;
 		buffer->stream = malloc(buffer->size);
 
-		memcpy(buffer->stream + offset, &(msg->tarea), sizeof(e_tarea));
-		offset += sizeof(e_tarea);
+		memcpy(buffer->stream + offset, &(msg->tamanio_tarea), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		memcpy(buffer->stream + offset, msg->tarea, msg->tamanio_tarea);
+		offset += msg->tamanio_tarea;
 
 		memcpy(buffer->stream + offset, &(msg->parametro), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -106,7 +109,7 @@ t_buffer* serializar_memoria_pcb(t_pcb* pcb){
 	buffer->stream = malloc(buffer->size);
 
 	memcpy(buffer->stream + offset, &(pcb->pid), sizeof(uint32_t));
-	offset += sizeof(e_tarea);
+	offset += sizeof(uint32_t);
 	memcpy(buffer->stream + offset, &(pcb->tareas), sizeof(uint32_t));
 
 	return buffer;

@@ -18,7 +18,7 @@ void serializar_iniciar_patota(t_patota*, t_buffer*);
 void serializar_iniciar_tripulante(t_tripulante*, t_buffer*);
 void serializar_listar_tripulantes(t_tripulante*, t_buffer*);
 void serializar_mover_hacia_RAM(t_tripulante* tripulante,t_movimiento direccion, t_buffer* buffer);
-void serializar_bitacora_tarea(uint32_t id_tripulante, e_tarea tarea, t_buffer* buffer);
+void serializar_bitacora_tarea(uint32_t id_tripulante, char* tarea, t_buffer* buffer);
 void serializar_mover_hacia_Mongo(t_tripulante* tripulante,t_movimiento direccion, t_buffer* buffer);
 void serializar_solicitar_tarea(t_tripulante* msg, t_buffer* buffer);
 

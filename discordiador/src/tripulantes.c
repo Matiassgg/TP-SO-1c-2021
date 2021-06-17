@@ -34,14 +34,10 @@ void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 		tripulante_plani->esta_activo = true;
 		pthread_mutex_init(&tripulante_plani->mutex_ready, NULL);
 		pthread_mutex_lock(&tripulante_plani->mutex_ready);
-
-		hacer_tarea(tripulante);
-
 		log_info(logger, "Se agrega tripulante a ready");
+
 		pthread_mutex_lock(&mutex_cola_ready);
 		queue_push(cola_ready, tripulante_plani);
-//		p_tripulante* tripulante_plani2 = (p_tripulante*) queue_pop(cola_ready);
-//		queue_push(cola_ready, tripulante_plani);
 		pthread_mutex_unlock(&mutex_cola_ready);
 
 		pthread_mutex_lock(&tripulante_plani->mutex_ready);
@@ -50,7 +46,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){ // TODO ESTA MAL FALTA
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 		}
 		puedo_seguir(tripulante_plani);
-		hacer_tarea(tripulante);
+		hacer_tarea(tripulante_plani);
 		tripulante_plani->esta_activo = false;
 
 		solicitar_tarea(tripulante);
@@ -67,34 +63,44 @@ bool puedo_seguir(p_tripulante* tripulante_plani){
 	return true;
 }
 
-void hacer_tarea(t_tripulante* tripulante){
-	rafaga_cpu();
+void hacer_tarea(p_tripulante* tripulante_plani){
+	rafaga_cpu(1);
 
-	switch(tripulante->tarea_act->tarea){
-		case GENERAR_OXIGENO:
-			log_info(logger, "GENERAR_OXIGENO");
-			;
-		break;
-		case CONSUMIR_OXIGENO:
-			log_info(logger, "CONSUMIR_OXIGENO");
-			;
-		break;
-		case GENERAR_COMIDA:
-			log_info(logger, "GENERAR_COMIDA");
-			;
-		break;
-		case CONSUMIR_COMIDA:
-			log_info(logger, "CONSUMIR_COMIDA");
-			;
-		break;
-		case GENERAR_BASURA:
-			log_info(logger, "GENERAR_BASURA");
-			;
-		break;
-		case DESCARTAR_BASURA:
-			log_info(logger, "DESCARTAR_BASURA");
-			;
-		break;
+	if(es_tarea_IO(tripulante_plani->tripulante->tarea_act->tarea)){
+//		pthread_mutex_lock(&mutex_cola_bloqueados_io);
+//		queue_push(cola_bloq_E_S,tripulante_plani);
+		tripulante_plani->esta_activo = false;
+//		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
+	}
+
+	hacer_ciclos_tarea(tripulante_plani->tripulante);
+
+}
+
+bool es_tarea_IO(char* tarea){
+	return (
+			son_iguales(tarea, "GENERAR_OXIGENO") ||
+			son_iguales(tarea, "CONSUMIR_OXIGENO") ||
+			son_iguales(tarea, "GENERAR_COMIDA") ||
+			son_iguales(tarea, "CONSUMIR_COMIDA") ||
+			son_iguales(tarea, "GENERAR_BASURA") ||
+			son_iguales(tarea, "DESCARTAR_BASURA")
+			);
+}
+
+void hacer_ciclos_tarea(t_tripulante* tripulante){
+	if(son_iguales(algoritmo,"FIFO")){
+		log_info(logger, "El tripulante %i comenzara la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
+		rafaga_cpu(tripulante->tarea_act->tiempo);
+		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
+	}
+	else if(tripulante->tarea_act->tiempo > quantum){
+		log_info(logger, "El tripulante %i comenzara la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
+		rafaga_cpu(quantum);
+		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
+		tripulante->tarea_act->tiempo -= quantum;
+
+		// TODO Y AHORA KE creo que habria que volver a ponerlo en ready, enotnces las colas de bloqueados de que va a servir? (estructura)
 	}
 }
 
@@ -131,7 +137,7 @@ t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta) 
 			}
 		}
 	}
-	rafaga_cpu();
+	rafaga_cpu(1);
 	log_info(logger, "El tripulante %i esta ahora en la posicion %i,%i yendo a %i,%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y, posicion_meta->pos_x, posicion_meta->pos_y);
 	return direccion;
 }

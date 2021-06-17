@@ -14,7 +14,6 @@ void pausar_planificacion(void);
 void crear_colas_planificacion(void);
 //void liberar_pcb_patota(t_patota*);
 bool verificar_planificacion_activa();
-void rafaga_cpu();
 void planificacion_segun_FIFO(void);
 void planificacion_segun_RR(void);
 

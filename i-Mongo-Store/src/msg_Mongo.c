@@ -27,7 +27,8 @@ tarea_Mongo* desearilizar_ejecutar_tarea(uint32_t socket_cliente) {
 	tarea_Mongo* tarea = malloc(sizeof(tarea_Mongo));
 
 	recv(socket_cliente, &(tarea->id), sizeof(uint32_t), 0);
-	recv(socket_cliente, &(tarea->tarea), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->tamanio_tarea), sizeof(uint32_t), 0);
+	recv(socket_cliente, tarea->tarea, tarea->tamanio_tarea, 0);
 
 	return tarea;
 }

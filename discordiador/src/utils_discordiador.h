@@ -45,6 +45,10 @@ typedef struct {
 } p_tripulante;
 
 pthread_mutex_t mutex_cola_ready;
+pthread_mutex_t mutex_cola_bloqueados_io;
+pthread_mutex_t mutex_cola_bloqueados_sabotajes;
+pthread_mutex_t mutex_planificacion_bloqueados_io;
+pthread_mutex_t mutex_planificacion_bloqueados_sabotajes;
 sem_t semaforo_planificacion;
 
 uint32_t cantidad_patotas;
@@ -54,6 +58,6 @@ uint32_t cantidad_tripulantes;
 void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
-void rafaga_cpu(void);
+void rafaga_cpu(uint32_t tiempo);
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */

@@ -253,21 +253,6 @@ t_tarea* obtener_tarea_archivo(char* tarea_string){
 
 	return tarea;
 }
-
-e_tarea obtener_nombre_tarea(char* tarea){
-	if(son_iguales(tarea,"GENERAR_OXIGENO"))
-		return GENERAR_OXIGENO;
-	if(son_iguales(tarea,"CONSUMIR_OXIGENO"))
-		return CONSUMIR_OXIGENO;
-	if(son_iguales(tarea,"GENERAR_COMIDA"))
-		return GENERAR_COMIDA;
-	if(son_iguales(tarea,"CONSUMIR_COMIDA"))
-		return CONSUMIR_COMIDA;
-	if(son_iguales(tarea,"GENERAR_BASURA"))
-		return GENERAR_BASURA;
-	if(son_iguales(tarea,"DESCARTAR_BASURA"))
-		return DESCARTAR_BASURA;
-}
 /*
 bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
 	t_list* marcosEnMemoria = entradas_segun_pedido(idPatota);

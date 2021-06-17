@@ -1,16 +1,16 @@
 #include "consola_mongo.h"
 
-void leer_consola() {
+void leer_consola() { // TODO HAY UNA CONSOLA EN MONGO?
 	char* leido = readline(">");
 	while (!son_iguales(leido, "\0")) {
-		procesar_mensajes_en_consola_discordiador(string_split(leido, " "));
+		procesar_mensajes_en_consola_mongo(string_split(leido, " "));
 		free(leido);
 		leido = readline(">");
 	}
 	free(leido);
 }
 
-void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje, int cantidad_argumentos) {
+void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje) {
 
 	//////////////////////////////////////////////////////////////////////////////////////
 

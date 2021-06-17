@@ -12,6 +12,7 @@ void preparar_planificacion(){
 	id_tcb = 1;
 
 	pthread_mutex_init(&mutex_cola_ready, NULL);
+	pthread_mutex_init(&mutex_cola_bloqueados_io, NULL);
 	sem_init(&semaforo_planificacion, 0, 0);
 
 	planificacion_corto_plazo = convertir(algoritmo);
@@ -94,10 +95,6 @@ bool verificar_planificacion_activa(){
 	sem_post(&semaforo_planificacion);
 
 	return true;
-}
-
-void rafaga_cpu(){
-	sleep(retardo_ciclo_cpu);
 }
 
 void planificacion_segun_RR() {

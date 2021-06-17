@@ -51,17 +51,10 @@ typedef struct{
 } t_tcb;
 
 //---------TAREAS--------//
-typedef enum {
-	GENERAR_OXIGENO,
-	CONSUMIR_OXIGENO,
-	GENERAR_COMIDA,
-	CONSUMIR_COMIDA,
-	GENERAR_BASURA,
-	DESCARTAR_BASURA
-} e_tarea;
 
 typedef struct {
-	e_tarea tarea;
+	uint32_t tamanio_tarea;
+	char* tarea;
     uint32_t parametro;
 	t_posicion* posicion;
     uint32_t tiempo;
