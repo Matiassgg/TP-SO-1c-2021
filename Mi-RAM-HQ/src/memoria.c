@@ -5,10 +5,9 @@ void iniciar_memoria() {
 	preparar_memoria();
 
 //	// FALTA
-//	// Dibujar el mapa inicial vacío
+	// Dibujar el mapa inicial vacío
 //	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
-//	pthread_detach(hiloReceive);
-
+//	pthread_detach(hiloReceiveMapa);
 }
 
 void preparar_memoria() {
@@ -113,12 +112,6 @@ void cargar_memoria_patota(t_patota* patota){
 
 	}
 
-//	typedef struct {
-//		t_list* paginas;
-//		uint32_t id_patota_asociada;
-//		uint32_t tareas_dadas;
-//	} t_tabla_paginas;
-//	// TODO KE
 }
 
 t_tcb* crear_tcb(t_tripulante* tripulante){
@@ -140,18 +133,11 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 	t_tcb* tcb = crear_tcb(tripulante);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		t_asociador_segmento* asociador_segmento = malloc(sizeof(t_asociador_segmento));
-
-		//TODO CONSEGUIR TAREA?
-
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(tcb, tripulante->id_patota_asociado, TCB);
 		pthread_mutex_unlock(&mutex_tocar_memoria);
 		log_info(logger, "Se subio a memoria el tripulante");
-		asociador_segmento->id_asociado = tcb->tid;
-		asociador_segmento->tipo_dato = TCB;
 
-		list_add(tabla_asociadores_segmentos, asociador_segmento);
 	}
 	else{
 
@@ -250,6 +236,37 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 	}
 }
 
+void modificar_memoria(void* informacion, t_tabla_segmentos* tabla, e_tipo_dato tipo_dato){
+	t_buffer* buffer;
+	switch(tipo_dato){
+		case TAREAS:
+			buffer = serializar_memoria_tareas((char*) informacion);
+		break;
+		case PCB:
+			buffer = serializar_memoria_pcb((t_pcb*) informacion);
+		break;
+		case TCB:
+			buffer = serializar_memoria_tcb((t_tcb*) informacion);
+		break;
+	}
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		modificar_memoria_segmentacion(buffer, tabla, tipo_dato);
+	}
+	else{
+
+	}
+}
+
+void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
+	t_tcb* tcb_viejo = (t_tcb*) leer_memoria(mover_hacia->id_tripulante, mover_hacia->id_patota_asociado, TCB);
+
+	t_tabla_segmentos* tabla = dar_tabla_segmentos(mover_hacia->id_patota_asociado);
+
+	modificar_memoria()
+
+}
+
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
 	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);
@@ -311,7 +328,6 @@ void* leer_memoria_segmentacion(t_segmento* segmento){
 
 	memcpy(dato_requerido, memoria + segmento->inicio, segmento->tamanio);
 	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
-	log_info(logger, "RAM :: Tareas obtenida en leer:\n%s\nMemoria:\n%s\n\n", (char*) dato_requerido, (char*) memoria);
 
 	return dato_requerido;
 }
@@ -373,9 +389,6 @@ void subir_segmento_memoria(t_segmento* segmento, void* stream){
 
 	memcpy(memoria + segmento->inicio, stream, segmento->tamanio);
 	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
-	log_info(logger, "RAM :: Stream:\n%s\n\n", (char*) stream);
-	log_info(logger, "RAM :: Memoria:\n%s\n\n", (char*) memoria);
-
 }
 
 void subir_segmento_libre(t_segmento* segmento){
@@ -645,5 +658,6 @@ bool hay_marcos_libres(void){
 
 	return tamanio > 0;
 }
+
 
 

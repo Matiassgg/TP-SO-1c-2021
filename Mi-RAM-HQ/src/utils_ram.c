@@ -38,6 +38,7 @@ void serve_client(int* socket_que_nos_pasan) {
 void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 	uint32_t buffer_size;
+	int err;
 	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
 	recv(cliente_fd, &buffer_size, sizeof(uint32_t), MSG_WAITALL);
 
@@ -77,12 +78,14 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			cargar_memoria_tripulante(tripulante);
 
 			log_info(logger, "RAM :: Cargamos a memoria el tripulante %i de la patota %i", tripulante->id, tripulante->id_patota_asociado);
-//			crear_tripulante(nivel, tripulante);	// todo
-
+//			err = crear_tripulante(tripulante);
+//			if(err) {
+//				log_warning(logger,"WARN: %s\n", nivel_gui_string_error(err));
+//			}
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
-			free(tripulante);
+//			free(tripulante);
 			break;
 		case LISTAR_TRIPULANTES:
 			log_info(logger, "RAM :: Nos llego LISTAR_TRIPULANTES de DISCORDIADOR");
@@ -135,6 +138,13 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			t_mover_hacia* mover_hacia =  deserializar_mover_hacia(cliente_fd);
 
 			log_info(logger, "RAM :: Nos llego MOVER_HACIA del tripulante %i", mover_hacia->id_tripulante);
+
+			mover_tripulante_memoria(mover_hacia);
+
+//			err = mover_tripulante(mover_hacia);
+//			if(err) {
+//				log_warning(logger,"WARN: %s\n", nivel_gui_string_error(err));
+//			}
 
 			free(mover_hacia);
 
@@ -214,7 +224,6 @@ char* obtener_tareas(t_pcb* pcb){
 
 }
 
-
 t_tarea* obtener_tarea_archivo(char* tarea_string){
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 	tarea->posicion = malloc(sizeof(t_posicion));
@@ -222,19 +231,11 @@ t_tarea* obtener_tarea_archivo(char* tarea_string){
 	char** tarea_parametros = string_n_split(tarea_string, 2, " ");
 	char** parametros = string_n_split(tarea_parametros[1], 4, ";");
 
-	for(int i=0;i<4;i++)
-		log_info(logger, "parametro[%i]: %s | %i", i, parametros[i], atoi(parametros[i]));
-
 	tarea->tarea = string_duplicate(tarea_parametros[0]);
-	log_info(logger, "tarea: %s", tarea->tarea);
 	tarea->parametro = atoi(parametros[0]);
-	log_info(logger, "parametro: %i", tarea->parametro);
 	tarea->posicion->pos_x = atoi(parametros[1]);
-	log_info(logger, "pos_x: %i", tarea->posicion->pos_x);
 	tarea->posicion->pos_y = atoi(parametros[2]);
-	log_info(logger, "pos_y: %i", tarea->posicion->pos_y);
 	tarea->tiempo = atoi(parametros[3]);
-	log_info(logger, "tiempo: %i", tarea->tiempo);
 
 	return tarea;
 }

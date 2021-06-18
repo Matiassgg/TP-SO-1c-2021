@@ -28,22 +28,6 @@ t_tripulante* deserializar_solicitar_tarea(uint32_t socket_cliente){
 	return tripulante;
 }
 
-t_mover_hacia* deserializar_mover_hacia(uint32_t socket_cliente){
-	//------------ORDEN------------
-	//1. Id tripulante
-	//2. Direccion
-	//3. Id patota asociada
-	//-----------------------------
-
-	t_mover_hacia* mover_hacia = malloc(sizeof(t_mover_hacia));
-
-	recv(socket_cliente, &(mover_hacia->id_tripulante), sizeof(uint32_t), 0);
-	recv(socket_cliente, &(mover_hacia->direccion), sizeof(t_movimiento), 0);
-	recv(socket_cliente, &(mover_hacia->id_patota_asociado), sizeof(uint32_t), 0);
-
-	return mover_hacia;
-}
-
 void enviar_solicitar_tarea_respuesta(t_tarea* tarea, uint32_t socket_cliente){
 
 	t_paquete* paquete_a_enviar = crear_paquete(SOLICITAR_TAREA);

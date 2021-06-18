@@ -77,7 +77,25 @@ t_respuesta recibir_respuesta(uint32_t socket_conexion){
 	return respuesta;
 }
 
+t_mover_hacia* deserializar_mover_hacia(uint32_t socket_cliente){
+	//------------ORDEN------------
+	//1. ID
+	//2. Direccion
+	//3. ID Patota Asociada
+	//4. Posicion origen
+	//5. Posicion destino
+	//-----------------------------
 
+	t_mover_hacia* mover_hacia = malloc(sizeof(t_mover_hacia));
+	mover_hacia->posicion_origen = malloc(sizeof(t_posicion));
+	mover_hacia->posicion_destino = malloc(sizeof(t_posicion));
+
+	recv(socket_cliente, &(mover_hacia->id_tripulante), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(mover_hacia->direccion), sizeof(t_movimiento), 0);
+	recv(socket_cliente, &(mover_hacia->id_patota_asociado), sizeof(uint32_t), 0);
+
+	return mover_hacia;
+}
 
 
 

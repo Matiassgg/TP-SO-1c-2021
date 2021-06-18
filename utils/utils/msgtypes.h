@@ -95,4 +95,6 @@ t_respuesta recibir_respuesta(uint32_t);
 void enviar_respuesta(t_respuesta, uint32_t);
 void serializar_respuesta(t_respuesta, t_buffer*);
 
+t_mover_hacia* deserializar_mover_hacia(uint32_t socket_cliente);;
+
 #endif /* SHARED_SHARED_MSGTYPES_H_ */
