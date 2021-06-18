@@ -68,6 +68,7 @@ void crear_punto_de_montaje(){
 	}
 }
 
+
 void terminar_programa() {
 	log_destroy(logger);
 
@@ -77,7 +78,7 @@ void terminar_programa() {
 
 	free(ruta_bloques);
 	free(bitarrayFS);
-	free(ruta_superBloque);
+	free(ruta_superbloque);
 //	free(mutexBlocks);
 	free(path_files);
 
