@@ -42,7 +42,7 @@ void enviar_mover_hacia(t_tripulante* tripulante, t_movimiento direccion){
 	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_RAM);
 //	MONGO
 //	paquete_a_enviar = crear_paquete(MOVER_HACIA);
-	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
+//	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
 //	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
 
 }

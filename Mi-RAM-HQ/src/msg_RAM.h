@@ -13,5 +13,7 @@ void serializar_solicitar_tarea_respuesta(t_tarea* msg, t_buffer* buffer);
 t_buffer* serializar_memoria_tareas(char* tareas);
 t_buffer* serializar_memoria_pcb(t_pcb* pcb);
 t_buffer* serializar_memoria_tcb(t_tcb* tcb);
+t_tcb* deserializar_memoria_tcb(void* stream);
+t_pcb* deserializar_memoria_pcb(void* stream);
 
 #endif /* MI_RAM_HQ_SRC_MSG_RAM_H_ */

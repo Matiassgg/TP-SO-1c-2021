@@ -93,6 +93,10 @@ t_mover_hacia* deserializar_mover_hacia(uint32_t socket_cliente){
 	recv(socket_cliente, &(mover_hacia->id_tripulante), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(mover_hacia->direccion), sizeof(t_movimiento), 0);
 	recv(socket_cliente, &(mover_hacia->id_patota_asociado), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(mover_hacia->posicion_origen->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(mover_hacia->posicion_origen->pos_y), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(mover_hacia->posicion_destino->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(mover_hacia->posicion_destino->pos_y), sizeof(uint32_t), 0);
 
 	return mover_hacia;
 }

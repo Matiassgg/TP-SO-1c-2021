@@ -29,7 +29,6 @@ t_tripulante* deserializar_solicitar_tarea(uint32_t socket_cliente){
 }
 
 void enviar_solicitar_tarea_respuesta(t_tarea* tarea, uint32_t socket_cliente){
-
 	t_paquete* paquete_a_enviar = crear_paquete(SOLICITAR_TAREA);
 	serializar_solicitar_tarea_respuesta(tarea, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_cliente);
@@ -130,6 +129,55 @@ t_buffer* serializar_memoria_tcb(t_tcb* tcb){
 	memcpy(buffer->stream + offset, &(tcb->puntero_pcb), sizeof(uint32_t));
 
 	return buffer;
+}
+
+t_tcb* deserializar_memoria_tcb(void* stream){
+	//------------ORDEN------------
+	//1. TID
+	//2. Estado
+	//3. Posicion X
+	//4. Posicion Y
+	//5. Proxima tarea
+	//6. Puntero PCB
+	//-----------------------------
+	t_tcb* tcb = malloc(sizeof(t_tcb));
+	tcb->posicion = malloc(sizeof(t_posicion));
+
+	uint32_t offset = 0;
+
+	memcpy(&(tcb->tid), stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&(tcb->estado), stream + offset, sizeof(char));
+	offset += sizeof(char);
+	memcpy(&(tcb->posicion->pos_x), stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy( &(tcb->posicion->pos_y), stream + offset,sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&(tcb->prox_instruccion), stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&(tcb->puntero_pcb), stream + offset, sizeof(uint32_t));
+
+	return tcb;
+}
+
+t_pcb* deserializar_memoria_pcb(void* stream){
+	//------------ORDEN------------
+	//1. TID
+	//2. Estado
+	//3. Posicion X
+	//4. Posicion Y
+	//5. Proxima tarea
+	//6. Puntero PCB
+	//-----------------------------
+	t_pcb* pcb = malloc(sizeof(t_pcb));
+
+	uint32_t offset = 0;
+
+	memcpy(&(pcb->pid), stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&(pcb->tareas), stream + offset, sizeof(uint32_t));
+
+	return pcb;
 }
 
 
