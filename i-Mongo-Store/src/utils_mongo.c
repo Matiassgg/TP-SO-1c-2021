@@ -49,7 +49,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			enviar_respuesta(OK,cliente_fd);
 		break;
 		case INICIAR_PATOTA:
-			;
 			t_patota* patota = deserializar_iniciar_patota(cliente_fd);
 
 			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
@@ -59,6 +58,25 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(patota->path_tareas);
 			free(patota);
 		break;
+		case COMENZAR_EJECUCION_TAREA:
+			t_tarea* tarea = deserializar_tarea(cliente_fd);
+
+			log_info(logger, "Se comenzo la ejecucion de tarea %s", tarea->tarea);
+
+		break;
+		case FINALIZAR_TAREA:
+			t_tarea* tarea = deserializar_tarea(cliente_fd);
+
+			log_info(logger, "Se finaliza la ejecucion de tarea %s", tarea->tarea);
+		break;
+		case MOVER_HACIA:
+			t_mover_hacia* posicion = deserializar_mover_hacia_posicion(cliente_fd);
+
+			log_info(logger, "Se realiza movimiento desde pos (%i,%i) hacia pos(%i,%i)",
+					posicion->posicion_origen->pos_x,posicion->posicion_origen->pos_y,
+					posicion->posicion_destino->pos_x,posicion->posicion_destino->pos_y);
+		break;
+
 	}
 
 }

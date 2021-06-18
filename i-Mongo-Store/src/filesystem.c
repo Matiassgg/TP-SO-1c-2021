@@ -6,7 +6,7 @@ void inicializar_paths_aux(){
 	path_bloques = string_new();
 	path_bitacoras = string_new();
 
-	string_append_with_format(&path_bloques, "%s/Blocks", punto_montaje);
+	string_append_with_format(&path_bloques, "%s/Blocks.ims", punto_montaje);
 	string_append_with_format(&path_files, "%s/Files", punto_montaje);
 	string_append_with_format(&ruta_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_bitacoras, "%s/Bitacoras", path_files);
@@ -55,36 +55,36 @@ void leer_superbloque(FILE* archivo){
 }
 
 
-void inicializar_bloques(){
-	path_bloques = string_new();
-
-	string_append_with_format(&path_bloques, "%s/Blocks", punto_montaje);
-
-
-	if (!directorio_existe(path_bloques)) {
-			mkdir(path_bloques, 0700);
-	}
-
-	crearBloques(path_bloques,ruta_superbloque);
-}
-
-
-void crearBloques(char* path_bloques,char* path_superbloque){
-
-	ruta_bloques = string_duplicate(path_bloques);
-
-	log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO", blocks, block_size);
-
-	for(int i = 1; i <= blocks; i++){
-		char* pathArchivoBloque = string_new();
-		string_append_with_format(&pathArchivoBloque, "%s", path_bloques);
-		string_append_with_format(&pathArchivoBloque, "/%d.", i);
-
-		if(!archivo_existe(pathArchivoBloque)){
-			FILE* bloque = fopen(pathArchivoBloque, "w");
-			fclose(bloque);
-		}
-
-		free(pathArchivoBloque);
-	}
-}
+//void inicializar_bloques(){
+//	path_bloques = string_new();
+//
+//	string_append_with_format(&path_bloques, "%s/Blocks", punto_montaje);
+//
+//
+//	if (!directorio_existe(path_bloques)) {
+//			mkdir(path_bloques, 0700);
+//	}
+//
+//	crearBloques(path_bloques,ruta_superbloque);
+//}
+//
+//
+//void crearBloques(char* path_bloques,char* path_superbloque){
+//
+//	ruta_bloques = string_duplicate(path_bloques);
+//
+//	log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO", blocks, block_size);
+//
+//	for(int i = 1; i <= blocks; i++){
+//		char* pathArchivoBloque = string_new();
+//		string_append_with_format(&pathArchivoBloque, "%s", path_bloques);
+//		string_append_with_format(&pathArchivoBloque, "/%d.", i);
+//
+//		if(!archivo_existe(pathArchivoBloque)){
+//			FILE* bloque = fopen(pathArchivoBloque, "w");
+//			fclose(bloque);
+//		}
+//
+//		free(pathArchivoBloque);
+//	}
+//}

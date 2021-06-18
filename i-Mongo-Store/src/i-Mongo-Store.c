@@ -17,6 +17,11 @@ void iniciar_mongo(void) {
     log_info(logger, "Ya obtuvimos la config del mongo");
     //FS_RESET();
     crear_punto_de_montaje();
+    inicializar_paths_aux();
+
+    obtener_superbloque();
+    inicializar_bloques();
+
 }
 
 void FS_RESET(){
@@ -57,5 +62,30 @@ void obtener_posiciones_sabotaje() {
 }
 
 void crear_punto_de_montaje(){
+	struct stat st = {0};
+	if(stat(punto_montaje, &st) == -1){
+		mkdir(punto_montaje, 0777);
+	}
+}
 
+t_log* iniciar_logger(void) {
+	return log_create(archivo_log, "Sindicato.c", 1, LOG_LEVEL_INFO);
+}
+
+void terminar_programa() {
+	log_destroy(logger);
+
+	config_destroy(config);
+
+	pthread_mutex_destroy(mutexBlocks);
+
+	free(ruta_bloques);
+	free(bitarrayFS);
+	free(ruta_superBloque);
+//	free(mutexBlocks);
+	free(path_files);
+
+	//TODO Terminar conexiones...
+
+	printf("\t\t\t~. MONGO STORE FINALIZADO .~\n");
 }
