@@ -69,6 +69,7 @@ void crear_punto_de_montaje(){
 }
 
 
+
 void terminar_programa() {
 	log_destroy(logger);
 
