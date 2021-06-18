@@ -68,10 +68,6 @@ void crear_punto_de_montaje(){
 	}
 }
 
-t_log* iniciar_logger(void) {
-	return log_create(archivo_log, "Sindicato.c", 1, LOG_LEVEL_INFO);
-}
-
 void terminar_programa() {
 	log_destroy(logger);
 
