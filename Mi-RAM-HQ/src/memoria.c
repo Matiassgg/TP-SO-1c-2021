@@ -6,8 +6,8 @@ void iniciar_memoria() {
 
 //	// FALTA
 	// Dibujar el mapa inicial vacío
-//	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
-//	pthread_detach(hiloReceiveMapa);
+	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
+	pthread_detach(hiloReceiveMapa);
 }
 
 void preparar_memoria() {
@@ -279,21 +279,23 @@ void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
 
 }
 
+uint32_t obtener_direccion_tarea()
+
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
-//	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
-//	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
-//	void* stream_pcb = malloc(TAMANIO_PCB);
-//	memcpy(stream_pcb, memoria + tcb->puntero_pcb, TAMANIO_PCB);
-//
-//	t_pcb* pcb = deserializar_memoria_pcb(stream_pcb);
-//	char* leido = string_new();
-//	char c_leido;
-//	int i=0;
-//	memcpy(&c_leido, memoria + pcb->tareas, sizeof(char));
-//	while(c_leido != '\n'){
-//		string_append(&leido, &c_leido);
-//	}
-//	pcb->tareas
+	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
+	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
+	void* stream_pcb = malloc(TAMANIO_PCB);
+	memcpy(stream_pcb, memoria + tcb->puntero_pcb, TAMANIO_PCB);
+
+	t_pcb* pcb = deserializar_memoria_pcb(stream_pcb);
+	char* leido = string_new();
+	char c_leido;
+	int i=0;
+	memcpy(&c_leido, memoria + pcb->tareas, sizeof(char));
+	while(c_leido != '\n'){
+		string_append(&leido, &c_leido);
+	}
+	pcb->tareas
 
 	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
 	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);

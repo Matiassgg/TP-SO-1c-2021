@@ -8,6 +8,7 @@
 #define ARCHIVO_CONFIG "../Mi-RAM-HQ.config"
 
 void iniciar_Mi_RAM_HQ(void);
+t_log* iniciar_logger_RAM(char* archivo_log, char* archivo_c);
 void leer_config(void);
 void finalizar_mi_ram(void);
 

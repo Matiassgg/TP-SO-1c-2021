@@ -78,10 +78,10 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			cargar_memoria_tripulante(tripulante);
 
 			log_info(logger, "RAM :: Cargamos a memoria el tripulante %i de la patota %i", tripulante->id, tripulante->id_patota_asociado);
-//			err = crear_tripulante(tripulante);
-//			if(err) {
-//				log_warning(logger,"WARN: %s\n", nivel_gui_string_error(err));
-//			}
+			err = crear_tripulante(tripulante);
+			if(err) {
+				log_warning(logger,"WARN: %s\n", nivel_gui_string_error(err));
+			}
 
 //			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
 //			POR AHORA SE HACE FREE CAPAZ DESPUES NO
@@ -141,10 +141,10 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			mover_tripulante_memoria(mover_hacia);
 
-//			err = mover_tripulante(mover_hacia);
-//			if(err) {
-//				log_warning(logger,"WARN: %s\n", nivel_gui_string_error(err));
-//			}
+			err = mover_tripulante(mover_hacia);
+			if(err) {
+				log_warning(logger,"WARN: %s\n", nivel_gui_string_error(err));
+			}
 
 			free(mover_hacia);
 

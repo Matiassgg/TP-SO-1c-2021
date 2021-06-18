@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 
 void iniciar_Mi_RAM_HQ() {
 	leer_config();
-	logger = iniciar_logger(archivo_log, "Mi-RAM-HQ.c");
+	logger = iniciar_logger_RAM(archivo_log, "Mi-RAM-HQ.c");
     log_info(logger, "Ya obtuvimos la config de Mi RAM HQ\n");
 
 	//dic_discordiador_tabla_segmentos = dictionary_create();// REVISAR ESTO
@@ -33,6 +33,10 @@ void iniciar_Mi_RAM_HQ() {
 
     iniciar_memoria();
 
+}
+
+t_log* iniciar_logger_RAM(char* archivo_log, char* archivo_c) {
+	return log_create(archivo_log, archivo_c, 0, LOG_LEVEL_INFO);
 }
 
 void leer_config() {
