@@ -128,7 +128,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			enviar_solicitar_tarea_respuesta(tarea,cliente_fd);
 
-			free(tripulante);
+//			free(tripulante);
 
 			log_info(logger, "RAM :: Se da la tarea");
 

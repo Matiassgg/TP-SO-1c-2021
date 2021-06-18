@@ -4,6 +4,9 @@
 #include "utils_ram.h"
 #include "mapa.h"
 
+#define TAMANIO_PCB 8
+#define TAMANIO_TCB 21
+
 pthread_t hiloReceiveMapa;
 
 void iniciar_memoria(void);
@@ -14,11 +17,14 @@ t_tcb* crear_tcb(t_tripulante* tripulante);
 void preparar_memoria_para_esquema_de_segmentacion(void);
 void preparar_memoria_para_esquema_de_paginacion(void);
 
+void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_dato);
+void mover_tripulante_memoria(t_mover_hacia* mover_hacia);
 void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
+
 t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 void* leer_memoria_segmentacion(t_segmento* segmento);
-
-void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size);
 void subir_segmento_memoria(t_segmento* segmento, void* stream);
