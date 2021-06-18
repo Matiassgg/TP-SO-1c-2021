@@ -279,7 +279,7 @@ void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
 
 }
 
-uint32_t obtener_direccion_tarea()
+// uint32_t obtener_direccion_tarea();
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
@@ -295,7 +295,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	while(c_leido != '\n'){
 		string_append(&leido, &c_leido);
 	}
-	pcb->tareas
+	pcb->tareas;
 
 	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
 	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);

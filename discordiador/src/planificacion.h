@@ -16,5 +16,6 @@ void crear_colas_planificacion(void);
 bool verificar_planificacion_activa();
 void planificacion_segun_FIFO(void);
 void planificacion_segun_RR(void);
+void finalizar_tripulante_plani(uint32_t);
 
 #endif /* DISCORDIADOR_SRC_PLANIFICACION_H_ */

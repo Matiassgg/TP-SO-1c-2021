@@ -19,7 +19,7 @@ void iniciar_discordiador() {
 	logger = iniciar_logger(archivo_log, "discordiador.c");
     log_info(logger, "Ya obtuvimos la config de discordiador\n");
 
-    conectar_modulos(); // TAL VEZ NO SEA ASI
+    conectar_modulos();
     preparar_planificacion();
     arrancar_planificacion();
 }
@@ -56,10 +56,6 @@ void conectar_modulos(){
     	log_error(logger, "DISCORDIADOR :: No me pude conectar a i-Mongo-Store");
     else
 		log_info(logger, "DISCORDIADOR :: Me pude conectar a i-Mongo-Store");
-
-    /*
-	socket_Mi_RAM_HQ = conectar(logger, ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
-	socket_Mongo_Store = conectar(logger, ip_Mongo_Store, puerto_Mongo_Store);*/
 
 	if(socket_Mi_RAM_HQ == -1 || socket_Mongo_Store == -1)
 		log_error(logger, "DISCORDIADOR :: No nos conectamos con ambos modulos\n");

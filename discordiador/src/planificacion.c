@@ -31,7 +31,6 @@ void preparar_planificacion(){
 
 void planificar_patota(t_patota* patota){
 	log_info(logger, "DISCORDIADOR :: Crearemos los tripulantes de la patota");
-
 	for(int i=0; i < patota->cant_tripulantes; i++){
 		t_tripulante* tripulante = obtener_tripulante_de_patota(patota, i);
 		log_info(logger, "DISCORDIADOR :: Se crea el tripulante %i", tripulante->id);
@@ -67,26 +66,30 @@ void pausar_planificacion(){
 }
 
 void planificacion_segun_FIFO() {
-	log_info(logger, "Se entro a FIFO");
+	log_info(logger, "Entramos a la planificacion POR FIFO");
 	while(1){
 		verificar_planificacion_activa();
 
 		pthread_mutex_lock(&mutex_cola_ready);
 		while (!queue_is_empty(cola_ready)) {
-			log_info(logger, "Se entro al while");
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
 			t_tripulante* tripulante = tripulante_plani->tripulante;
-	//		tripulante->estado = EXEC; // avisar a ram?
+			// tripulante->estado = EXEC;
+
+			// TODO :: AVISAR A RAM QUE AHORA ESTA EN EXEC
+
+			/*
+				 Esto pasa x que se deberia poder ver en que estado esta el tripulante en cualquier momento
+				 con la planificacion pausada
+			*/
 
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
 				pthread_mutex_unlock(&tripulante_plani->mutex_ready);
 			}
-//			verificar_planificacion_activa();
-//			hacer_tarea(tripulante);
-			// Avisar a ram que se esta haciendo la tarea
-
-			//FALTA SEGUIR :V
+			verificar_planificacion_activa();
+			hacer_tarea(tripulante_plani);
+			// TODO :: Avisar a ram que se esta haciendo la tarea ??
 		}
 	}
 }
@@ -100,71 +103,44 @@ bool verificar_planificacion_activa(){
 
 void planificacion_segun_RR() {
 	sem_wait(&semaforo_planificacion);
-	log_info(logger, "Se entro a RR");
+	log_info(logger, "Entramos a la planificacion POR RR");
 
 	while(1){
 		uint32_t quantum_de_config = quantum;
 
+		pthread_mutex_lock(&mutex_cola_ready);
 		while (!queue_is_empty(cola_ready)) {
-			t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_ready);
-		//		tripulante->estado = EXEC;
+			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
+			pthread_mutex_unlock(&mutex_cola_ready);
+			t_tripulante* tripulante = tripulante_plani->tripulante;
+			// tripulante->estado = EXEC;
 
-			while(quantum_de_config > 0){
-
+			while(quantum_de_config > 0 && verificar_planificacion_activa()){
 				if(quedan_pasos(tripulante)) {
 					enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 				}
 				else {
-					// Si le dio el quantum para llegar a la posicion donde debe hacer la tarea
-					hacer_tarea(tripulante);
-					// Avisar a ram que se esta haciendo la tarea
+					hacer_tarea(tripulante_plani);
+					// TODO :: Avisar a ram que se esta haciendo la tarea ??
 				}
-
 				quantum_de_config--;
 			}
+			verificar_planificacion_activa();
+
 			if(quedan_pasos(tripulante))
-				queue_push(cola_ready, tripulante);	// Vuelve a la cola de ready por fin de Q
+				queue_push(cola_ready, tripulante);
+
 			quantum_de_config = quantum;
-			// TODO
 		}
 	}
 	sem_post(&semaforo_planificacion);
-
 }
-//
-//t_pcb* crear_pcb(t_patota* patota){
-//	log_info(logger, "DISCORDIADOR :: Se crea el PCB para la patota %d", patota->id_patota);
-//	t_pcb* pcb = malloc(sizeof(t_pcb));
-//
-//	pcb->tareas = 0; // cosa de ram
-//	pcb->pid = patota->id_patota;
-//
-////	list_add(lista_tcbs, pcb);
-//	return pcb;
-//}
-//
-//t_list* agregar_tcbs(t_patota* patota){
-//	t_list* lista_tcbs_aux = list_create();
-//	for(int i=0; i < patota->cant_tripulantes; i++){
-//		log_info(logger, "DISCORDIADOR :: Se crea el TCB para el tripualante %d de la patota %d", i, patota->id_patota);
-//
-//		t_tcb* tcb = malloc(sizeof(t_tcb));
-//
-//		tcb->tid = id_tcb++; // empieza en 1 y va a ir subiendo
-//		tcb->estado = NEW;
-//		tcb->prox_instruccion = 0; // cosa de ram
-//		tcb->posicion = (t_posicion*) list_get(patota->posiciones, i);
-//		tcb->puntero_pcb = 0; // cosa de ram
-//
-//		log_info(logger, "DISCORDIADOR :: Se creo el TCB en NEW, para el tripulante: %d", tcb->tid);
-//
-////		list_add(lista_tcbs, tcb);
-//		list_add(lista_tcbs_aux, tcb);
-//		queue_push(cola_new, tcb);
-//	}
-//
-//	return lista_tcbs_aux;
-//}
+
+void finalizar_tripulante_plani(uint32_t id_tripulante) {
+	t_tripulante* tripulante_por_expulsar = malloc(sizeof(t_tripulante));
+	free(tripulante_por_expulsar);
+	// TODO NO ES ASI
+}
 
 void crear_colas_planificacion() {
 	cola_new = queue_create();
