@@ -6,6 +6,7 @@
 
 #define TAMANIO_PCB 8
 #define TAMANIO_TCB 21
+#define TAMANIO_OFFSET 1000
 
 pthread_t hiloReceiveMapa;
 
@@ -16,6 +17,11 @@ t_pcb* crear_pcb(t_patota* patota);
 t_tcb* crear_tcb(t_tripulante* tripulante);
 void preparar_memoria_para_esquema_de_segmentacion(void);
 void preparar_memoria_para_esquema_de_paginacion(void);
+
+uint32_t dar_direccion_logica(uint32_t nro_segmento, uint32_t offset);
+uint32_t dar_segmento_direccion_logica(uint32_t dir_logica);
+uint32_t dar_offset_direccion_logica(uint32_t dir_logica);
+t_tarea* obtener_tarea_memoria(t_tripulante* tripulante);
 
 void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_dato);

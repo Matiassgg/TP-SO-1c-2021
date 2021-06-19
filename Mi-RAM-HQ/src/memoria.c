@@ -6,8 +6,8 @@ void iniciar_memoria() {
 
 //	// FALTA
 	// Dibujar el mapa inicial vacío
-	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
-	pthread_detach(hiloReceiveMapa);
+//	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
+//	pthread_detach(hiloReceiveMapa);
 }
 
 void preparar_memoria() {
@@ -99,7 +99,7 @@ t_pcb* crear_pcb(t_patota* patota){
 void cargar_memoria_patota(t_patota* patota){
 	t_pcb* pcb_nuevo = crear_pcb(patota);
 
-	char* tareas = obtener_tareas(pcb_nuevo);
+	char* tareas = obtener_tareas(patota);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		t_tabla_segmentos* tabla_nueva = crear_tabla(pcb_nuevo->pid);
@@ -110,7 +110,7 @@ void cargar_memoria_patota(t_patota* patota){
 		log_info(logger, "Se subio a memoria la tarea");
 
 		t_segmento* segmento_tareas = buscar_segmento_id(pcb_nuevo->pid, pcb_nuevo->pid, TAREAS);
-		pcb_nuevo->tareas = segmento_tareas->inicio;
+		pcb_nuevo->tareas = dar_direccion_logica(segmento_tareas->nro_segmento, 0);
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(pcb_nuevo, pcb_nuevo->pid, PCB);
@@ -154,7 +154,13 @@ void cargar_memoria_patota(t_patota* patota){
 uint32_t obtener_direccion_pcb(uint32_t id_patota){
 	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
 
-	return segmento->inicio;
+	return dar_direccion_logica(segmento->inicio,0);
+}
+
+uint32_t obtener_direccion_pcb(uint32_t id_patota){
+	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
+
+	return dar_direccion_logica(segmento->inicio,0);
 }
 
 t_tcb* crear_tcb(t_tripulante* tripulante){
@@ -164,7 +170,7 @@ t_tcb* crear_tcb(t_tripulante* tripulante){
 
 	tcb->tid = tripulante->id;
 	tcb->estado = 'N'; // TODO
-	tcb->prox_instruccion = 0;
+	tcb->prox_instruccion = ;
 	tcb->posicion->pos_x = tripulante->posicion->pos_x;
 	tcb->posicion->pos_y = tripulante->posicion->pos_y;
 	tcb->puntero_pcb = obtener_direccion_pcb(tripulante->id_patota_asociado); // TODO CAMBIAR ESTA KK SI SE ARREGLA ESTO SE FACILITA EL DAR TAREAS
@@ -306,32 +312,40 @@ void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
 	t_tcb* tcb_viejo = deserializar_memoria_tcb(leer_memoria(mover_hacia->id_tripulante, mover_hacia->id_patota_asociado, TCB));
 	log_info(logger, "RAM :: TCB obtenido:\nTripulante %i", tcb_viejo->tid);
 
-	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		tcb_viejo->posicion->pos_x = mover_hacia->posicion_destino->pos_x;
-		tcb_viejo->posicion->pos_y = mover_hacia->posicion_destino->pos_y;
-	}
+	tcb_viejo->posicion->pos_x = mover_hacia->posicion_destino->pos_x;
+	tcb_viejo->posicion->pos_y = mover_hacia->posicion_destino->pos_y;
 
 	modificar_memoria(tcb_viejo, mover_hacia->id_patota_asociado, TCB);
 
 }
 
-// uint32_t obtener_direccion_tarea();
+uint32_t dar_direccion_logica(uint32_t nro_segmento, uint32_t offset){
+	return nro_segmento*TAMANIO_OFFSET + offset;
+}
+
+uint32_t dar_segmento_direccion_logica(uint32_t dir_logica){
+	return dir_logica/TAMANIO_OFFSET;
+}
+
+uint32_t dar_offset_direccion_logica(uint32_t dir_logica){
+	return dir_logica*(1 - (1/TAMANIO_OFFSET));
+}
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
-	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
-	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
-	void* stream_pcb = malloc(TAMANIO_PCB);
-	memcpy(stream_pcb, memoria + tcb->puntero_pcb, TAMANIO_PCB);
-
-	t_pcb* pcb = deserializar_memoria_pcb(stream_pcb);
-	char* leido = string_new();
-	char c_leido;
-	int i=0;
-	memcpy(&c_leido, memoria + pcb->tareas, sizeof(char));
-	while(c_leido != '\n'){
-		string_append(&leido, &c_leido);
-	}
-	pcb->tareas;
+//	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
+//	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
+//	void* stream_pcb = malloc(TAMANIO_PCB);
+//	memcpy(stream_pcb, memoria + tcb->puntero_pcb, TAMANIO_PCB);
+//
+//	t_pcb* pcb = deserializar_memoria_pcb(stream_pcb);
+//	char* leido = string_new();
+//	char c_leido;
+//	int i=0;
+//	memcpy(&c_leido, memoria + pcb->tareas, sizeof(char));
+//	while(c_leido != '\n'){
+//		string_append(&leido, &c_leido);
+//	}
+//	pcb->tareas;
 
 	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
 	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);

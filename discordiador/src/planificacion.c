@@ -37,7 +37,6 @@ void planificar_patota(t_patota* patota){
 		pthread_t hiloTripulante;
 		pthread_create(&hiloTripulante, NULL, (void*) ejecutar_tripulante, tripulante);
 		pthread_detach(hiloTripulante);
-		sleep(5); // TODO NO VA
 	}
 
 
@@ -85,11 +84,8 @@ void planificacion_segun_FIFO() {
 			*/
 
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
-				pthread_mutex_unlock(&tripulante_plani->mutex_ready);
+				pthread_mutex_unlock(&tripulante_plani->mutex_ready); // TODO
 			}
-			verificar_planificacion_activa();
-			hacer_tarea(tripulante_plani);
-			// TODO :: Avisar a ram que se esta haciendo la tarea ??
 		}
 	}
 }

@@ -186,42 +186,25 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 }
 
 
-char* obtener_tareas(t_pcb* pcb){
-//	t_queue* pila_tareas = queue_create();
+char* obtener_tareas(t_patota* patota){
 	char* leido = malloc(sizeof(char));
 	int i=0;
 
-	char* path = string_new();
-	path = string_duplicate("/home/utnso/tp-2021-1c-LaMitad-1/discordiador/tareasPatota");
+	FILE* archivo = fopen(patota->path_tareas, "r+");
 
-	string_append_with_format(&path, "%s.txt", string_itoa(pcb->pid));
-
-	FILE* archivo = fopen(path, "r+");
-
-	while(fread(leido+i,1,1,archivo)){
-		i++;
+	if(archivo){
+		log_info(logger, "Se pudo abrir el archivo:\n%s",patota->path_tareas);
+		while(fread(leido+i,1,1,archivo)){
+			i++;
+			leido= (char*) realloc(leido,i+1);
+		}
 		leido= (char*) realloc(leido,i+1);
+
+		return leido;
 	}
-	leido= (char*) realloc(leido,i+1);
+	log_error(logger, "No se pudo abrir el archivo:\n%s",patota->path_tareas);
 
-//	char** lines = string_split(leido, "\n");
-//
-//	void add_cofiguration(char *line) {
-//		if (!string_starts_with(line, "#")) {
-//			t_tarea* tarea = obtener_tarea_archivo(line);
-////			guardar_memoria_tarea(pcb, tarea);
-//			queue_push(pila_tareas, tarea);
-//		}
-//	}
-//	string_iterate_lines(lines, add_cofiguration);
-//	string_iterate_lines(lines, (void*) free);
-//
-//	list_add(tareas,pila_tareas);
-//
-//	free(lines);
-
-	return leido;
-
+	return NULL;
 }
 
 t_tarea* obtener_tarea_archivo(char* tarea_string){

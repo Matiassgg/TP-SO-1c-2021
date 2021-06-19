@@ -20,8 +20,6 @@ void solicitar_tarea(t_tripulante* tripulante){
 	t_tarea* tarea_por_hacer = recibir_tarea(tripulante->socket_conexion_RAM);
 	if(tarea_por_hacer == NULL) {
 		log_warning(logger, "Ya no hay mas tareas para el tripulante %i", tripulante->id);
-		// TODO FINALIZAR TRIPULANTE?
-		return;
 	}
 	tripulante->tarea_act = tarea_por_hacer;
 }
@@ -82,7 +80,6 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		queue_push(cola_bloq_E_S,tripulante_plani);
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
-
 
 		//////////////////////////////////////////////////////////////////////////
 

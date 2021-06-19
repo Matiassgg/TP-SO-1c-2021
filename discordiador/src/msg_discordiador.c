@@ -74,7 +74,7 @@ void serializar_iniciar_patota(t_patota* msg, t_buffer* buffer){
 	offset += msg->tam_path;
 
 	for (int i = 0; i < msg->cant_tripulantes; i++) {
-		t_posicion* posicion = list_get(msg->posiciones,i);
+		t_posicion* posicion = (t_posicion*) list_get(msg->posiciones,i);
 
 		memcpy(buffer->stream + offset, &(posicion->pos_x), sizeof(uint32_t));
 		offset += sizeof(uint32_t);

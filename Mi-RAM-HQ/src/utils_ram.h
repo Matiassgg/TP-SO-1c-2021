@@ -147,7 +147,7 @@ void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 t_tarea* obtener_tarea(t_tripulante* tripulante);
-char* obtener_tareas(t_pcb* pcb);
+char* obtener_tareas(t_patota* patota);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
 void obtener_listado_tripulantes(t_list*);
 
