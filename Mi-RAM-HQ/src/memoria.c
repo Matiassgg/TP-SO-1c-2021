@@ -65,15 +65,17 @@ t_tabla_paginas* crearTablaPaginacion(int tam, int tipo, uint32_t id_patota) {
 				tabla->tam = tam;
 				for (i = 0; i < tam; i++) {
 					tabla->paginas->numeroPagina = i;
-					tabla->paginas->marco = obtenerMarco();
+					t_marco* marcoObtenido = obtenerMarco();
+					tabla->paginas->marco = marcoObtenido;
 
-					tabla->paginas->marco->estado = OCUPADO;
+					marcoObtenido->estado = OCUPADO;
 					// tabla->paginas->inicioMemoria->bitUso = 0; VER QUE ONDA ESTO
 					tabla->paginas->marco->indice = i;
 					tabla->paginas->marco->timeStamp = NULL;
 					tabla->paginas->marco->bitUso = true;
 					tabla->paginas->marco->idPatota = id_patota;
 				}
+
 			}
 		}
 	}
