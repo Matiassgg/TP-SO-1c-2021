@@ -66,27 +66,10 @@ typedef enum {
 } t_estado_marco;
 
 typedef struct {
-	uint32_t tam;
-	t_pagina* paginas;
-	uint32_t id_patota_asociada;
-	uint32_t tareas_dadas;
-} t_tabla_paginas;
-
-
-typedef struct {
 	uint32_t nro_pagina;
 	uint32_t id_asociado;
 	e_tipo_dato tipo_dato;
 } t_asociador_pagina;
-
-typedef struct {
-	void* inicio; //probablemente se use para saber en que lugar en memoria estoy parado
-	uint32_t numeroPagina;
-	t_marco* marco;
-	//t_asociador_pagina* asociador;
-} t_pagina;
-
-//
 
 typedef struct {
 	void* inicioMemoria;
@@ -96,6 +79,21 @@ typedef struct {
 	char* timeStamp;
 	int idPatota;
 } t_marco;
+
+typedef struct {
+	void* inicio; //probablemente se use para saber en que lugar en memoria estoy parado
+	uint32_t numeroPagina;
+	t_marco* marco;
+	//t_asociador_pagina* asociador;
+} t_pagina;
+
+
+typedef struct {
+	uint32_t tam;
+	t_pagina* paginas;
+	uint32_t id_patota_asociada;
+	uint32_t tareas_dadas;
+} t_tabla_paginas;
 
 typedef struct {
 	int indiceMarcoSwap;

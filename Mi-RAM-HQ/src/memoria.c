@@ -82,7 +82,7 @@ t_tabla_paginas* crearTablaPaginacion(int tam, int tipo, uint32_t id_patota) {
 	return tabla;
 }
 
-t_marco* obtenerMarco(){
+t_marco* obtenerMarco() {
 	return 0;
 }
 
@@ -375,14 +375,13 @@ t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo
 
 	switch(tipo_dato){
 		case TAREAS:
-			return dictionary_get(tabla->diccionario_segmentos,"TAREAS");
+			return (t_segmento*) dictionary_get(tabla->diccionario_segmentos,"TAREAS");
 		break;
 		case PCB:
-			return dictionary_get(tabla->diccionario_segmentos,"PCB");
+			return (t_segmento*) dictionary_get(tabla->diccionario_segmentos,"PCB");
 		break;
 		case TCB:
-			return dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(id));
-
+			return (t_segmento*) dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(id));
 		break;
 	}
 
@@ -573,7 +572,8 @@ t_marco* buscar_entrada(void* marco){
 
 t_marco* asignar_entrada_marco_libre(void){
 	bool este_libre(void* parametro){
-		return ((t_marco*)parametro)->libre;
+		t_marco* marco = (t_marco*) parametro;
+		return marco->estado == LIBRE;
 	}
 
 	if (!hay_marcos_libres()) {
@@ -662,7 +662,7 @@ void seleccionar_victima_LRU(void){
 
 	//todo FALTA VER QUE PASA CON SWAP ACA
 
-	entrada_mas_vieja->libre = true;
+	entrada_mas_vieja->estado = LIBRE;
 
 	pthread_mutex_unlock(&mutexFree);
 }
@@ -704,7 +704,7 @@ void seleccionar_victima_CLOCK(void){
 
 	// todo Escribo en SWAP
 
-	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->libre = true;
+	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->estado = LIBRE;
 
 	pthread_mutex_unlock(&mutexFree);
 }
@@ -732,7 +732,7 @@ int indice_elemento(t_list* lista, void* elemento){
 
 bool hay_marcos_libres(void){
 	bool este_libre(void* parametro){
-		return ((t_marco*)parametro)->libre;
+		return ((t_marco*)parametro)->estado = LIBRE;
 	}
 
 	t_list* marcos_libres = list_filter(tablaDeMarcos, este_libre);

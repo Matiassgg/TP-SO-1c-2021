@@ -114,7 +114,7 @@ void procesar_tarea(t_tarea* tarea){
 		eliminar_caracteres_llenado_segun_tarea(nombre_tarea,cantidad);
 	}
 	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){
-		eliminar_archivo("Basura.ims");
+		//eliminar_archivo("Basura.ims");
 	}
 }
 
@@ -137,17 +137,17 @@ void agregar_caracteres_llenado_a_archivo(char* caracter, uint32_t cantidad, cha
 
 void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
 	if(contiene(nombre_tarea,"OXIGENO")){
-		quitar_caracteres_llenado_a_archivo("O",cantidad,"Oxigeno.ims");
+		//quitar_caracteres_llenado_a_archivo("O",cantidad,"Oxigeno.ims");
 	}
 	else if(contiene(nombre_tarea,"COMIDA")){
-		quitar_caracteres_llenado_a_archivo("C",cantidad,"Comida.ims");
+		//quitar_caracteres_llenado_a_archivo("C",cantidad,"Comida.ims");
 	}
 }
 
 void eliminar_caracteres_llenado_a_archivo(char* caracter, uint32_t cantidad, char* archivo){
 	uint32_t cantidad_caracteres = cantidad_caracteres_archivo(caracter, archivo);
 	if (cantidad >= cantidad_caracteres){
-		vaciar_archivo(archivo);
+		//vaciar_archivo(archivo);
 		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
 	}
 	else{

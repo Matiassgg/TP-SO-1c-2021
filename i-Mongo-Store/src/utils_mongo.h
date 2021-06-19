@@ -55,8 +55,6 @@ void agregar_caracteres_llenado_segun_tarea(char*, uint32_t);
 void crear_archivo(char*);
 
 
-
-
 typedef struct {
 	u_int32_t id;
 	uint32_t tamanio_tarea;

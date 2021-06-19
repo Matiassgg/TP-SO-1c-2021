@@ -65,16 +65,17 @@ void leer_superbloque(FILE* archivo){
 		leido= (char*) realloc(leido,i+1);
 	}
 	leido= (char*) realloc(leido,i+1);
-	t_bloque_FS* bloqueAux = crear_bloque(leido,0);
+
+	// _bloque_FS* bloqueAux = crear_bloque(leido,0);
 	free(leido);
 
 //	magic_number = string_duplicate(obtener_dato_string(bloqueAux, "MAGIC_NUMBER"));
 //	blocks = obtener_dato_int(bloqueAux,"BLOCKS");
 //	block_size = obtener_dato_int(bloqueAux,"BLOCK_SIZE");
 
-	dictionary_destroy(bloqueAux->diccionario);
-	free(bloqueAux->stream);
-	free(bloqueAux);
+//	dictionary_destroy(bloqueAux->diccionario);
+//	free(bloqueAux->stream);
+//	free(bloqueAux);
 }
 
 
@@ -124,7 +125,7 @@ void inicializar_bitmap(){
 //		mkdir(path_metadata, 0700);
 	}
 
-	crear_bitmap(path_superbloque);
+	crear_bitmap();
 }
 
 t_bitarray* crear_bitmap() {

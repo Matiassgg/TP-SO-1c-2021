@@ -41,6 +41,7 @@ void seleccionar_victima_CLOCK(void);
 bool hay_marcos_libres(void);
 t_marco* buscar_entrada(void* marco);
 t_marco* asignar_entrada_marco_libre(void);
+t_marco* obtenerMarco(void);
 bool ambos_bits_apagados(t_marco* entrada);
 bool bit_uso_apagado(t_marco* entrada);
 bool bit_uso(t_marco* entrada);
