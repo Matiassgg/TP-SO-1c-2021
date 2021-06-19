@@ -16,12 +16,22 @@ void iniciar_mongo(void) {
 	leer_config();
     log_info(logger, "Ya obtuvimos la config del mongo");
     //FS_RESET();
-    crear_punto_de_montaje();
+   // crear_punto_de_montaje();
+
+    inicializar_filesystem();
+
+}
+
+void inicializar_filesystem() {
+
     inicializar_paths_aux();
+	if(!archivo_existe(ruta_superbloque))
+		crear_superbloque();
+	else
+	    obtener_superbloque();
 
-    obtener_superbloque();
-    inicializar_bloques();
-
+	if(!archivo_existe(path_bloques))
+	    inicializar_bloques();
 }
 
 void FS_RESET(){
@@ -43,6 +53,9 @@ void leer_config(void) {
 	punto_montaje = config_get_string_value(config,"PUNTO_MONTAJE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 	tiempo_sincronizacion = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
+	blocks = config_get_int_value(config, "BLOCKS");
+	block_size = config_get_int_value(config, "BLOCK_SIZE");
+
 	posiciones_sabotaje = list_create();
 	obtener_posiciones_sabotaje();
 }
@@ -61,29 +74,29 @@ void obtener_posiciones_sabotaje() {
 	}
 }
 
+/*
 void crear_punto_de_montaje(){
 	struct stat st = {0};
 	if(stat(punto_montaje, &st) == -1){
 		mkdir(punto_montaje, 0777);
 	}
 }
-
-
+*/
 
 void terminar_programa() {
+
+	log_info(logger,"\t\t\t~. MONGO STORE FINALIZADO .~\n");
 	log_destroy(logger);
 
 	config_destroy(config);
 
-	pthread_mutex_destroy(mutexBlocks);
+	//pthread_mutex_destroy(mutexBlocks);
 
 	free(ruta_bloques);
-	free(bitarrayFS);
+	//free(bitarrayFS);
 	free(ruta_superbloque);
 //	free(mutexBlocks);
 	free(path_files);
 
 	//TODO Terminar conexiones...
-
-	printf("\t\t\t~. MONGO STORE FINALIZADO .~\n");
 }

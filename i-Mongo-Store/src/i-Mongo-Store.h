@@ -3,13 +3,14 @@
 
 #include "utils_mongo.h"
 #include "consola_mongo.h"
+#include "filesystem.h"
 
 #define ARCHIVO_CONFIG "../i-Mongo-Store.config"
 
 void iniciar_mongo(void);
 void leer_config(void);
 void FS_RESET(void);
-void crear_punto_de_montaje(void);
+//void crear_punto_de_montaje(void);
 void obtener_posiciones_sabotaje(void);
 
 

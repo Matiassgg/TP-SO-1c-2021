@@ -2,6 +2,7 @@
 #define I_MONGO_STORE_SRC_UTILS_MONGO_H_
 
 #include "../../utils/utils/utils.h"
+#include<commons/bitarray.h>
 
 char* ip_Mongo_Store;
 char* puerto_escucha;
@@ -16,6 +17,9 @@ uint32_t socket_discordiador;
 
 char* punto_montaje;
 char* archivo_log;
+char* path_superbloque;
+char* bitarrayFS;
+char* ruta_bitmap;
 
 uint32_t tiempo_sincronizacion;
 t_list* posiciones_sabotaje;
@@ -26,11 +30,14 @@ pthread_t hiloReceive;
 
 uint32_t blocks;
 uint32_t block_size;
+t_bitarray* bitmap;
+
 char* ruta_bloques;
 char* path_files;
 char* path_bloques;
 char* ruta_superbloque;
 char* path_bitacoras;
+char* bitarray_string;
 
 
 void arrancar_servidor(void);
