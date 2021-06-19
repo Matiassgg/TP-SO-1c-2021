@@ -6,12 +6,22 @@ void iniciar_memoria() {
 
 //	// FALTA
 	// Dibujar el mapa inicial vacío
-//	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
-//	pthread_detach(hiloReceiveMapa);
+	pthread_create(&hiloReceiveMapa, NULL, (void*) iniciar_mapa_vacio, NULL);
+	pthread_detach(hiloReceiveMapa);
 }
 
 void preparar_memoria() {
 	memoria = malloc(tamanio_memoria);
+
+	pthread_mutex_init(&mutex_subir_patota, NULL);
+	pthread_mutex_init(&mutexTablaMarcos, NULL);
+	pthread_mutex_init(&mutexEntradasSwap, NULL);
+	pthread_mutex_init(&mutexMemoria, NULL);
+	pthread_mutex_init(&mutexSwap, NULL);
+	pthread_mutex_init(&mutexBuscarSegmento, NULL);
+	pthread_mutex_init(&mutexBuscarPagina, NULL);
+	pthread_mutex_init(&mutexBuscarInfoTripulante, NULL);
+	pthread_mutex_init(&mutex_tocar_memoria, NULL);
 
 	if(esquema_memoria == NULL)
 		log_error(logger, "Error al leer el esquema de memoria");
@@ -34,21 +44,16 @@ void preparar_memoria() {
 
 }
 
-t_tabla_segmentos* crear_tabla(uint32_t id_patota){
+void crear_tabla(uint32_t id_patota){
 	log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
 	t_tabla_segmentos* tabla = malloc(sizeof(t_tabla_segmentos));
 	tabla->diccionario_segmentos = dictionary_create();
-
 	tabla->id_patota_asociada = id_patota;
-	tabla->tareas_dadas = 0;
-	pthread_mutex_init(&tabla->mutex_obtener_tareas, NULL);
-
 
 	pthread_mutex_lock(&mutex_tablas_segmentos);
 	list_add(lista_tablas_segmentos, tabla);
 	pthread_mutex_unlock(&mutex_tablas_segmentos);
 
-	return tabla;
 }
 
 t_tabla_paginas* crearTablaPaginacion(int tam, int tipo, uint32_t id_patota) {
@@ -101,8 +106,10 @@ void cargar_memoria_patota(t_patota* patota){
 
 	char* tareas = obtener_tareas(patota);
 
+	pthread_mutex_lock(&mutex_subir_patota);
+
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		t_tabla_segmentos* tabla_nueva = crear_tabla(pcb_nuevo->pid);
+		crear_tabla(pcb_nuevo->pid);
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -118,9 +125,7 @@ void cargar_memoria_patota(t_patota* patota){
 		log_info(logger, "Se subio a memoria la patota");
 
 	}
-	else{
-		//revisar toda esta cagada que hice para empezar algo
-		if(son_iguales(esquema_memoria, "PAGINACION")){
+	else if(son_iguales(esquema_memoria, "PAGINACION")){
 			t_tabla_paginas* tabla_pagina_patota = malloc(sizeof(t_tabla_paginas));
 			tabla_pagina_patota->id_patota_asociada = pcb_nuevo->pid;
 			tabla_pagina_patota->paginas = list_create();
@@ -145,9 +150,9 @@ void cargar_memoria_patota(t_patota* patota){
 //			list_add(tabla_pagina_patota->paginas, pagina_tareas);
 //			list_add(tabla_pagina_patota->paginas, pagina_pcb);
 //			list_add(lista_tablas_segmentos, tabla_segmento_patota); TODO SEGMENTOS?
-		}
-
 	}
+
+	pthread_mutex_unlock(&mutex_subir_patota);
 
 }
 
@@ -157,8 +162,9 @@ uint32_t obtener_direccion_pcb(uint32_t id_patota){
 	return dar_direccion_logica(segmento->inicio,0);
 }
 
-uint32_t obtener_direccion_pcb(uint32_t id_patota){
-	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
+uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
+	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,TAREAS);
+	log_info(logger, "segmento->inicio = %i", segmento->inicio);
 
 	return dar_direccion_logica(segmento->inicio,0);
 }
@@ -170,7 +176,7 @@ t_tcb* crear_tcb(t_tripulante* tripulante){
 
 	tcb->tid = tripulante->id;
 	tcb->estado = 'N'; // TODO
-	tcb->prox_instruccion = ;
+	tcb->prox_instruccion = obtener_direccion_tarea(tripulante->id_patota_asociado, 0);
 	tcb->posicion->pos_x = tripulante->posicion->pos_x;
 	tcb->posicion->pos_y = tripulante->posicion->pos_y;
 	tcb->puntero_pcb = obtener_direccion_pcb(tripulante->id_patota_asociado); // TODO CAMBIAR ESTA KK SI SE ARREGLA ESTO SE FACILITA EL DAR TAREAS
@@ -181,6 +187,8 @@ t_tcb* crear_tcb(t_tripulante* tripulante){
 }
 
 void cargar_memoria_tripulante(t_tripulante* tripulante){
+	pthread_mutex_lock(&mutex_subir_patota);
+
 	t_tcb* tcb = crear_tcb(tripulante);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
@@ -193,6 +201,8 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 	else{
 
 	}
+
+	pthread_mutex_unlock(&mutex_subir_patota);
 
 }
 
@@ -332,36 +342,48 @@ uint32_t dar_offset_direccion_logica(uint32_t dir_logica){
 }
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
-//	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
-//	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
-//	void* stream_pcb = malloc(TAMANIO_PCB);
-//	memcpy(stream_pcb, memoria + tcb->puntero_pcb, TAMANIO_PCB);
+	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
+	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
+
+	t_segmento* segmento_tareas = buscar_segmento_id(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
+	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
+
+	char* tarea_string = string_new();
+	char c_leido;
+	uint32_t new_offset=0;
+	uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
+
+	if(offset >= segmento_tareas->tamanio)
+		return NULL;
+
+	uint32_t inicio_tarea = segmento_tareas->inicio + offset;
+	do{
+		memcpy(&c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+		new_offset++;
+		string_append(&tarea_string, &c_leido);
+	}while(c_leido != '\n');
+
+	tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);
+	modificar_memoria_segmentacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
+	t_tarea* tarea = obtener_tarea_archivo(tarea_string);
+
+	return tarea;
+
+//	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, tareas);
+//	log_info(logger, "ram :: tareas obtenida:\n%s", tareas);
 //
-//	t_pcb* pcb = deserializar_memoria_pcb(stream_pcb);
-//	char* leido = string_new();
-//	char c_leido;
-//	int i=0;
-//	memcpy(&c_leido, memoria + pcb->tareas, sizeof(char));
-//	while(c_leido != '\n'){
-//		string_append(&leido, &c_leido);
+//	char** lines = string_split(tareas, "\n");
+//
+//	t_tabla_segmentos* tabla = dar_tabla_segmentos(tripulante->id_patota_asociado);
+//	if(lines[tabla->tareas_dadas]){
+//		pthread_mutex_lock(&tabla->mutex_obtener_tareas);
+//		log_info(logger, "ram :: tarea obtenida:\n%s", lines[tabla->tareas_dadas]);
+//		t_tarea* tarea = obtener_tarea_archivo(lines[tabla->tareas_dadas]);
+//		tabla->tareas_dadas++;
+//		pthread_mutex_unlock(&tabla->mutex_obtener_tareas);
+//		return tarea;
 //	}
-//	pcb->tareas;
-
-	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
-	log_info(logger, "RAM :: Tareas obtenida:\n%s", tareas);
-
-	char** lines = string_split(tareas, "\n");
-
-	t_tabla_segmentos* tabla = dar_tabla_segmentos(tripulante->id_patota_asociado);
-	if(lines[tabla->tareas_dadas]){
-		pthread_mutex_lock(&tabla->mutex_obtener_tareas);
-		log_info(logger, "RAM :: Tarea obtenida:\n%s", lines[tabla->tareas_dadas]);
-		t_tarea* tarea = obtener_tarea_archivo(lines[tabla->tareas_dadas]);
-		tabla->tareas_dadas++;
-		pthread_mutex_unlock(&tabla->mutex_obtener_tareas);
-		return tarea;
-	}
-	return NULL;
+//	return null;
 }
 
 void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
@@ -398,6 +420,8 @@ t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo
 			return (t_segmento*) dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(id));
 		break;
 	}
+	log_error(logger, "No se encontro segmento");
+	return NULL;
 
 }
 
@@ -459,6 +483,7 @@ t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota){
 
 void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_tripulante, e_tipo_dato tipo_dato){
 	t_tabla_segmentos* tabla_segmentos = dar_tabla_segmentos(id_patota);
+	log_info(logger, "segmento->inicio = %i", segmento->inicio);
 
 	switch(tipo_dato){
 		case TAREAS:

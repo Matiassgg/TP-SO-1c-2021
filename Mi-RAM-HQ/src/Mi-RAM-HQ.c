@@ -22,15 +22,6 @@ void iniciar_Mi_RAM_HQ() {
 	patotas_creadas = list_create();
 	tareas = list_create();
 
-	pthread_mutex_init(&mutexTablaMarcos, NULL);
-	pthread_mutex_init(&mutexEntradasSwap, NULL);
-	pthread_mutex_init(&mutexMemoria, NULL);
-	pthread_mutex_init(&mutexSwap, NULL);
-	pthread_mutex_init(&mutexBuscarSegmento, NULL);
-	pthread_mutex_init(&mutexBuscarPagina, NULL);
-	pthread_mutex_init(&mutexBuscarInfoTripulante, NULL);
-	pthread_mutex_init(&mutex_tocar_memoria, NULL);
-
     iniciar_memoria();
 
 }

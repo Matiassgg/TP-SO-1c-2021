@@ -12,7 +12,9 @@ pthread_t hiloReceiveMapa;
 
 void iniciar_memoria(void);
 void preparar_memoria(void);
-t_tabla_segmentos* crear_tabla(uint32_t id_patota);
+void crear_tabla(uint32_t id_patota);
+uint32_t obtener_direccion_pcb(uint32_t id_patota);
+uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset);
 t_pcb* crear_pcb(t_patota* patota);
 t_tcb* crear_tcb(t_tripulante* tripulante);
 void preparar_memoria_para_esquema_de_segmentacion(void);

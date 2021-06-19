@@ -39,6 +39,7 @@ typedef struct {
 	uint32_t nro_segmento;
 	uint32_t inicio;
 	uint32_t tamanio;
+	char* dato_almacenado;
 } t_segmento;
 
 typedef struct {
@@ -49,8 +50,6 @@ typedef struct {
 typedef struct {
 	t_dictionary* diccionario_segmentos;
 	uint32_t id_patota_asociada;
-	uint32_t tareas_dadas;
-	pthread_mutex_t mutex_obtener_tareas;
 } t_tabla_segmentos;
 
 typedef struct {
@@ -137,6 +136,7 @@ pthread_mutex_t mutexBuscarPagina;
 pthread_mutex_t mutexBuscarInfoTripulante;
 pthread_mutex_t mutexBuscarSwap;
 pthread_mutex_t mutex_tocar_memoria;
+pthread_mutex_t mutex_subir_patota;
 pthread_mutex_t mutex_tablas_segmentos;
 
 pthread_t hiloReceive;
