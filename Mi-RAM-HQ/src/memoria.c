@@ -50,6 +50,40 @@ t_tabla_segmentos* crear_tabla(uint32_t id_patota){
 
 	return tabla;
 }
+
+t_tabla_paginas* crearTablaPaginacion(int tam, int tipo, uint32_t id_patota) {
+	t_tabla_paginas* tabla = NULL;
+	int i;
+	if (tam > 0) {
+		t_tabla_paginas* tabla = malloc(sizeof(t_tabla_paginas));
+		if (tabla != NULL) {
+			tabla->paginas = malloc(sizeof(t_pagina) * tam);
+			if (tabla->paginas == NULL) {
+				free(tabla);
+				tabla = NULL;
+			} else {
+				tabla->tam = tam;
+				for (i = 0; i < tam; i++) {
+					tabla->paginas->numeroPagina = i;
+					tabla->paginas->marco = obtenerMarco();
+
+					tabla->paginas->marco->estado = OCUPADO;
+					// tabla->paginas->inicioMemoria->bitUso = 0; VER QUE ONDA ESTO
+					tabla->paginas->marco->indice = i;
+					tabla->paginas->marco->timeStamp = NULL;
+					tabla->paginas->marco->bitUso = true;
+					tabla->paginas->marco->idPatota = id_patota;
+				}
+			}
+		}
+	}
+	return tabla;
+}
+
+t_marco* obtenerMarco(){
+	return 0;
+}
+
 t_pcb* crear_pcb(t_patota* patota){
 	log_info(logger, "RAM :: Se crea el PCB para la patota %d", patota->id_patota);
 	t_pcb* pcb = malloc(sizeof(t_pcb));
@@ -88,6 +122,7 @@ void cargar_memoria_patota(t_patota* patota){
 			t_tabla_paginas* tabla_pagina_patota = malloc(sizeof(t_tabla_paginas));
 			tabla_pagina_patota->id_patota_asociada = pcb_nuevo->pid;
 			tabla_pagina_patota->paginas = list_create();
+			tabla_pagina_patota->tam = sizeof(tabla_pagina_patota->paginas);
 			tabla_pagina_patota->tareas_dadas = 0;
 
 			pthread_mutex_lock(&mutex_tocar_memoria);
@@ -185,15 +220,14 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
 		// Cargar estructuras administrativass
 		log_info(logger, "Desplazamiento: %d", offset);
-		void* marco = memoria + offset;
+		void* inicioMemoria = memoria + offset;
 
-		entradaTablaMarcos* nuevaEntrada = malloc(sizeof(entradaTablaMarcos));
+		t_marco* nuevaEntrada = malloc(sizeof(t_marco));
 		nuevaEntrada->indice = cantidad_de_marcos;
-		nuevaEntrada->bitModificado = false;
 		nuevaEntrada->bitUso = false;
 		nuevaEntrada->idPatota = -1;
-		nuevaEntrada->libre = true;
-		nuevaEntrada->marco = marco;
+		nuevaEntrada->estado = LIBRE;
+		nuevaEntrada->inicioMemoria = inicioMemoria;
 		nuevaEntrada->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevaEntrada);
@@ -207,9 +241,9 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
 		void* marco = memoria + offset;
 
-		entradaSwap* nuevaEntrada = malloc(sizeof(entradaSwap));
+		t_marco_en_swap* nuevaEntrada = malloc(sizeof(t_marco_en_swap));
 		nuevaEntrada->idPatota = -1;
-		nuevaEntrada->libre = true;
+		nuevaEntrada->estado = LIBRE;
 		nuevaEntrada->indiceMarcoSwap = indice;
 		indice ++;
 
@@ -518,26 +552,26 @@ void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pagina* p
 //	memcpy(entradaDeLaTabla->marco + offset, &(pagina->cantidadLista), sizeof(uint32_t));
 //	offset += sizeof(uint32_t);
 //
-//	memcpy(entradaDeLaTabla->marco + offset, &(pagina->cantidadPlato), sizeof(uint32_t));
+//	memcpy(entradaDeLaTabla->inicioMemoria + offset, &(pagina->cantidadPlato), sizeof(uint32_t));
 //	offset += sizeof(uint32_t);
 //
-//	memcpy(entradaDeLaTabla->marco + offset, pagina->nombrePlato, 24);
+//	memcpy(entradaDeLaTabla->inicioMemoria + offset, pagina->nombrePlato, 24);
 //
 //	log_info(logger, "Escrito con exito");
 }
 
 
-entradaTablaMarcos* buscar_entrada(void* marco){
+t_marco* buscar_entrada(void* marco){
 	bool el_que_quiero(void* parametro){
-		return ((entradaTablaMarcos*)parametro)->marco == marco;
+		return ((t_marco*)parametro)->inicioMemoria == marco;
 	}
 
 	return list_find(tablaDeMarcos, el_que_quiero);
 }
 
-entradaTablaMarcos* asignar_entrada_marco_libre(void){
+t_marco* asignar_entrada_marco_libre(void){
 	bool este_libre(void* parametro){
-		return ((entradaTablaMarcos*)parametro)->libre;
+		return ((t_marco*)parametro)->libre;
 	}
 
 	if (!hay_marcos_libres()) {
@@ -553,7 +587,7 @@ entradaTablaMarcos* asignar_entrada_marco_libre(void){
 
 	t_list* entradas_marcos_libres = list_filter(tablaDeMarcos, este_libre);
 
-	entradaTablaMarcos* buscado = list_get(entradas_marcos_libres, 0);
+	t_marco* buscado = list_get(entradas_marcos_libres, 0);
 
 	list_destroy(entradas_marcos_libres);
 
@@ -569,8 +603,8 @@ void* convertir(char* algoritmo_nombre) {
 
 void seleccionar_victima_LRU(void){
 	bool mas_viejo(void* unElem, void* otroElem){
-		entradaTablaMarcos* elem1 = unElem;
-		entradaTablaMarcos* elem2 = otroElem;
+		t_marco* elem1 = unElem;
+		t_marco* elem2 = otroElem;
 
 		char ** timeElem1;
 		char ** timeElem2;
@@ -620,7 +654,7 @@ void seleccionar_victima_LRU(void){
 	pthread_mutex_lock(&mutexFree);
 
 	list_sort(tablaDeMarcos, mas_viejo);
-	entradaTablaMarcos* entrada_mas_vieja = list_get(tablaDeMarcos, 0);
+	t_marco* entrada_mas_vieja = list_get(tablaDeMarcos, 0);
 
 	log_info(logger, "Victima seleccionada: %d", entrada_mas_vieja->indice);
 
@@ -668,17 +702,17 @@ void seleccionar_victima_CLOCK(void){
 
 	// todo Escribo en SWAP
 
-	((entradaTablaMarcos*)list_get(tablaDeMarcos, posicion_puntero_actual))->libre = true;
+	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->libre = true;
 
 	pthread_mutex_unlock(&mutexFree);
 }
 
 
-bool bit_uso_apagado(entradaTablaMarcos* entrada){
+bool bit_uso_apagado(t_marco* entrada){
 	return !entrada->bitUso;
 }
 
-bool bit_uso(entradaTablaMarcos* entrada){
+bool bit_uso(t_marco* entrada){
 	return entrada->bitUso;
 }
 
@@ -696,7 +730,7 @@ int indice_elemento(t_list* lista, void* elemento){
 
 bool hay_marcos_libres(void){
 	bool este_libre(void* parametro){
-		return ((entradaTablaMarcos*)parametro)->libre;
+		return ((t_marco*)parametro)->libre;
 	}
 
 	t_list* marcos_libres = list_filter(tablaDeMarcos, este_libre);

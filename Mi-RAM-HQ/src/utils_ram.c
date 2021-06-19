@@ -278,7 +278,7 @@ bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
 */
 t_list* entradas_segun_patota(uint32_t idPatota){
 	bool buscar_entradas_patota(void* parametro){
-		entradaTablaMarcos* entradaEnMem = (entradaTablaMarcos*) parametro;
+		t_marco* entradaEnMem = (t_marco*) parametro;
 		return idPatota == entradaEnMem->idPatota;
 	}
 
