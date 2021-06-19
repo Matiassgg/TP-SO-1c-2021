@@ -94,6 +94,8 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		// TODO FALTA VER QUE PASA CON ESTO CUANDO HAY SABOTAJES
 
 		uint32_t parametro_cantidad = tripulante_plani->tripulante->tarea_act->parametro;
+
+		//Esta responsabilidad ya fue pasada al MONGO, lo dejo por las dudas.
 		if(son_iguales(tarea_por_hacer, "GENERAR_OXIGENO")) {
 			if(!existe_archivo("oxigeno.ims")) {
 				log_warning(logger, "El archivo **oxigeno.ims** NO EXISTE, esperando a la creacion del archivo");

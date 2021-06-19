@@ -63,7 +63,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case COMENZAR_EJECUCION_TAREA:
 			tarea = deserializar_tarea(cliente_fd);
-
+			verificar_archivo_tarea(tarea);
 			log_info(logger, "Se comenzo la ejecucion de tarea %s", tarea->tarea);
 
 		break;
@@ -81,5 +81,107 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 
 	}
+
+}
+
+void verificar_archivo_tarea(t_tarea* tarea){
+	if(son_iguales(tarea->tarea,"GENERAR_OXIGENO") || son_iguales(tarea->tarea,"CONSUMIR_OXIGENO")){
+		if(archivo_existe("Oxigeno.ims"))
+			procesar_tarea(tarea);
+		else
+			procesar_falta_archivo(tarea,"Oxigeno.ims");
+	} else if(son_iguales(tarea->tarea,"GENERAR_COMIDA") || son_iguales(tarea->tarea,"CONSUMIR_COMIDA")){
+		if(archivo_existe("Comida.ims"))
+			procesar_tarea(tarea);
+		else
+			procesar_falta_archivo(tarea,"Comida.ims");
+	} else if(son_iguales(tarea->tarea,"GENERAR_BASURA") || son_iguales(tarea->tarea,"DESCARTAR_BASURA")){
+		if(archivo_existe("Basura.ims"))
+			procesar_tarea(tarea);
+		else
+			procesar_falta_archivo(tarea,"Basura.ims");
+	}
+
+}
+
+void procesar_tarea(t_tarea* tarea){
+	char* nombre_tarea = tarea->tarea;
+	uint32_t cantidad = tarea->parametro; // [Consulta]¿Este parametro es la cantidad que menciona el enunciado, o es otra cosa?
+	if(contiene(nombre_tarea,"GENERAR")){
+		agregar_caracteres_llenado_segun_tarea(nombre_tarea,cantidad);
+	}
+	else if(contiene(nombre_tarea,"CONSUMIR")){
+		eliminar_caracteres_llenado_segun_tarea(nombre_tarea,cantidad);
+	}
+	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){
+		eliminar_archivo("Basura.ims");
+	}
+}
+
+void agregar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
+	if(contiene(nombre_tarea,"OXIGENO")){
+		agregar_caracteres_llenado_a_archivo("O",cantidad,"Oxigeno.ims");
+	}
+	else if(contiene(nombre_tarea,"COMIDA")){
+		agregar_caracteres_llenado_a_archivo("C",cantidad,"Comida.ims");
+	}
+	else if(contiene(nombre_tarea,"BASURA")){
+		agregar_caracteres_llenado_a_archivo("B",cantidad,"Basura.ims");
+	}
+}
+
+void agregar_caracteres_llenado_a_archivo(char* caracter, uint32_t cantidad, char* archivo){
+	//TODO
+	//Agregar caracteres al archivo
+}
+
+void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
+	if(contiene(nombre_tarea,"OXIGENO")){
+		quitar_caracteres_llenado_a_archivo("O",cantidad,"Oxigeno.ims");
+	}
+	else if(contiene(nombre_tarea,"COMIDA")){
+		quitar_caracteres_llenado_a_archivo("C",cantidad,"Comida.ims");
+	}
+}
+
+void eliminar_caracteres_llenado_a_archivo(char* caracter, uint32_t cantidad, char* archivo){
+	uint32_t cantidad_caracteres = cantidad_caracteres_archivo(caracter, archivo);
+	if (cantidad >= cantidad_caracteres){
+		vaciar_archivo(archivo);
+		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
+	}
+	else{
+		//TODO
+		//Eliminar caracteres del archivo.
+	}
+}
+
+uint32_t cantidad_caracteres_archivo(char* caracter, char* archivo){
+	//TODO
+	//Calcular cuantos caracteres de llenado tiene el archivo.
+	return 0;
+}
+
+void procesar_falta_archivo(t_tarea* tarea,char* archivo){
+	char* nombre_tarea = tarea->tarea;
+	if(contiene(nombre_tarea,"GENERAR")){
+		crear_archivo(archivo);
+	}
+	else if(contiene(nombre_tarea,"CONSUMIR")){
+		informar_falta_archivo(tarea, archivo);
+	}
+	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){
+		log_error(logger, "El archivo Basuras.ims no existe. Finalizando tarea DESCARTAR_BASURA");
+	}
+}
+
+void crear_archivo(char* archivo){
+	//TODO
+}
+
+void informar_falta_archivo(t_tarea* tarea, char* archivo){
+
+	//ACA HAY QUE AVISARLE AL TRIPULANTE A CARGO DE LA TAREA Y FINALIZAR TAREA. TIENE QUE ESPERAR EN COLA DE BLOQUEADO.
+	log_error(logger, "El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
 
 }

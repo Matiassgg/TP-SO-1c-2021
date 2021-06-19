@@ -7,5 +7,6 @@ void leer_superbloque(FILE* archivo);
 void obtener_superbloque();
 void inicializar_bloques();
 bool directorio_existe(char* path);
+bool archivo_existe(char* nombreArchivo);
 
 #endif /* I_MONGO_STORE_SRC_FILESYSTEM_H_ */

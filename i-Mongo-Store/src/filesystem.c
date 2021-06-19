@@ -146,11 +146,11 @@ t_bitarray* crear_bitmap() {
 bool archivo_existe(char* nombreArchivo){
 
     if (access(nombreArchivo, F_OK) != 0){
-        //printf("'%s' no existe\n", nombreArchivo);
+        log_warning(logger,"'%s' no existe\n", nombreArchivo);
         return false;
     }
     else {
-        //printf("'%s' existe\n", nombreArchivo);
+        log_info(logger,"'%s' existe\n", nombreArchivo);
         return true;
     }
 
