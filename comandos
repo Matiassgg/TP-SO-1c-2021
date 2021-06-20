@@ -12,10 +12,56 @@ OBTENER_BITACORA
 
 TEST
 
-INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 1|1 3|4
+INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota1.txt 8|1 3|4
+INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota3.txt 8|1 3|4
+INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota2.txt 8|10 15|2
 INICIAR_PLANIFICACION
 PAUSAR_PLANIFICACION
 LISTAR_TRIPULANTES
 
 
 INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 1|1 3|4
+
+-------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------DISCORDIADOR
+
+-------------------------------------------------------FIFO
+
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 1|1 3|4
+INICIAR_PLANIFICACION
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno.txt 5|5
+
+
+--------------------------------------------------------RR
+
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 1|1 3|4
+INICIAR_PLANIFICACION
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno.txt 5|5
+
+
+-------------------------------------------------------RAM
+---------------------------------------------------SEGMENTACION
+
+
+INICIAR_PATOTA 10 /home/utnso/a-mongos-pruebas/Generales/espartana.txt 
+INICIAR_PLANIFICACION
+
+Una vez iniciada la planificación eliminar los tripulantes 4, 5 y 6 de la patota espartana
+
+INICIAR_PATOTA 6 /home/utnso/a-mongos-pruebas/Generales/persa.txt 
+
+Una vez verificada la asignación de la memoria finalizar todos los tripulantes de la patota espartana y verificar el estado de la memoria.
+Enviar la señal para compactar y verificar el estado de la memoria..
+Finalizar todos los tripulantes de la patota persa y verificar el estado de la memoria.
+
+
+
+
+
+
+
+
+
+
+
+

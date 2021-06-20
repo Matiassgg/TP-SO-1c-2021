@@ -159,14 +159,14 @@ void cargar_memoria_patota(t_patota* patota){
 uint32_t obtener_direccion_pcb(uint32_t id_patota){
 	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
 
-	return dar_direccion_logica(segmento->inicio,0);
+	return dar_direccion_logica(segmento->nro_segmento,0);
 }
 
 uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
 	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,TAREAS);
 	log_info(logger, "segmento->inicio = %i", segmento->inicio);
 
-	return dar_direccion_logica(segmento->inicio,0);
+	return dar_direccion_logica(segmento->nro_segmento,0);
 }
 
 t_tcb* crear_tcb(t_tripulante* tripulante){
@@ -361,11 +361,10 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	log_info(logger,"inicio_tarea: %i",inicio_tarea);
 	do{
 		memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
-		log_info(logger,"c_leido: %s",c_leido);
 		new_offset++;
 		string_append(&tarea_string, c_leido);
-		log_info(logger,"tarea_string: %s",tarea_string);
 	}while(c_leido[0] != '\n');
+	log_info(logger,"tarea_string: %s",tarea_string);
 
 	tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);
 	modificar_memoria_segmentacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);

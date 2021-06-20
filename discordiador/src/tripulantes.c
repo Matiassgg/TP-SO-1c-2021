@@ -27,6 +27,8 @@ void solicitar_tarea(t_tripulante* tripulante){
 void expulsar_tripulante(t_tripulante* tripulante){
 	enviar_RAM_expulsar_tripulante(tripulante,tripulante->socket_conexion_RAM);
 
+	log_info(logger, "Se expulso el tripulante %i", tripulante->id);
+
 	free(tripulante->posicion);
 	free(tripulante->tarea_act);
 	liberar_conexion(&tripulante->socket_conexion_Mongo);
@@ -69,7 +71,6 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 	}
 
 	expulsar_tripulante(tripulante);
-	log_info(logger, "Se expulso el tripulante %i", tripulante->id);
 	// TODO finalizar tripulante
 	// TODO supongo que plani dira che vos movete y este wacho se mueve, asi?
 

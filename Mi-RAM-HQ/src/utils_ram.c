@@ -187,19 +187,17 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 
 char* obtener_tareas(t_patota* patota){
 	char* leido = string_new();
-	int i=0;
+	char* caracter = string_new();
 
 	FILE* archivo = fopen(patota->path_tareas, "r+");
 
 	if(archivo){
 		log_info(logger, "Se pudo abrir el archivo:\n%s",patota->path_tareas);
-		while(fread(leido+i,1,1,archivo)){
-			i++;
-			leido= (char*) realloc(leido,i+1);
+		while(fread(caracter,1,1,archivo)){
+			string_append(&leido, caracter);
 		}
-		log_info(logger, "El archivo:\n%s\nTiene las tareas: %s",patota->path_tareas, leido);
-		leido= (char*) realloc(leido,i+1);
-		log_info(logger, "El archivo:\n%s\nTiene las tareas: %s",patota->path_tareas, leido);
+		free(caracter);
+		log_info(logger, "El archivo:\n%s\nTiene las tareas:\n%s",patota->path_tareas, leido);
 
 		return leido;
 	}
