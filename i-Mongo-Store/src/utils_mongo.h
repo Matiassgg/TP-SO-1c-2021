@@ -2,7 +2,8 @@
 #define I_MONGO_STORE_SRC_UTILS_MONGO_H_
 
 #include "../../utils/utils/utils.h"
-#include<commons/bitarray.h>
+#include "filesystem.h"
+#include "msg_Mongo.h"
 
 char* ip_Mongo_Store;
 char* puerto_escucha;
@@ -52,18 +53,5 @@ void eliminar_caracteres_llenado_a_archivo(char*, uint32_t, char*);
 void eliminar_caracteres_llenado_segun_tarea(char*, uint32_t );
 void agregar_caracteres_llenado_a_archivo(char*, uint32_t, char*);
 void agregar_caracteres_llenado_segun_tarea(char*, uint32_t);
-void crear_archivo(char*);
-
-
-typedef struct {
-	u_int32_t id;
-	uint32_t tamanio_tarea;
-	char* tarea;
-} tarea_Mongo;
-
-typedef struct {
-	char* stream;
-	t_dictionary* diccionario;
-} t_bloque_FS;
 
 #endif /* I_MONGO_STORE_SRC_UTILS_MONGO_H_ */

@@ -15,6 +15,7 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
+#include <commons/bitarray.h>
 #include <readline/readline.h>
 #include <commons/temporal.h>
 #include <readline/readline.h>

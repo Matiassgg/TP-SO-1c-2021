@@ -3,8 +3,6 @@
 
 #include "utils_mongo.h"
 #include "consola_mongo.h"
-#include "filesystem.h"
-#include "utils_mongo.h"
 
 #define ARCHIVO_CONFIG "../i-Mongo-Store.config"
 void inicializar_filesystem(void);

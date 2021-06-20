@@ -11,7 +11,6 @@ void inicializar_paths_aux(){
 	string_append_with_format(&ruta_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_bitacoras, "%s/Bitacoras", path_files);
 
-	/*
 	if (!directorio_existe(path_files)) {
 		mkdir(path_files, 0700);
 	}
@@ -19,7 +18,7 @@ void inicializar_paths_aux(){
 	if (!directorio_existe(path_bitacoras)) {
 		mkdir(path_bitacoras, 0700);
 	}
-	*/
+
 }
 
 void crear_superbloque() {
@@ -45,16 +44,6 @@ void obtener_superbloque(){
 		exit(0);
 	}
 }
-
-
-bool directorio_existe(char* path) {
-	struct stat st = { 0 }; // stat(2) precisa de un struct stat a modo de buffer para llenar info del archivo que nosotros no necesitamos.
-	char* aux = string_duplicate(path);
-	bool existe = (stat(aux, &st) != -1);
-	free(aux);
-	return existe;
-}
-
 
 void leer_superbloque(FILE* archivo){
 	char* leido = malloc(sizeof(char));
@@ -122,7 +111,6 @@ void inicializar_bitmap(){
 	if (!directorio_existe(path_superbloque)) {
 		log_info(logger, "NO EXISTE EL SUPERBLOQUE");
 		exit(0);
-//		mkdir(path_metadata, 0700);
 	}
 
 	crear_bitmap();
@@ -144,6 +132,14 @@ t_bitarray* crear_bitmap() {
 
 }
 
+bool directorio_existe(char* path) {
+	struct stat st = { 0 }; // stat(2) precisa de un struct stat a modo de buffer para llenar info del archivo que nosotros no necesitamos.
+	char* aux = string_duplicate(path);
+	bool existe = (stat(aux, &st) != -1);
+	free(aux);
+	return existe;
+}
+
 bool archivo_existe(char* nombreArchivo){
 
     if (access(nombreArchivo, F_OK) != 0){
@@ -157,3 +153,40 @@ bool archivo_existe(char* nombreArchivo){
 
 }
 
+int eliminar_archivo(char* archivo){
+	if(remove(archivo)!=0){
+		return 1;
+	}else
+		return 0;
+}
+
+int crear_archivo(char* archivo){
+	FILE * file;
+	file = fopen(archivo, "wb");
+	if(file!=NULL){
+		return 1;
+	}
+	return 0;
+}
+
+char* obtener_path_files(char* pathRelativo) {
+	char* path = string_new();
+	string_append_with_format(&path, "%s/%s", path_files,pathRelativo);
+
+	return path;
+}
+
+bool archivo_recursos_existe(char* nombreArchivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
+	return archivo_existe(ruta_archivo_recursos);
+}
+
+int crear_archivo_recursos(char* nombreArchivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
+	return crear_archivo(ruta_archivo_recursos);
+}
+
+int eliminar_archivo_recursos(char* nombreArchivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
+	return eliminar_archivo(ruta_archivo_recursos);
+}

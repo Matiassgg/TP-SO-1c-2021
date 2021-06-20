@@ -74,15 +74,6 @@ void obtener_posiciones_sabotaje() {
 	}
 }
 
-/*
-void crear_punto_de_montaje(){
-	struct stat st = {0};
-	if(stat(punto_montaje, &st) == -1){
-		mkdir(punto_montaje, 0777);
-	}
-}
-*/
-
 void terminar_programa() {
 
 	log_info(logger,"\t\t\t~. MONGO STORE FINALIZADO .~\n");

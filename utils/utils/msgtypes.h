@@ -2,6 +2,7 @@
 #define SHARED_SHARED_MSGTYPES_H_
 
 #include "paquete.h"
+#include <commons/collections/dictionary.h>
 
 typedef enum {
 	OK,
@@ -88,6 +89,18 @@ typedef struct {
 	t_posicion* posicion_origen;
 	t_posicion* posicion_destino;
 } t_mover_hacia;
+
+//--------BITACORA-------//
+typedef struct {
+	u_int32_t id;
+	uint32_t tamanio_tarea;
+	char* tarea;
+} tarea_Mongo;
+
+typedef struct {
+	char* stream;
+	t_dictionary* diccionario;
+} t_bloque_FS;
 
 t_patota* deserializar_iniciar_patota(uint32_t);
 t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente);

@@ -86,17 +86,17 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 void verificar_archivo_tarea(t_tarea* tarea){
 	if(son_iguales(tarea->tarea,"GENERAR_OXIGENO") || son_iguales(tarea->tarea,"CONSUMIR_OXIGENO")){
-		if(archivo_existe("Oxigeno.ims"))
+		if(archivo_recursos_existe("Oxigeno.ims"))
 			procesar_tarea(tarea);
 		else
 			procesar_falta_archivo(tarea,"Oxigeno.ims");
 	} else if(son_iguales(tarea->tarea,"GENERAR_COMIDA") || son_iguales(tarea->tarea,"CONSUMIR_COMIDA")){
-		if(archivo_existe("Comida.ims"))
+		if(archivo_recursos_existe("Comida.ims"))
 			procesar_tarea(tarea);
 		else
 			procesar_falta_archivo(tarea,"Comida.ims");
 	} else if(son_iguales(tarea->tarea,"GENERAR_BASURA") || son_iguales(tarea->tarea,"DESCARTAR_BASURA")){
-		if(archivo_existe("Basura.ims"))
+		if(archivo_recursos_existe("Basura.ims"))
 			procesar_tarea(tarea);
 		else
 			procesar_falta_archivo(tarea,"Basura.ims");
@@ -114,7 +114,7 @@ void procesar_tarea(t_tarea* tarea){
 		eliminar_caracteres_llenado_segun_tarea(nombre_tarea,cantidad);
 	}
 	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){
-		//eliminar_archivo("Basura.ims");
+		eliminar_archivo("Basura.ims");
 	}
 }
 
@@ -165,7 +165,9 @@ uint32_t cantidad_caracteres_archivo(char* caracter, char* archivo){
 void procesar_falta_archivo(t_tarea* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
 	if(contiene(nombre_tarea,"GENERAR")){
-		crear_archivo(archivo);
+		if(crear_archivo_recursos(archivo)){
+			log_info(logger, "El archivo %s se creo correctamente",archivo);
+		}
 	}
 	else if(contiene(nombre_tarea,"CONSUMIR")){
 		informar_falta_archivo(tarea, archivo);
@@ -175,13 +177,11 @@ void procesar_falta_archivo(t_tarea* tarea,char* archivo){
 	}
 }
 
-void crear_archivo(char* archivo){
-	//TODO
-}
-
 void informar_falta_archivo(t_tarea* tarea, char* archivo){
 
 	//ACA HAY QUE AVISARLE AL TRIPULANTE A CARGO DE LA TAREA Y FINALIZAR TAREA. TIENE QUE ESPERAR EN COLA DE BLOQUEADO.
 	log_error(logger, "El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
 
 }
+
+
