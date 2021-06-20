@@ -194,6 +194,7 @@ char* obtener_tareas(t_patota* patota){
 	if(archivo){
 		log_info(logger, "Se pudo abrir el archivo:\n%s",patota->path_tareas);
 		while(fread(caracter,1,1,archivo)){
+			log_info(logger, "El caracter leido es: %s",caracter);
 			string_append(&leido, caracter);
 		}
 		free(caracter);
@@ -210,15 +211,26 @@ t_tarea* obtener_tarea_archivo(char* tarea_string){
 	log_info(logger, "TAREA: %s", tarea_string);
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 	tarea->posicion = malloc(sizeof(t_posicion));
+	char** tarea_parametros;
+	char** parametros;
 
-	char** tarea_parametros = string_n_split(tarea_string, 2, " ");
-	char** parametros = string_n_split(tarea_parametros[1], 4, ";");
+	if(string_contains(tarea_string," ")){
+		tarea_parametros = string_n_split(tarea_string, 2, " ");
+		parametros = string_n_split(tarea_parametros[1], 4, ";");
+		tarea->parametro = atoi(parametros[0]);
+		tarea->posicion->pos_x = atoi(parametros[1]);
+		tarea->posicion->pos_y = atoi(parametros[2]);
+		tarea->tiempo = atoi(parametros[3]);
+	}
+	else{
+		tarea_parametros = string_n_split(tarea_string, 4, ";");
+		tarea->parametro = 0;
+		tarea->posicion->pos_x = atoi(tarea_parametros[1]);
+		tarea->posicion->pos_y = atoi(tarea_parametros[2]);
+		tarea->tiempo = atoi(tarea_parametros[3]);
+	}
 
 	tarea->tarea = string_duplicate(tarea_parametros[0]);
-	tarea->parametro = atoi(parametros[0]);
-	tarea->posicion->pos_x = atoi(parametros[1]);
-	tarea->posicion->pos_y = atoi(parametros[2]);
-	tarea->tiempo = atoi(parametros[3]);
 
 	return tarea;
 }

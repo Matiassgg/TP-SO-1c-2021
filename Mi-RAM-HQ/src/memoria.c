@@ -102,11 +102,11 @@ t_pcb* crear_pcb(t_patota* patota){
 }
 
 void cargar_memoria_patota(t_patota* patota){
+	pthread_mutex_lock(&mutex_subir_patota);
 	t_pcb* pcb_nuevo = crear_pcb(patota);
 
 	char* tareas = obtener_tareas(patota);
 
-	pthread_mutex_lock(&mutex_subir_patota);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		crear_tabla(pcb_nuevo->pid);
@@ -170,7 +170,7 @@ uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
 }
 
 t_tcb* crear_tcb(t_tripulante* tripulante){
-	log_info(logger, "RAM :: Se crea el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
+	log_info(logger, "RAM :: Se creara el TCB para el tripualante %d de la patota %d", tripulante->id, tripulante->id_patota_asociado);
 	t_tcb* tcb = malloc(sizeof(t_tcb));
 	tcb->posicion = malloc(sizeof(t_posicion));
 
@@ -363,7 +363,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
 		new_offset++;
 		string_append(&tarea_string, c_leido);
-	}while(c_leido[0] != '\n');
+	}while((c_leido[0] != '\n') && ((offset + new_offset) <= segmento_tareas->tamanio));
 	log_info(logger,"tarea_string: %s",tarea_string);
 
 	tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);

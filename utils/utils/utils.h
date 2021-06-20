@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <string.h>
 #include <pthread.h>
@@ -26,7 +27,6 @@
 #include "sockets.h"
 #include "nivel-gui/tad_nivel.h"
 #include "nivel-gui/nivel-gui.h"
-#include <sys/stat.h>
 
 t_log* iniciar_logger(char*, char*);
 int contar_elementos_array(char**);
