@@ -24,6 +24,16 @@ void solicitar_tarea(t_tripulante* tripulante){
 	tripulante->tarea_act = tarea_por_hacer;
 }
 
+void expulsar_tripulante(t_tripulante* tripulante){
+	enviar_RAM_expulsar_tripulante(tripulante,tripulante->socket_conexion_RAM);
+
+	free(tripulante->posicion);
+	free(tripulante->tarea_act);
+	liberar_conexion(&tripulante->socket_conexion_Mongo);
+	liberar_conexion(&tripulante->socket_conexion_RAM);
+	free(tripulante);
+}
+
 void ejecutar_tripulante(t_tripulante* tripulante){
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 	log_info(logger, "El tripulante %i tiene el socket %i con RAM", tripulante->id, tripulante->socket_conexion_RAM);
@@ -57,6 +67,9 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		tripulante_plani->esta_activo = false;
 		solicitar_tarea(tripulante);
 	}
+
+	expulsar_tripulante(tripulante);
+	log_info(logger, "Se expulso el tripulante %i", tripulante->id);
 	// TODO finalizar tripulante
 	// TODO supongo que plani dira che vos movete y este wacho se mueve, asi?
 

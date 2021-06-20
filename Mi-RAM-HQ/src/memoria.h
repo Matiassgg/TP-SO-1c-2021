@@ -41,6 +41,11 @@ t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota);
 void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_tripulante, e_tipo_dato tipo_dato);
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido);
 
+t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void liberar_segmento(t_segmento* segmento);
+void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void expulas_tripulante(t_tripulante* tripulante);
+
 void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);
 
 void* convertir(char* algoritmo_nombre);

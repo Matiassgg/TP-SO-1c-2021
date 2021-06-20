@@ -39,7 +39,6 @@ typedef struct {
 	uint32_t nro_segmento;
 	uint32_t inicio;
 	uint32_t tamanio;
-	char* dato_almacenado;
 } t_segmento;
 
 typedef struct {

@@ -349,19 +349,23 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
 
 	char* tarea_string = string_new();
-	char c_leido;
+	char* c_leido = string_new();
 	uint32_t new_offset=0;
 	uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
+	log_info(logger,"offset: %i",offset);
 
 	if(offset >= segmento_tareas->tamanio)
 		return NULL;
 
 	uint32_t inicio_tarea = segmento_tareas->inicio + offset;
+	log_info(logger,"inicio_tarea: %i",inicio_tarea);
 	do{
-		memcpy(&c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+		memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+		log_info(logger,"c_leido: %s",c_leido);
 		new_offset++;
-		string_append(&tarea_string, &c_leido);
-	}while(c_leido != '\n');
+		string_append(&tarea_string, c_leido);
+		log_info(logger,"tarea_string: %s",tarea_string);
+	}while(c_leido[0] != '\n');
 
 	tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);
 	modificar_memoria_segmentacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
@@ -520,7 +524,8 @@ void subir_segmento_libre(t_segmento* segmento){
 	}
 
 	list_add(lista_segmentos_libres, segmento);
-	list_sort(lista_segmentos_libres, ordenar_segmentos); // TODO HAY QUE ORDENAR? QUIZA SI ES BF SIRVE PA ESO Y ORDENAMOS POR TAMAÑO
+	if(son_iguales(criterio_seleccion, "BF"))
+		list_sort(lista_segmentos_libres, ordenar_segmentos); // TODO HAY QUE ORDENAR? QUIZA SI ES BF SIRVE PA ESO Y ORDENAMOS POR TAMAÑO
 }
 
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
@@ -781,6 +786,46 @@ bool hay_marcos_libres(void){
 	list_destroy(marcos_libres);
 
 	return tamanio > 0;
+}
+
+t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
+
+	switch(tipo_dato){
+		case TAREAS:
+			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"TAREAS");
+		break;
+		case PCB:
+			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"PCB");
+		break;
+		case TCB:
+			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos, dar_key_tripulante(id));
+		break;
+	}
+
+}
+
+void liberar_segmento(t_segmento* segmento){
+	segmento->nro_segmento = 0;
+
+	subir_segmento_libre(segmento);
+
+}
+
+void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		liberar_segmento( sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato) );
+	}
+	else{
+
+	}
+}
+
+void expulas_tripulante(t_tripulante* tripulante){
+	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
+
+	eliminar_tripulante(tripulante->id);
 }
 
 

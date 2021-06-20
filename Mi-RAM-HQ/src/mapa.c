@@ -57,7 +57,6 @@ int mover_tripulante(t_mover_hacia* mover_hacia){
 		case ARRIBA:
 			err = item_desplazar(nivel, identificador, 0, -1);
 		break;
-
 		case ABAJO:
 			err = item_desplazar(nivel, identificador, 0, 1);
 		break;
@@ -72,6 +71,15 @@ int mover_tripulante(t_mover_hacia* mover_hacia){
 	return err;
 }
 
+int eliminar_tripulante(uint32_t id_tripulante){
+	char identificador = asignar_letra(id_tripulante);
+	log_info(logger, "MAPA :: Borramos del mapa el tripulante %i con el identificador \"%c\"", id_tripulante, identificador);
 
+	int err = item_borrar(nivel, identificador);
+
+	ASSERT_CREATE(nivel, identificador, err);
+
+	return err;
+}
 
 

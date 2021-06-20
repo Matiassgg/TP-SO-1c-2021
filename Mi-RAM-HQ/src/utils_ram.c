@@ -107,10 +107,9 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			// Eiminará un tripulante tanto de las estructuras administrativas de la memoria, como también del mapa
 			// EN CASO QUE SEA NECESARIO eliminara su segmento de tareas
 
-			// item_borrar(nivel, tripulante->id);			// todo borrar del mapa
+			expulas_tripulante(tripulante);
 
-
-			free(tripulante);	// por ahora no hay mucho que hacer uwu
+			free(tripulante);
 
 			log_info(logger, "RAM :: Se expulso al tripulante");
 
@@ -187,7 +186,7 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 
 
 char* obtener_tareas(t_patota* patota){
-	char* leido = malloc(sizeof(char));
+	char* leido = string_new();
 	int i=0;
 
 	FILE* archivo = fopen(patota->path_tareas, "r+");
@@ -198,7 +197,9 @@ char* obtener_tareas(t_patota* patota){
 			i++;
 			leido= (char*) realloc(leido,i+1);
 		}
+		log_info(logger, "El archivo:\n%s\nTiene las tareas: %s",patota->path_tareas, leido);
 		leido= (char*) realloc(leido,i+1);
+		log_info(logger, "El archivo:\n%s\nTiene las tareas: %s",patota->path_tareas, leido);
 
 		return leido;
 	}
@@ -208,6 +209,7 @@ char* obtener_tareas(t_patota* patota){
 }
 
 t_tarea* obtener_tarea_archivo(char* tarea_string){
+	log_info(logger, "TAREA: %s", tarea_string);
 	t_tarea* tarea = malloc(sizeof(t_tarea));
 	tarea->posicion = malloc(sizeof(t_posicion));
 
