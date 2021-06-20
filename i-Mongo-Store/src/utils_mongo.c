@@ -120,31 +120,37 @@ void procesar_tarea(t_tarea* tarea){
 
 void agregar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
 	if(contiene(nombre_tarea,"OXIGENO")){
-		agregar_caracteres_llenado_a_archivo("O",cantidad,"Oxigeno.ims");
+		agregar_caracteres_llenado_a_archivo('O',cantidad,"Oxigeno.ims");
 	}
 	else if(contiene(nombre_tarea,"COMIDA")){
-		agregar_caracteres_llenado_a_archivo("C",cantidad,"Comida.ims");
+		agregar_caracteres_llenado_a_archivo('C',cantidad,"Comida.ims");
 	}
 	else if(contiene(nombre_tarea,"BASURA")){
-		agregar_caracteres_llenado_a_archivo("B",cantidad,"Basura.ims");
+		agregar_caracteres_llenado_a_archivo('B',cantidad,"Basura.ims");
 	}
 }
 
-void agregar_caracteres_llenado_a_archivo(char* caracter, uint32_t cantidad, char* archivo){
-	//TODO
-	//Agregar caracteres al archivo
+void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){
+	char* ruta_archivo = obtener_path_files(archivo);
+	FILE* file = fopen(ruta_archivo, "ab+");
+	if( file == NULL){
+		log_error(logger,"No se pudo abrir el archivo %s para su escritura", archivo);
+	}else{
+		char* caracteres = string_repeat(caracter,cantidad);
+		fprintf(file,"%s",caracteres);
 }
-
+}
 void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
 	if(contiene(nombre_tarea,"OXIGENO")){
-		//quitar_caracteres_llenado_a_archivo("O",cantidad,"Oxigeno.ims");
+		eliminar_caracteres_llenado_a_archivo('O',cantidad,"Oxigeno.ims");
 	}
 	else if(contiene(nombre_tarea,"COMIDA")){
-		//quitar_caracteres_llenado_a_archivo("C",cantidad,"Comida.ims");
+		eliminar_caracteres_llenado_a_archivo('C',cantidad,"Comida.ims");
 	}
 }
 
-void eliminar_caracteres_llenado_a_archivo(char* caracter, uint32_t cantidad, char* archivo){
+void eliminar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){
+	//TODO
 	uint32_t cantidad_caracteres = cantidad_caracteres_archivo(caracter, archivo);
 	if (cantidad >= cantidad_caracteres){
 		//vaciar_archivo(archivo);

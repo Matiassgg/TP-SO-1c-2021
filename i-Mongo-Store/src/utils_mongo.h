@@ -49,9 +49,9 @@ void procesar_tarea(t_tarea*);
 void informar_falta_archivo(t_tarea*, char*);
 void procesar_falta_archivo(t_tarea*,char*);
 uint32_t cantidad_caracteres_archivo(char*, char*);
-void eliminar_caracteres_llenado_a_archivo(char*, uint32_t, char*);
+void eliminar_caracteres_llenado_a_archivo(char, uint32_t, char*);
 void eliminar_caracteres_llenado_segun_tarea(char*, uint32_t );
-void agregar_caracteres_llenado_a_archivo(char*, uint32_t, char*);
+void agregar_caracteres_llenado_a_archivo(char, uint32_t, char*);
 void agregar_caracteres_llenado_segun_tarea(char*, uint32_t);
 
 #endif /* I_MONGO_STORE_SRC_UTILS_MONGO_H_ */
