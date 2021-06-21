@@ -19,6 +19,7 @@ INICIAR_PLANIFICACION
 PAUSAR_PLANIFICACION
 LISTAR_TRIPULANTES
 
+INICIAR_PATOTA 2 /home/utnso/tareasPatotaPlantas.txt 8|1 3|4
 
 INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 1|1 3|4
 

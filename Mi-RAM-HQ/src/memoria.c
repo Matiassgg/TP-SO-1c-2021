@@ -11,7 +11,7 @@ void iniciar_memoria() {
 }
 
 void preparar_memoria() {
-	memoria = malloc(tamanio_memoria);
+	memoria = calloc(1,tamanio_memoria);
 
 	pthread_mutex_init(&mutex_subir_patota, NULL);
 	pthread_mutex_init(&mutexTablaMarcos, NULL);
@@ -346,10 +346,11 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
 
 	t_segmento* segmento_tareas = buscar_segmento_id(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
-	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
+//	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
+//	log_info(logger,"tareas: %s",tareas);
 
 	char* tarea_string = string_new();
-	char* c_leido = string_new();
+	char* c_leido = calloc(2,sizeof(char));
 	uint32_t new_offset=0;
 	uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
 	log_info(logger,"offset: %i",offset);
@@ -365,28 +366,13 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		string_append(&tarea_string, c_leido);
 	}while((c_leido[0] != '\n') && ((offset + new_offset) <= segmento_tareas->tamanio));
 	log_info(logger,"tarea_string: %s",tarea_string);
+	log_info(logger,"new_offset: %i",new_offset);
 
 	tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);
 	modificar_memoria_segmentacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
 	t_tarea* tarea = obtener_tarea_archivo(tarea_string);
 
 	return tarea;
-
-//	char* tareas = (char*) leer_memoria(tripulante->id_patota_asociado, tripulante->id_patota_asociado, tareas);
-//	log_info(logger, "ram :: tareas obtenida:\n%s", tareas);
-//
-//	char** lines = string_split(tareas, "\n");
-//
-//	t_tabla_segmentos* tabla = dar_tabla_segmentos(tripulante->id_patota_asociado);
-//	if(lines[tabla->tareas_dadas]){
-//		pthread_mutex_lock(&tabla->mutex_obtener_tareas);
-//		log_info(logger, "ram :: tarea obtenida:\n%s", lines[tabla->tareas_dadas]);
-//		t_tarea* tarea = obtener_tarea_archivo(lines[tabla->tareas_dadas]);
-//		tabla->tareas_dadas++;
-//		pthread_mutex_unlock(&tabla->mutex_obtener_tareas);
-//		return tarea;
-//	}
-//	return null;
 }
 
 void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
@@ -824,7 +810,7 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 void expulas_tripulante(t_tripulante* tripulante){
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
-	eliminar_tripulante(tripulante->id);
+//	eliminar_tripulante(tripulante->id);
 }
 
 

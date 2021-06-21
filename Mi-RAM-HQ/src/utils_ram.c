@@ -60,12 +60,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Cargamos a memoria la patota %i y sus tareas", patota->id_patota);
 
-//			escribir_en_memoria(pcb_nuevo);
-
-//			guardar_memoria_pcb();
-
-//			GUARDAR EN MEMORIA Y HACER LAS TARES CORRESPONDIENTES
-//			POR AHORA SE HACE FREE CAPAZ DESPUES NO
 			list_destroy(patota->posiciones);
 			free(patota->path_tareas);
 			free(patota);
@@ -187,12 +181,13 @@ t_tarea* obtener_tarea(t_tripulante* tripulante){
 
 char* obtener_tareas(t_patota* patota){
 	char* leido = string_new();
-	char* caracter = string_new();
+	char* caracter = calloc(2,sizeof(char));
 
 	FILE* archivo = fopen(patota->path_tareas, "r+");
 
 	if(archivo){
 		log_info(logger, "Se pudo abrir el archivo:\n%s",patota->path_tareas);
+//		log_info(logger, "El archivo:\n%s\nY el primer caracter es:\n%s",patota->path_tareas, fgetc(archivo));
 		while(fread(caracter,1,1,archivo)){
 			log_info(logger, "El caracter leido es: %s",caracter);
 			string_append(&leido, caracter);
