@@ -15,8 +15,7 @@ void iniciar_mongo(void) {
 	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
 	leer_config();
     log_info(logger, "Ya obtuvimos la config del mongo");
-    //FS_RESET();
-   // crear_punto_de_montaje();
+    FS_RESET();
 
     inicializar_filesystem();
 
@@ -88,6 +87,7 @@ void terminar_programa() {
 	free(ruta_superbloque);
 //	free(mutexBlocks);
 	free(path_files);
-
+	free(path_bitacoras);
+	free(path_bloques);
 	//TODO Terminar conexiones...
 }

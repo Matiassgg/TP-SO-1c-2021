@@ -4,6 +4,7 @@
 
 void inicializar_paths_aux();
 void leer_superbloque(FILE* archivo);
+void crear_superbloque();
 void obtener_superbloque();
 void inicializar_bloques();
 bool directorio_existe(char* path);
