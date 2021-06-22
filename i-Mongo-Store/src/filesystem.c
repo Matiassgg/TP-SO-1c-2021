@@ -190,3 +190,9 @@ int eliminar_archivo_recursos(char* nombreArchivo){
 	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
 	return eliminar_archivo(ruta_archivo_recursos);
 }
+
+void vaciar_archivo(char* archivo){
+	char* ruta_completa_archivo = obtener_path_files(archivo);
+	FILE * file = fopen(ruta_completa_archivo, "wb");
+	fclose(file);
+}

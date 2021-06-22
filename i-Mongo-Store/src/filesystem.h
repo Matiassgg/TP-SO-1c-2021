@@ -13,6 +13,7 @@ char* obtener_path_files(char*);
 int crear_archivo(char*);
 int crear_archivo_recursos(char*);
 int eliminar_archivo(char*);
+void vaciar_archivo(char* archivo);
 
 t_bitarray* crear_bitmap(void);
 #endif /* I_MONGO_STORE_SRC_FILESYSTEM_H_ */

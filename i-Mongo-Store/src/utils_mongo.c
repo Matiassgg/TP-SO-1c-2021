@@ -153,7 +153,7 @@ void eliminar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, cha
 	//TODO
 	uint32_t cantidad_caracteres = cantidad_caracteres_archivo(caracter, archivo);
 	if (cantidad >= cantidad_caracteres){
-		//vaciar_archivo(archivo);
+		vaciar_archivo(archivo);
 		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
 	}
 	else{
@@ -162,9 +162,14 @@ void eliminar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, cha
 	}
 }
 
-uint32_t cantidad_caracteres_archivo(char* caracter, char* archivo){
-	//TODO
+uint32_t cantidad_caracteres_archivo(char caracter, char* archivo){
+
+	char* ruta_completa_archivo = obtener_path_files(archivo);
+	FILE * file = fopen(ruta_completa_archivo, "rb");
 	//Calcular cuantos caracteres de llenado tiene el archivo.
+	//fread y hacer algo..
+	fclose(file);
+
 	return 0;
 }
 
