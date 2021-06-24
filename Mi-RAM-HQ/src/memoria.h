@@ -33,7 +33,7 @@ void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 void* leer_memoria_segmentacion(t_segmento* segmento);
 void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
-void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato, t_pagina pagina, bool esta_en_memoria);
 void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size);
 void subir_segmento_memoria(t_segmento* segmento, void* stream);
@@ -46,6 +46,8 @@ t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e
 void liberar_segmento(t_segmento* segmento);
 void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 void expulsar_tripulante(t_tripulante* tripulante);
+
+t_list* entradas_segun_patota(uint32_t idPatota);
 
 //void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);
 

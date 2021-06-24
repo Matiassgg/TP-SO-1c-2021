@@ -465,7 +465,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 			}
 
 			if (!strcmp(algoritmo_reemplazo, "LRU")) {
-				marco->timeStamp = temporal_get_string_time();
+				marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
 			}
 
 			if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
@@ -481,7 +481,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 				// Agrego a lista de timestamp por marco
 				if (!strcmp(algoritmo_reemplazo, "LRU")) {
-					marco->timeStamp = temporal_get_string_time();
+					marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
 					log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->indice, marco->timeStamp);
 				}
 
