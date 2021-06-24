@@ -70,7 +70,7 @@ typedef struct {
 } t_asociador_pagina;
 
 typedef struct {
-	void* inicioMemoria;
+	uint32_t inicioMemoria;
 	uint32_t indice;
 	t_estado_marco estado;
 	bool bitUso;
@@ -79,7 +79,7 @@ typedef struct {
 } t_marco;
 
 typedef struct {
-	void* inicio; //probablemente se use para saber en que lugar en memoria estoy parado
+//	uint32_t inicio; //probablemente se use para saber en que lugar en memoria estoy parado
 	uint32_t numeroPagina;
 	t_marco* marco;
 	//t_asociador_pagina* asociador;
@@ -90,7 +90,6 @@ typedef struct {
 	uint32_t tam;
 	t_pagina* paginas;
 	uint32_t id_patota_asociada;
-	uint32_t tareas_dadas;
 } t_tabla_paginas;
 
 typedef struct {

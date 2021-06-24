@@ -130,7 +130,6 @@ void cargar_memoria_patota(t_patota* patota){
 			tabla_pagina_patota->id_patota_asociada = pcb_nuevo->pid;
 			tabla_pagina_patota->paginas = list_create();
 			tabla_pagina_patota->tam = sizeof(tabla_pagina_patota->paginas);
-			tabla_pagina_patota->tareas_dadas = 0;
 
 			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -238,14 +237,13 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
 		// Cargar estructuras administrativass
 		log_info(logger, "Desplazamiento: %d", offset);
-		void* inicioMemoria = memoria + offset;
 
 		t_marco* nuevaEntrada = malloc(sizeof(t_marco));
 		nuevaEntrada->indice = cantidad_de_marcos;
 		nuevaEntrada->bitUso = false;
 		nuevaEntrada->idPatota = -1;
 		nuevaEntrada->estado = LIBRE;
-		nuevaEntrada->inicioMemoria = inicioMemoria;
+		nuevaEntrada->inicioMemoria = offset;
 		nuevaEntrada->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevaEntrada);
@@ -447,6 +445,27 @@ void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, 
 
 }
 
+t_marco* buscar_marco_libre(){
+	bool esta_libre(t_marco* marco){ // TODO SE VA A VER SI ES FF O BF
+		return (marco->estado == LIBRE);
+	}
+
+	return (t_segmento*) list_remove_by_condition(tablaDeMarcos, esta_libre);
+
+}
+
+void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	t_marco* marco = buscar_marco_libre();
+	//TODO si la tabla esta vacia pedir marco sino ver si entra en alguna pagina
+
+	subir_marco_memoria(marco, buffer->stream);
+
+	uint32_t id_tripulante = 0;
+	if(tipo_dato == TCB)
+		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
+	subir_tabla_pagina(marco, patota_asociada, id_tripulante, tipo_dato);
+}
+
 void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 	t_segmento* segmento_libre = buscar_segmento_libre(buffer->size);
 	t_segmento* segmento_nuevo = dar_nuevo_segmento(segmento_libre, buffer->size);
@@ -521,7 +540,7 @@ t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
 	return (t_segmento*) list_remove_by_condition(lista_segmentos_libres, esta_libre);
 }
 
-void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pagina* pagina, bool esta_en_memoria, uint32_t idPatota, bool modificado) {
+//void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pagina* pagina, bool esta_en_memoria, uint32_t idPatota, bool modificado) {
 //	entradaTablaMarcos* entradaDeLaTabla;
 //
 //	if (esta_en_memoria) {
@@ -588,7 +607,7 @@ void escribir_en_memoria_paginacion(/*va a tener que ser una pagina*/t_pagina* p
 //	memcpy(entradaDeLaTabla->inicioMemoria + offset, pagina->nombrePlato, 24);
 //
 //	log_info(logger, "Escrito con exito");
-}
+//}
 
 
 t_marco* buscar_entrada(void* marco){

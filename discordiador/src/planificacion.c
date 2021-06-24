@@ -14,6 +14,7 @@ void preparar_planificacion(){
 	pthread_mutex_init(&mutex_cola_ready, NULL);
 	pthread_mutex_init(&mutex_cola_bloqueados_io, NULL);
 	sem_init(&semaforo_planificacion, 0, 0);
+	sem_init(&semaforo_cola_ready, 0, 0);
 
 	planificacion_corto_plazo = convertir(algoritmo);
 
@@ -69,7 +70,7 @@ void planificacion_segun_FIFO() {
 	while(1){
 		verificar_planificacion_activa();
 
-		while (!cola_ready_vacia()) {// TODO habria que agregar un semaforo quiza para que no haga el loop constante de ver si esta vacia
+		while (!cola_ready_vacia()) {
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
@@ -93,6 +94,7 @@ void planificacion_segun_FIFO() {
 }
 
 bool cola_ready_vacia(){
+	sem_wait(&semaforo_cola_ready);
 	pthread_mutex_lock(&mutex_cola_ready);
 	bool esta_vacia = queue_is_empty(cola_ready);
 	pthread_mutex_unlock(&mutex_cola_ready);
@@ -108,38 +110,27 @@ bool verificar_planificacion_activa(){
 }
 
 void planificacion_segun_RR() {
-	sem_wait(&semaforo_planificacion);
 	log_info(logger, "Entramos a la planificacion POR RR");
 
 	while(1){
-		uint32_t quantum_de_config = quantum;
+		verificar_planificacion_activa();
 
-		pthread_mutex_lock(&mutex_cola_ready);
-		while (!queue_is_empty(cola_ready)) {
+		while (!cola_ready_vacia()) {
+			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
-			t_tripulante* tripulante = tripulante_plani->tripulante;
+//			t_tripulante* tripulante = tripulante_plani->tripulante;
 			// tripulante->estado = EXEC;
 
-			while(quantum_de_config > 0 && verificar_planificacion_activa()){
-				if(quedan_pasos(tripulante)) {
-					enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
-				}
-				else {
-					hacer_tarea(tripulante_plani);
-					// TODO :: Avisar a ram que se esta haciendo la tarea ??
-				}
-				quantum_de_config--;
+			for(int i=0; i<quantum && verificar_planificacion_activa() && tripulante_plani->esta_activo; i++) {
+				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
+				if(tripulante_plani->esta_activo)
+					pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 			}
-			verificar_planificacion_activa();
-
-			if(quedan_pasos(tripulante))
-				queue_push(cola_ready, tripulante);
-
-			quantum_de_config = quantum;
+			if(tripulante_plani->esta_activo)
+				subir_tripulante_ready(tripulante_plani);
 		}
 	}
-	sem_post(&semaforo_planificacion);
 }
 
 void finalizar_tripulante_plani(uint32_t id_tripulante) {

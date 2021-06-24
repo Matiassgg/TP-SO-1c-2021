@@ -1,5 +1,13 @@
 #include "tripulantes.h"
 
+void subir_tripulante_ready(p_tripulante* tripulante_plani){
+	log_info(logger, "Se agrega al tripulante %i a READY", tripulante_plani->tripulante->id);
+	pthread_mutex_lock(&mutex_cola_ready);
+	queue_push(cola_ready, tripulante_plani);
+	pthread_mutex_unlock(&mutex_cola_ready);
+	sem_post(&semaforo_cola_ready);
+}
+
 t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
 	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
 	tripulante->posicion = malloc(sizeof(t_posicion));
@@ -57,10 +65,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
 		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 
- 		log_info(logger, "Se agrega al tripulante %i a READY", tripulante->id);
-		pthread_mutex_lock(&mutex_cola_ready);
-		queue_push(cola_ready, tripulante_plani);
-		pthread_mutex_unlock(&mutex_cola_ready);
+		subir_tripulante_ready(tripulante_plani);
 
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
