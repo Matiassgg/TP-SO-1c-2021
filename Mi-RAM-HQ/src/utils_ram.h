@@ -70,6 +70,21 @@ typedef struct {
 } t_asociador_pagina;
 
 typedef struct {
+//	uint32_t inicio; //probablemente se use para saber en que lugar en memoria estoy parado
+	uint32_t numeroPagina;
+	t_marco* marco;
+	e_tipo_dato tipo_dato;
+	//t_asociador_pagina* asociador;
+} t_pagina;
+
+
+typedef struct {
+	uint32_t tam;
+	t_list* paginas;
+	uint32_t id_patota_asociada;
+} t_tabla_paginas;
+
+typedef struct {
 	uint32_t inicioMemoria;
 	uint32_t indice;
 	t_estado_marco estado;
@@ -77,20 +92,6 @@ typedef struct {
 	char* timeStamp;
 	int idPatota;
 } t_marco;
-
-typedef struct {
-//	uint32_t inicio; //probablemente se use para saber en que lugar en memoria estoy parado
-	uint32_t numeroPagina;
-	t_marco* marco;
-	//t_asociador_pagina* asociador;
-} t_pagina;
-
-
-typedef struct {
-	uint32_t tam;
-	t_pagina* paginas;
-	uint32_t id_patota_asociada;
-} t_tabla_paginas;
 
 typedef struct {
 	int indiceMarcoSwap;
@@ -110,6 +111,7 @@ uint32_t tamanio_pagina;
 t_list* lista_segmentos_libres;
 t_list* lista_tablas_segmentos;
 t_list* tabla_asociadores_segmentos;
+t_list* lista_tablas_paginas;
 t_list* patotas_creadas;
 t_marco* punteroMarcoClock;
 t_list* tablaDeMarcos;
@@ -135,7 +137,7 @@ pthread_mutex_t mutexBuscarInfoTripulante;
 pthread_mutex_t mutexBuscarSwap;
 pthread_mutex_t mutex_tocar_memoria;
 pthread_mutex_t mutex_subir_patota;
-pthread_mutex_t mutex_tablas_segmentos;
+pthread_mutex_t mutex_tablas;
 
 pthread_t hiloReceive;
 

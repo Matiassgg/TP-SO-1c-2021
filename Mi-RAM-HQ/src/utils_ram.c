@@ -101,7 +101,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			// Eiminará un tripulante tanto de las estructuras administrativas de la memoria, como también del mapa
 			// EN CASO QUE SEA NECESARIO eliminara su segmento de tareas
 
-			expulas_tripulante(tripulante);
+			expulsar_tripulante(tripulante);
 
 			free(tripulante);
 
