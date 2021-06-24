@@ -138,8 +138,9 @@ void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char
 	}else{
 		char* caracteres = string_repeat(caracter,cantidad);
 		fprintf(file,"%s",caracteres);
+	}
 }
-}
+
 void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
 	if(contiene(nombre_tarea,"OXIGENO")){
 		eliminar_caracteres_llenado_a_archivo('O',cantidad,"Oxigeno.ims");
@@ -150,15 +151,14 @@ void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantid
 }
 
 void eliminar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){
-	//TODO
 	uint32_t cantidad_caracteres = cantidad_caracteres_archivo(caracter, archivo);
 	if (cantidad >= cantidad_caracteres){
 		vaciar_archivo(archivo);
 		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
 	}
 	else{
-		//TODO
 		//Eliminar caracteres del archivo.
+		quitar_caracteres_a_archivo(caracter,cantidad_caracteres,cantidad,archivo);
 	}
 }
 
@@ -166,12 +166,36 @@ uint32_t cantidad_caracteres_archivo(char caracter, char* archivo){
 
 	char* ruta_completa_archivo = obtener_path_files(archivo);
 	FILE * file = fopen(ruta_completa_archivo, "rb");
-	//Calcular cuantos caracteres de llenado tiene el archivo.
-	//fread y hacer algo..
+	if(file==NULL)
+		return -1;
+	uint32_t cantidad = 0;
+	char c;
+	while(!feof(file)){
+		fread(&c,sizeof(char),1,file);
+		if(c==caracter)
+			cantidad++;
+	}
 	fclose(file);
+	log_info(logger, "El archivo %s tiene %d veces el caracter de llenado %c",archivo,cantidad,caracter);
 
-	return 0;
+	return cantidad;
 }
+
+int quitar_caracteres_a_archivo(char caracter, uint32_t cantidadActual, uint32_t cantidadASacar,char* archivo){
+	char* ruta_completa_archivo = obtener_path_files(archivo);
+	FILE * file = fopen(ruta_completa_archivo, "wb");
+	if(file==NULL){
+		log_warning(logger, "Error al abrir archivo %s cuando se quiso quitarle caracteres %c", archivo, caracter);
+		return -1;
+	}
+	int nuevaCantidad = cantidadActual-cantidadASacar;
+	char* caracteres = string_repeat(caracter,nuevaCantidad);
+	fprintf(file,"%s",caracteres);
+	fclose(file);
+	log_info(logger, "El archivo %s se le quitaron %d caracteres %c. De %d paso a %d",archivo,cantidadASacar,caracter,cantidadActual,nuevaCantidad);
+	return 1;
+}
+
 
 void procesar_falta_archivo(t_tarea* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
@@ -189,7 +213,6 @@ void procesar_falta_archivo(t_tarea* tarea,char* archivo){
 }
 
 void informar_falta_archivo(t_tarea* tarea, char* archivo){
-
 	//ACA HAY QUE AVISARLE AL TRIPULANTE A CARGO DE LA TAREA Y FINALIZAR TAREA. TIENE QUE ESPERAR EN COLA DE BLOQUEADO.
 	log_error(logger, "El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
 

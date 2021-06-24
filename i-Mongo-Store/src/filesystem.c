@@ -163,10 +163,10 @@ int eliminar_archivo(char* archivo){
 int crear_archivo(char* archivo){
 	FILE * file;
 	file = fopen(archivo, "wb");
-	if(file!=NULL){
-		return 1;
+	if(file==NULL){
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 char* obtener_path_files(char* pathRelativo) {
@@ -183,7 +183,21 @@ bool archivo_recursos_existe(char* nombreArchivo){
 
 int crear_archivo_recursos(char* nombreArchivo){
 	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
-	return crear_archivo(ruta_archivo_recursos);
+	if(crear_archivo(ruta_archivo_recursos)){
+		if(son_iguales(nombreArchivo,"Oxigeno.ims")){
+			agregar_caracteres_llenado_a_archivo('O',1,nombreArchivo);
+			return 1;
+		}
+		else if(son_iguales(nombreArchivo,"Comida.ims")){
+			agregar_caracteres_llenado_a_archivo('C',1,nombreArchivo);
+			return 1;
+		}
+		else if(son_iguales(nombreArchivo,"Basura.ims")){
+			agregar_caracteres_llenado_a_archivo('B',1,nombreArchivo);
+			return 1;
+		}
+	}
+	return 0;
 }
 
 int eliminar_archivo_recursos(char* nombreArchivo){
@@ -194,5 +208,7 @@ int eliminar_archivo_recursos(char* nombreArchivo){
 void vaciar_archivo(char* archivo){
 	char* ruta_completa_archivo = obtener_path_files(archivo);
 	FILE * file = fopen(ruta_completa_archivo, "wb");
+	if(file==NULL)
+		log_warning(logger,"No se pudo abrir el archivo %s al querer vaciarlo",archivo);
 	fclose(file);
 }
