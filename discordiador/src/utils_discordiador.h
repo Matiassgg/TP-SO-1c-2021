@@ -38,7 +38,8 @@ t_queue* cola_bloq_Emergencia;
 
 typedef struct {
 	t_tripulante* tripulante;
-	pthread_mutex_t mutex_ready;
+	pthread_mutex_t mutex_solicitud;
+	pthread_mutex_t mutex_ejecucion;
 //	semt_t semaforo; quiza haya que usar
 	bool esta_activo;
 } p_tripulante;

@@ -810,7 +810,7 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 void expulas_tripulante(t_tripulante* tripulante){
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
-//	eliminar_tripulante(tripulante->id);
+	eliminar_tripulante(tripulante->id);
 }
 
 

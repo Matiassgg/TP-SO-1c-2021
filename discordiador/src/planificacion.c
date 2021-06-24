@@ -69,11 +69,11 @@ void planificacion_segun_FIFO() {
 	while(1){
 		verificar_planificacion_activa();
 
-		while (!cola_ready_vacia()) {
+		while (!cola_ready_vacia()) {// TODO habria que agregar un semaforo quiza para que no haga el loop constante de ver si esta vacia
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
-			t_tripulante* tripulante = tripulante_plani->tripulante;
+//			t_tripulante* tripulante = tripulante_plani->tripulante;
 			// tripulante->estado = EXEC;
 
 			// TODO :: AVISAR A RAM QUE AHORA ESTA EN EXEC
@@ -84,7 +84,9 @@ void planificacion_segun_FIFO() {
 			*/
 
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
-				pthread_mutex_unlock(&tripulante_plani->mutex_ready); // TODO
+				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
+				if(tripulante_plani->esta_activo)
+					pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 			}
 		}
 	}

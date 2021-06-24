@@ -52,21 +52,23 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		tripulante_plani->tripulante = tripulante;
 		tripulante_plani->esta_activo = true;
 
-		pthread_mutex_init(&tripulante_plani->mutex_ready, NULL);
-		pthread_mutex_lock(&tripulante_plani->mutex_ready);
+		pthread_mutex_init(&tripulante_plani->mutex_solicitud, NULL);
+		pthread_mutex_init(&tripulante_plani->mutex_ejecucion, NULL);
+		pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
+		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 
  		log_info(logger, "Se agrega al tripulante %i a READY", tripulante->id);
 		pthread_mutex_lock(&mutex_cola_ready);
 		queue_push(cola_ready, tripulante_plani);
 		pthread_mutex_unlock(&mutex_cola_ready);
 
-		pthread_mutex_lock(&tripulante_plani->mutex_ready);
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 		}
 		puedo_seguir(tripulante_plani);
 		hacer_tarea(tripulante_plani);
 		tripulante_plani->esta_activo = false;
+		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		solicitar_tarea(tripulante);
 	}
 
@@ -77,7 +79,9 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 }
 
 bool puedo_seguir(p_tripulante* tripulante_plani){
-	pthread_mutex_lock(&tripulante_plani->mutex_ready);
+	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
+	pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+
 
 	return true;
 }
@@ -85,6 +89,8 @@ bool puedo_seguir(p_tripulante* tripulante_plani){
 void hacer_tarea(p_tripulante* tripulante_plani){
 	hacer_peticon_IO();
 	char* tarea_por_hacer = tripulante_plani->tripulante->tarea_act->tarea;
+
+	log_info(logger, "El tripulante %i iniciara la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
 
 	if(es_tarea_de_recursos(tarea_por_hacer) || es_tarea_de_eliminar_residuos(tarea_por_hacer)) {
 		// TODO FS DEBE ENTERARSE QUE SE VA A TRATAR DE ACCEDER A ALGUN ARCHIVO O KE ??
@@ -178,10 +184,6 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 			y cualquier otra fruta de texto
 		*/
 
-		else {
-			hacer_ciclos_tarea(tripulante_plani->tripulante);
-		}
-
 		pthread_mutex_lock(&mutex_cola_bloqueados_io);
 		queue_pop(cola_bloq_E_S);
 		tripulante_plani->esta_activo = false;
@@ -189,6 +191,11 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 
 		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
 	}
+	else{
+		hacer_ciclos_tarea(tripulante_plani->tripulante);
+		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
+	}
+
 }
 
 void hacer_peticon_IO() {
@@ -227,15 +234,12 @@ bool existe_archivo(char* nombre_archivo) {
 void hacer_ciclos_tarea(t_tripulante* tripulante){
 
 	if(son_iguales(algoritmo,"FIFO")){
-		log_info(logger, "El tripulante %i comenzara la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 		rafaga_cpu(tripulante->tarea_act->tiempo);
-		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 	}
 	else if(tripulante->tarea_act->tiempo > quantum){
-		log_info(logger, "El tripulante %i comenzara la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 		rafaga_cpu(quantum);
-		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 		tripulante->tarea_act->tiempo -= quantum;
+		log_info(logger, "El tripulante %i le queda %i para finalizar la tarea %s", tripulante->id, tripulante->tarea_act->tiempo, tripulante->tarea_act->tarea);
 
 		// TODO Y AHORA KE creo que habria que volver a ponerlo en ready, enotnces las colas de bloqueados de que va a servir? (estructura)
 	}
