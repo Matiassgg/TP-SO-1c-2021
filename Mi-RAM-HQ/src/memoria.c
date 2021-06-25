@@ -70,7 +70,7 @@ void crear_tabla_segmentacion(uint32_t id_patota){
 }
 
 uint32_t cantidad_paginas_pedidas(uint32_t cantidad) {
-	return div(cantidad, TAMANIO_PAGINA);
+	return div(cantidad, tamanio_pagina);
 }
 
 t_pagina* crear_pagina() {
