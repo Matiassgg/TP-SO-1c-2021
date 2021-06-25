@@ -140,7 +140,6 @@ void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char
 		char* caracteres = string_repeat(caracter,cantidad);
 		log_info(logger,"Se va a llenar el archivo %s con %s", archivo, caracteres);
 		fwrite(caracteres,string_length(caracteres)+1,1,file);
-//		fprintf(file,"%s",caracteres);
 	}
 }
 
@@ -193,7 +192,7 @@ int quitar_caracteres_a_archivo(char caracter, uint32_t cantidad_actual, uint32_
 	}
 	int nueva_cantidad = cantidad_actual-cantidad_a_sacar;
 	char* caracteres = string_repeat(caracter,nueva_cantidad);
-	fprintf(file,"%s",caracteres);
+	fwrite(caracteres,string_length(caracteres)+1,1,file);
 	fclose(file);
 	log_info(logger, "El archivo %s se le quitaron %d caracteres %c. De %d paso a %d",archivo,cantidad_a_sacar,caracter,cantidad_actual,nueva_cantidad);
 	return 1;

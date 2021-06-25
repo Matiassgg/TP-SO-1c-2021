@@ -35,7 +35,7 @@ void crear_superbloque() {
 }
 
 void obtener_superbloque(){
-	FILE* superbloque = fopen(ruta_superbloque, "r");
+	FILE* superbloque = fopen(ruta_superbloque, "rb");
 
 	if(superbloque){
 		log_info(logger, "MONGO-STORE :: SE LEE EL SUPERBLOQUE");
@@ -73,11 +73,11 @@ void leer_superbloque(FILE* archivo){
 //			mkdir(path_bloques, 0700);
 //	}
 //
-//	crearBloques(path_bloques,ruta_superbloque);
+//	crear_bloques(path_bloques,ruta_superbloque);
 //}
-//
-//
-//void crearBloques(char* path_bloques,char* path_superbloque){
+
+
+//void crear_bloques(char* path_bloques,char* path_superbloque){
 //
 //	ruta_bloques = string_duplicate(path_bloques);
 //
@@ -156,14 +156,14 @@ bool directorio_existe(char* path) {
 	return existe;
 }
 
-bool archivo_existe(char* nombreArchivo){
+bool archivo_existe(char* nombre_archivo){
 
-    if (access(nombreArchivo, F_OK) != 0){
-        log_warning(logger,"'%s' no existe\n", nombreArchivo);
+    if (access(nombre_archivo, F_OK) != 0){
+        log_warning(logger,"'%s' no existe\n", nombre_archivo);
         return false;
     }
     else {
-        log_info(logger,"'%s' existe\n", nombreArchivo);
+        log_info(logger,"'%s' existe\n", nombre_archivo);
         return true;
     }
 
@@ -185,20 +185,20 @@ int crear_archivo(char* archivo){
 	return 1;
 }
 
-char* obtener_path_files(char* pathRelativo) {
+char* obtener_path_files(char* path_relativo) {
 	char* path = string_new();
-	string_append_with_format(&path, "%s/%s", path_files,pathRelativo);
+	string_append_with_format(&path, "%s/%s", path_files,path_relativo);
 
 	return path;
 }
 
-bool archivo_recursos_existe(char* nombreArchivo){
-	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
+bool archivo_recursos_existe(char* nombre_archivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombre_archivo);
 	return archivo_existe(ruta_archivo_recursos);
 }
 
-int crear_archivo_recursos(char* nombreArchivo){
-	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
+int crear_archivo_recursos(char* nombre_archivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombre_archivo);
 	if(crear_archivo(ruta_archivo_recursos)){
 		return 1;
 	}

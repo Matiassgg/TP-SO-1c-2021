@@ -29,8 +29,8 @@ void inicializar_filesystem() {
 	else
 	    obtener_superbloque();
 
-//	if(!archivo_existe(path_bloques))
-//	    inicializar_bloques();
+	if(!archivo_existe(path_bloques))
+	    inicializar_bloques();
 }
 
 void FS_RESET(){
