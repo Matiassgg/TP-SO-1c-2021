@@ -44,7 +44,7 @@ void preparar_memoria() {
 
 }
 
-void crear_tabla(uint32_t id_patota){
+void crear_tabla_segmentacion(uint32_t id_patota){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")){
 		log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
@@ -69,6 +69,58 @@ void crear_tabla(uint32_t id_patota){
 	}
 }
 
+uint32_t cantidad_paginas_pedidas(uint32_t cantidad) {
+	return div(cantidad, TAMANIO_PAGINA);
+}
+
+t_pagina* crear_pagina() {
+	t_pagina* pagina = malloc(sizeof(t_pagina));
+	pagina->bit_presencia = 0;
+	pagina->bit_modificado=0;
+	pagina->marco = NULL;
+	pagina->tipo_dato = NULL;
+	return pagina;
+}
+
+t_list* crear_tabla_paginacion(uint32_t tam) {
+	int cantidadDePaginas = cantidad_paginas_pedidas(tam);
+	t_list *lista = list_create();
+	t_pagina *pagina;
+
+	for (int i = 0; i < cantidadDePaginas; i++) {
+		pagina = crear_pagina();
+		pagina->numeroPagina=i;
+		list_add(lista, pagina);
+	}
+	return lista;
+}
+
+void asignar_marco(t_pagina* pagina) {
+	t_marco *marco = buscar_marco_libre();
+	sem_wait(&mutex_marcos);
+	if(!marco){
+		// asignar_marco_en_swap(pagina);
+	} else {
+		// bitarray_set_bit(BIT_ARRAY_MARCOS, (off_t) marco->numero_marco); NO CREO Q HAGA FALTA
+		pagina->marco = marco;
+		pagina->bit_presencia = true;
+		pagina->marco->bitUso = true;
+		pagina->bit_modificado = false;
+		// agregar_a_lista_de_marcos_en_paginas(pagina);
+	}
+
+	sem_post(&mutex_marcos);
+}
+
+void asignar_marco_en_swap(t_pagina* pagina){
+	//TODO
+}
+
+uint32_t buscar_lugar_en_swap(){
+	//TODO
+}
+
+
 
 t_pcb* crear_pcb(t_patota* patota){
 	log_info(logger, "RAM :: Se crea el PCB para la patota %d", patota->id_patota);
@@ -80,7 +132,7 @@ t_pcb* crear_pcb(t_patota* patota){
 	return pcb;
 }
 
-void cargar_memoria_patota(t_patota* patota){
+void cargar_memoria_patota(t_patota* patota,uint32_t tamanio_tabla_paginas){
 	pthread_mutex_lock(&mutex_subir_patota);
 	t_pcb* pcb_nuevo = crear_pcb(patota);
 
@@ -88,7 +140,7 @@ void cargar_memoria_patota(t_patota* patota){
 
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		crear_tabla(pcb_nuevo->pid);
+		crear_tabla_segmentacion(pcb_nuevo->pid);
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -105,7 +157,7 @@ void cargar_memoria_patota(t_patota* patota){
 
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
-			crear_tabla(pcb_nuevo->pid);
+			t_list* tabla_de_paginas = crear_tabla_paginacion(tamanio_tabla_paginas);
 
 			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -218,7 +270,6 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		nuevaEntrada->indice = cantidad_de_marcos;
 		nuevaEntrada->bitUso = false;
 		nuevaEntrada->idPatota = -1;
-		nuevaEntrada->estado = LIBRE;
 		nuevaEntrada->inicioMemoria = offset;
 		nuevaEntrada->timeStamp = NULL;
 
@@ -235,7 +286,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 		t_marco_en_swap* nuevaEntrada = malloc(sizeof(t_marco_en_swap));
 		nuevaEntrada->idPatota = -1;
-		nuevaEntrada->estado = LIBRE;
+		nuevaEntrada->bitUso = false;
 		nuevaEntrada->indiceMarcoSwap = indice;
 		indice ++;
 
@@ -423,7 +474,7 @@ void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, 
 
 t_marco* buscar_marco_libre(){
 	bool esta_libre(t_marco* marco){
-		return (marco->estado == LIBRE);
+		return (marco->bitUso == false);
 	}
 
 	return (t_segmento*) list_remove_by_condition(tablaDeMarcos, esta_libre);
@@ -474,7 +525,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 		}
 		else {
 				marco = asignar_entrada_marco_libre();
-				marco->estado = OCUPADO;
+				marco->bitUso = true;
 				marco->idPatota = id_patota_asociada;
 
 				log_info(logger, "Marco seleccionado: %d", marco->indice);
@@ -673,7 +724,7 @@ t_marco* buscar_entrada(void* marco){
 t_marco* asignar_entrada_marco_libre(void){
 	bool este_libre(void* parametro){
 		t_marco* marco = (t_marco*) parametro;
-		return marco->estado == LIBRE;
+		return marco->bitUso == false;
 	}
 
 	if (!hay_marcos_libres()) {
@@ -762,7 +813,7 @@ void seleccionar_victima_LRU(void){
 
 	//todo FALTA VER QUE PASA CON SWAP ACA
 
-	entrada_mas_vieja->estado = LIBRE;
+	entrada_mas_vieja->bitUso = false;
 
 	pthread_mutex_unlock(&mutexFree);
 }
@@ -804,7 +855,7 @@ void seleccionar_victima_CLOCK(void){
 
 	// todo Escribo en SWAP
 
-	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->estado = LIBRE;
+	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->bitUso = false;
 
 	pthread_mutex_unlock(&mutexFree);
 }
@@ -832,7 +883,7 @@ int indice_elemento(t_list* lista, void* elemento){
 
 bool hay_marcos_libres(void){
 	bool este_libre(void* parametro){
-		return ((t_marco*)parametro)->estado = LIBRE;
+		return ((t_marco*)parametro)->bitUso = false;
 	}
 
 	t_list* marcos_libres = list_filter(tablaDeMarcos, este_libre);
