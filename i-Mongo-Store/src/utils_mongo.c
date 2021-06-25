@@ -63,6 +63,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case COMENZAR_EJECUCION_TAREA:
 			tarea = deserializar_tarea(cliente_fd);
+			log_info(logger, "Nos llego COMENZAR_EJECUCION_TAREA del tripulante %i", tarea->id);
 			verificar_archivo_tarea(tarea);
 			log_info(logger, "Se comenzo la ejecucion de tarea %s", tarea->tarea);
 
@@ -84,7 +85,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 }
 
-void verificar_archivo_tarea(t_tarea* tarea){
+void verificar_archivo_tarea(tarea_Mongo* tarea){
 	if(son_iguales(tarea->tarea,"GENERAR_OXIGENO") || son_iguales(tarea->tarea,"CONSUMIR_OXIGENO")){
 		if(archivo_recursos_existe("Oxigeno.ims"))
 			procesar_tarea(tarea);
@@ -104,7 +105,7 @@ void verificar_archivo_tarea(t_tarea* tarea){
 
 }
 
-void procesar_tarea(t_tarea* tarea){
+void procesar_tarea(tarea_Mongo* tarea){
 	char* nombre_tarea = tarea->tarea;
 	uint32_t cantidad = tarea->parametro; // [Consulta]¿Este parametro es la cantidad que menciona el enunciado, o es otra cosa?
 	if(string_contains(nombre_tarea,"GENERAR")){
@@ -137,7 +138,9 @@ void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char
 		log_error(logger,"No se pudo abrir el archivo %s para su escritura", archivo);
 	}else{
 		char* caracteres = string_repeat(caracter,cantidad);
-		fprintf(file,"%s",caracteres);
+		log_info(logger,"Se va a llenar el archivo %s con %s", archivo, caracteres);
+		fwrite(caracteres,string_length(caracteres)+1,1,file);
+//		fprintf(file,"%s",caracteres);
 	}
 }
 
@@ -197,7 +200,7 @@ int quitar_caracteres_a_archivo(char caracter, uint32_t cantidad_actual, uint32_
 }
 
 
-void procesar_falta_archivo(t_tarea* tarea,char* archivo){
+void procesar_falta_archivo(tarea_Mongo* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
 	if(string_contains(nombre_tarea,"GENERAR")){
 		if(crear_archivo_recursos(archivo)){
@@ -212,7 +215,7 @@ void procesar_falta_archivo(t_tarea* tarea,char* archivo){
 	}
 }
 
-void informar_falta_archivo(t_tarea* tarea, char* archivo){
+void informar_falta_archivo(tarea_Mongo* tarea, char* archivo){
 	//ACA HAY QUE AVISARLE AL TRIPULANTE A CARGO DE LA TAREA Y FINALIZAR TAREA. TIENE QUE ESPERAR EN COLA DE BLOQUEADO.
 	log_error(logger, "El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
 

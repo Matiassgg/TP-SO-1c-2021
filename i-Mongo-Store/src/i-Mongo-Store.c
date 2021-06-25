@@ -40,7 +40,7 @@ void FS_RESET(){
 
 	if(borrarFS){
 		char* aux = string_new();
-		string_append_with_format(&aux, "sh eliminadorFS.sh %s", punto_montaje);
+		string_append_with_format(&aux, "sh ../src/eliminadorFS.sh %s", punto_montaje);
 		system(aux);
 		free(aux);
 	}
@@ -52,6 +52,8 @@ void leer_config(void) {
 	punto_montaje = config_get_string_value(config,"PUNTO_MONTAJE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 	tiempo_sincronizacion = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
+	ip_Mongo_Store = config_get_string_value(config, "IP_I_MONGO_STORE");
+	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
 	blocks = config_get_int_value(config, "BLOCKS");
 	block_size = config_get_int_value(config, "BLOCK_SIZE");
 

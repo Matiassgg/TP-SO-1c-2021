@@ -200,18 +200,7 @@ bool archivo_recursos_existe(char* nombreArchivo){
 int crear_archivo_recursos(char* nombreArchivo){
 	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
 	if(crear_archivo(ruta_archivo_recursos)){
-		if(son_iguales(nombreArchivo,"Oxigeno.ims")){
-			agregar_caracteres_llenado_a_archivo('O',1,nombreArchivo);
-			return 1;
-		}
-		else if(son_iguales(nombreArchivo,"Comida.ims")){
-			agregar_caracteres_llenado_a_archivo('C',1,nombreArchivo);
-			return 1;
-		}
-		else if(son_iguales(nombreArchivo,"Basura.ims")){
-			agregar_caracteres_llenado_a_archivo('B',1,nombreArchivo);
-			return 1;
-		}
+		return 1;
 	}
 	return 0;
 }

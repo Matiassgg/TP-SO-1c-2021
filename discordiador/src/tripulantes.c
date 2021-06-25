@@ -46,6 +46,7 @@ void expulsar_tripulante(t_tripulante* tripulante){
 
 void ejecutar_tripulante(t_tripulante* tripulante){
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
+	tripulante->socket_conexion_Mongo = crear_conexion(ip_Mongo_Store, puerto_Mongo_Store);
 	log_info(logger, "El tripulante %i tiene el socket %i con RAM", tripulante->id, tripulante->socket_conexion_RAM);
 
 	// EL TRIPULANTE INFORMA A RAM QUE QUIERE INICIAR
@@ -106,88 +107,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
 
-		//////////////////////////////////////////////////////////////////////////
-
-		// TODO FALTA VER QUE ONDA CON existe_archivo(char* nombre_archivo) DEL FS
-
-		//////////////////////////////////////////////////////////////////////////
-
-
-		// TODO FALTA VER QUE PASA CON ESTO CUANDO HAY SABOTAJES
-
-		uint32_t parametro_cantidad = tripulante_plani->tripulante->tarea_act->parametro;
-
-		//Esta responsabilidad ya fue pasada al MONGO, lo dejo por las dudas.
-		if(son_iguales(tarea_por_hacer, "GENERAR_OXIGENO")) {
-			if(!existe_archivo("oxigeno.ims")) {
-				log_warning(logger, "El archivo **oxigeno.ims** NO EXISTE, esperando a la creacion del archivo");
-				sleep(3);	// TODO NO VA -> TIENE QUE ESPERAR A QUE SE CREE EL ARCHIVO QUE CORRESPONDE
-			}
-			// Agregar al archivo cantidad de caracteres 'O'
-
-		}
-
-		else if(son_iguales(tarea_por_hacer, "CONSUMIR_OXIGENO")) {
-			if(!existe_archivo("oxigeno.ims")) {
-				log_warning(logger, "El archivo **oxigeno.ims** NO EXISTE, se finaliza la tarea del tripulante %i", tripulante_plani->tripulante->id);
-			}
-			// Eliminar del archivo cantidad de caracteres 'O'
-
-			/*
-			 En caso de que intenten eliminarse de más,
-			 dejar el archivo completamente vacío e
-			 informar por log que se quisieron eliminar más caracteres de los existentes (EN MONGO)
-			 */
-		}
-
-		else if(son_iguales(tarea_por_hacer, "GENERAR_COMIDA")) {
-			if(!existe_archivo("comida.ims")) {
-				log_warning(logger, "El archivo **basura.ims** NO EXISTE, esperando a la creacion del archivo");
-				sleep(3);	// TODO NO VA -> TIENE QUE ESPERAR A QUE SE CREE EL ARCHIVO QUE CORRESPONDE
-			}
-			// Agregar al archivo cantidad de caracteres 'C'
-		}
-
-		else if(son_iguales(tarea_por_hacer, "CONSUMIR_COMIDA")) {
-			if(!existe_archivo("comida.ims")) {
-				log_warning(logger, "El archivo **comida.ims** NO EXISTE, se finaliza la tarea del tripulante %i", tripulante_plani->tripulante->id);
-			}
-
-			/*
-			 En caso de que intenten eliminarse de más,
-			 dejar el archivo completamente vacío e
-			 informar por log que se quisieron eliminar más caracteres de los existentes (EN MONGO)
-			 */
-		}
-
-		else if(son_iguales(tarea_por_hacer, "GENERAR_BASURA")) {
-			if(!existe_archivo("basura.ims")) {
-				log_warning(logger, "El archivo **basura.ims** NO EXISTE, esperando a la creacion del archivo");
-				sleep(3);	// TODO NO VA -> TIENE QUE ESPERAR A QUE SE CREE EL ARCHIVO QUE CORRESPONDE
-			}
-
-			// Agregar al archivo cantidad de caracteres 'B'
-		}
-
-		else if(son_iguales(tarea_por_hacer, "DESCARTAR_BASURA")) {
-			// La variable **parametro_cantidad** ES SIEMPRE 0
-
-			if(!existe_archivo("basura.ims")) {
-				log_warning(logger, "El archivo **basura.ims** NO EXISTE");
-
-			}
-
-		}
-
-		// CUALQUIER OTRA TAREA
-		/*
-			AFILAR_LANZAS
-			MATAR_PERSAS
-			REGAR_PLANTAS
-			VER_PUBLICIDAD
-			REGAR_PLANTAS
-			y cualquier otra fruta de texto
-		*/
+		enviar_Mongo_bitacora_tarea(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_Mongo);
 
 		pthread_mutex_lock(&mutex_cola_bloqueados_io);
 		queue_pop(cola_bloq_E_S);

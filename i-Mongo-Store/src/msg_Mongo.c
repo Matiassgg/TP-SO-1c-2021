@@ -30,6 +30,7 @@ tarea_Mongo* deserializar_tarea(uint32_t socket_cliente) {
 
 	recv(socket_cliente, &(tarea->id), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(tarea->tamanio_tarea), sizeof(uint32_t), 0);
+	tarea->tarea = calloc(1,tarea->tamanio_tarea);
 	recv(socket_cliente, tarea->tarea, tarea->tamanio_tarea, 0);
 	recv(socket_cliente, &(tarea->parametro), sizeof(uint32_t), 0);
 
