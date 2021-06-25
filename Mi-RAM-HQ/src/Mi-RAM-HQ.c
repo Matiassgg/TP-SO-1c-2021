@@ -41,6 +41,7 @@ void leer_config() {
 	pthread_mutex_init(&mutexFree, NULL);
 	pthread_mutex_init(&mutexVictima, NULL);
 
+
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 	ip_Mi_RAM_HQ = config_get_string_value(config, "IP_RAM");
 	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
