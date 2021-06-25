@@ -58,19 +58,6 @@ typedef struct {
 } t_asociador_segmento;
 
 //---------Paginación simple--------//
-typedef enum {
-	LIBRE,
-	OCUPADO
-} t_estado_marco;
-
-typedef struct {
-	uint32_t inicioMemoria;
-	uint32_t indice;
-	t_estado_marco estado;
-	bool bitUso;
-	char* timeStamp;
-	int idPatota;
-} t_marco;
 
 typedef struct {
 	uint32_t nro_pagina;
@@ -79,12 +66,27 @@ typedef struct {
 } t_asociador_pagina;
 
 typedef struct {
-//	uint32_t inicio; //probablemente se use para saber en que lugar en memoria estoy parado
+	uint32_t inicioMemoria;
+	uint32_t indice;
+	uint32_t numero_marco;
+	bool bitUso;
+	char* timeStamp;
+	int idPatota;
+} t_marco;
+
+typedef struct {
 	uint32_t numeroPagina;
 	t_marco* marco;
+	bool bit_presencia;
+	bool bit_modificado;
 	e_tipo_dato tipo_dato;
 	//t_asociador_pagina* asociador;
 } t_pagina;
+
+typedef struct {
+	t_pagina* pagina;
+	t_marco* marco;
+} t_pagina_en_marco;
 
 typedef struct {
 	uint32_t tam;
@@ -96,7 +98,7 @@ typedef struct {
 
 typedef struct {
 	int indiceMarcoSwap;
-	t_estado_marco estado;
+	uint32_t bitUso;
 	int idPatota;
 	// char* nombreTripulante;
 } t_marco_en_swap;
@@ -116,6 +118,8 @@ t_list* lista_tablas_paginas;
 t_list* patotas_creadas;
 t_marco* punteroMarcoClock;
 t_list* tablaDeMarcos;
+t_bitarray *BIT_ARRAY_MARCOS;
+t_bitarray *BIT_ARRAY_MARCOS_SWAP;
 t_list* tareas;
 char* path_tareas;
 //-------------------------//
@@ -139,6 +143,7 @@ pthread_mutex_t mutexBuscarSwap;
 pthread_mutex_t mutex_tocar_memoria;
 pthread_mutex_t mutex_subir_patota;
 pthread_mutex_t mutex_tablas;
+pthread_mutex_t mutex_marcos;
 
 pthread_t hiloReceive;
 
