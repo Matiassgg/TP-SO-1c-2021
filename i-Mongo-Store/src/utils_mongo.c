@@ -43,7 +43,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
 
 	t_patota* patota = malloc(sizeof(t_patota));
-	t_tarea* tarea = malloc(sizeof(t_tarea));
+	tarea_Mongo* tarea = malloc(sizeof(t_tarea));
 	t_mover_hacia* posicion = malloc(sizeof(t_mover_hacia));
 	//Procesar mensajes recibidos
 	switch (cod_op) {
@@ -107,10 +107,10 @@ void verificar_archivo_tarea(t_tarea* tarea){
 void procesar_tarea(t_tarea* tarea){
 	char* nombre_tarea = tarea->tarea;
 	uint32_t cantidad = tarea->parametro; // [Consulta]¿Este parametro es la cantidad que menciona el enunciado, o es otra cosa?
-	if(contiene(nombre_tarea,"GENERAR")){
+	if(string_contains(nombre_tarea,"GENERAR")){
 		agregar_caracteres_llenado_segun_tarea(nombre_tarea,cantidad);
 	}
-	else if(contiene(nombre_tarea,"CONSUMIR")){
+	else if(string_contains(nombre_tarea,"CONSUMIR")){
 		eliminar_caracteres_llenado_segun_tarea(nombre_tarea,cantidad);
 	}
 	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){
@@ -119,13 +119,13 @@ void procesar_tarea(t_tarea* tarea){
 }
 
 void agregar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
-	if(contiene(nombre_tarea,"OXIGENO")){
+	if(string_contains(nombre_tarea,"OXIGENO")){
 		agregar_caracteres_llenado_a_archivo('O',cantidad,"Oxigeno.ims");
 	}
-	else if(contiene(nombre_tarea,"COMIDA")){
+	else if(string_contains(nombre_tarea,"COMIDA")){
 		agregar_caracteres_llenado_a_archivo('C',cantidad,"Comida.ims");
 	}
-	else if(contiene(nombre_tarea,"BASURA")){
+	else if(string_contains(nombre_tarea,"BASURA")){
 		agregar_caracteres_llenado_a_archivo('B',cantidad,"Basura.ims");
 	}
 }
@@ -133,7 +133,7 @@ void agregar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantida
 void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){
 	char* ruta_archivo = obtener_path_files(archivo);
 	FILE* file = fopen(ruta_archivo, "ab+");
-	if( file == NULL){
+	if(file == NULL){
 		log_error(logger,"No se pudo abrir el archivo %s para su escritura", archivo);
 	}else{
 		char* caracteres = string_repeat(caracter,cantidad);
@@ -142,10 +142,10 @@ void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char
 }
 
 void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){
-	if(contiene(nombre_tarea,"OXIGENO")){
+	if(string_contains(nombre_tarea,"OXIGENO")){
 		eliminar_caracteres_llenado_a_archivo('O',cantidad,"Oxigeno.ims");
 	}
-	else if(contiene(nombre_tarea,"COMIDA")){
+	else if(string_contains(nombre_tarea,"COMIDA")){
 		eliminar_caracteres_llenado_a_archivo('C',cantidad,"Comida.ims");
 	}
 }
@@ -199,12 +199,12 @@ int quitar_caracteres_a_archivo(char caracter, uint32_t cantidadActual, uint32_t
 
 void procesar_falta_archivo(t_tarea* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
-	if(contiene(nombre_tarea,"GENERAR")){
+	if(string_contains(nombre_tarea,"GENERAR")){
 		if(crear_archivo_recursos(archivo)){
 			log_info(logger, "El archivo %s se creo correctamente",archivo);
 		}
 	}
-	else if(contiene(nombre_tarea,"CONSUMIR")){
+	else if(string_contains(nombre_tarea,"CONSUMIR")){
 		informar_falta_archivo(tarea, archivo);
 	}
 	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){

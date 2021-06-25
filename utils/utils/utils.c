@@ -30,13 +30,6 @@ int existe_en_array(char** array, char* elemento_buscado) {
 	else
 		return 0;
 }
-int contiene(char* cadenaA, char* subcadena){
-	if(strstr(cadenaA,subcadena) != NULL)
-		return 1;
-	else
-		return 0;
-}
-
 
 t_posicion obtener_posicion_origen(t_posicion* posicion, t_movimiento direccion){
 	t_posicion posicion_anterior = *posicion;

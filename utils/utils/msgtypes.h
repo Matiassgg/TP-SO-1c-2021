@@ -92,9 +92,10 @@ typedef struct {
 
 //--------BITACORA-------//
 typedef struct {
-	u_int32_t id;
+	uint32_t id;
 	uint32_t tamanio_tarea;
 	char* tarea;
+	uint32_t parametro;
 } tarea_Mongo;
 
 typedef struct {

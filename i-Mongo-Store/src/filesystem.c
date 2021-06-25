@@ -127,6 +127,27 @@ t_bitarray* crear_bitmap() {
 
 }
 
+t_bitarray* leer_bitmap(){
+
+	FILE* superbloque = fopen(ruta_superbloque,"rb");
+
+	fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
+
+	if(superbloque){
+
+		fread(bitarray_string,blocks/8,1,superbloque);
+
+		t_bitarray* bitarray = bitarray_create(bitarray_string,blocks/8);
+
+		fclose(superbloque);
+
+		return bitarray;
+	}
+
+	return NULL;
+
+}
+
 bool directorio_existe(char* path) {
 	struct stat st = { 0 }; // stat(2) precisa de un struct stat a modo de buffer para llenar info del archivo que nosotros no necesitamos.
 	char* aux = string_duplicate(path);

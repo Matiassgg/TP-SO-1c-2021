@@ -21,7 +21,9 @@ t_mover_hacia* deserializar_mover_hacia_posicion(uint32_t socket_cliente){
 tarea_Mongo* deserializar_tarea(uint32_t socket_cliente) {
 	//------------ORDEN------------
 	//1. ID
-	//2. Tarea
+	//2. Tamanio
+	//3. Tarea
+	//4. Parametro
 	//-----------------------------
 
 	tarea_Mongo* tarea = malloc(sizeof(tarea_Mongo));
@@ -29,6 +31,7 @@ tarea_Mongo* deserializar_tarea(uint32_t socket_cliente) {
 	recv(socket_cliente, &(tarea->id), sizeof(uint32_t), 0);
 	recv(socket_cliente, &(tarea->tamanio_tarea), sizeof(uint32_t), 0);
 	recv(socket_cliente, tarea->tarea, tarea->tamanio_tarea, 0);
+	recv(socket_cliente, &(tarea->parametro), sizeof(uint32_t), 0);
 
 	return tarea;
 }
