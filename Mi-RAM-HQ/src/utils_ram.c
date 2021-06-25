@@ -266,16 +266,7 @@ bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
 	return encontrado;
 }
 */
-t_list* entradas_segun_patota(uint32_t idPatota){
-	bool buscar_entradas_patota(void* parametro){
-		t_marco* entradaEnMem = (t_marco*) parametro;
-		return idPatota == entradaEnMem->idPatota;
-	}
 
-	t_list* entradas = list_filter(tablaDeMarcos, buscar_entradas_patota);
-
-	return entradas;
-}
 /*
 void obtener_listado_tripulantes(t_list* lista_tripulantes) {
 	t_respuesta_listar_tripulantes* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulantes));

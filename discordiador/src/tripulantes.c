@@ -2,6 +2,7 @@
 
 void subir_tripulante_ready(p_tripulante* tripulante_plani){
 	log_info(logger, "Se agrega al tripulante %i a READY", tripulante_plani->tripulante->id);
+	tripulante_plani->tripulante->estado = READY;
 	pthread_mutex_lock(&mutex_cola_ready);
 	queue_push(cola_ready, tripulante_plani);
 	pthread_mutex_unlock(&mutex_cola_ready);
@@ -56,7 +57,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 	solicitar_tarea(tripulante);
 
 	// ROMPE SI NO HAY + TAREAS :: TODO
-	while(tripulante->tarea_act){
+	while(tripulante->tarea_act && (tripulante->estado != EXIT)){
 		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
 		tripulante_plani->tripulante = tripulante;
 		tripulante_plani->esta_activo = true;
@@ -71,10 +72,13 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
 		}
-		puedo_seguir(tripulante_plani);
+		if(!puedo_seguir(tripulante_plani))
+			break;
 		hacer_tarea(tripulante_plani);
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
+		if(!verificar_estado(tripulante))
+			break;
 		solicitar_tarea(tripulante);
 	}
 
@@ -84,12 +88,27 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 
 }
 
+void actualizar_estado(t_tripulante* tripulante){
+	bool esta_expulsado(uint32_t id){
+		return id == tripulante->id;
+	}
+
+	if(list_any_satisfy(lista_expulsados,esta_expulsado)){
+		tripulante->estado = EXIT;
+		log_info(logger, "El tripulante %i esta en estado EXIT", tripulante->id);
+	}
+}
+
+bool verificar_estado(t_tripulante* tripulante){
+	actualizar_estado(tripulante);
+	return tripulante->estado != EXIT;
+}
+
 bool puedo_seguir(p_tripulante* tripulante_plani){
 	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 	pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 
-
-	return true;
+	return verificar_estado(tripulante_plani->tripulante);
 }
 
 void hacer_tarea(p_tripulante* tripulante_plani){

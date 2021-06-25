@@ -51,6 +51,7 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 void expulsar_tripulante(t_tripulante* tripulante);
 
 t_list* entradas_segun_patota(uint32_t idPatota);
+t_marco* buscar_marco_libre();
 
 //void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);
 

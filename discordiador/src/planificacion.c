@@ -15,7 +15,6 @@ void preparar_planificacion(){
 	pthread_mutex_init(&mutex_cola_bloqueados_io, NULL);
 	sem_init(&semaforo_planificacion, 0, 0);
 	sem_init(&semaforo_cola_ready, 0, 0);
-
 	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
@@ -74,15 +73,9 @@ void planificacion_segun_FIFO() {
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
-//			t_tripulante* tripulante = tripulante_plani->tripulante;
-			// tripulante->estado = EXEC;
+			tripulante_plani->tripulante->estado = EXEC;
 
 			// TODO :: AVISAR A RAM QUE AHORA ESTA EN EXEC
-
-			/*
-				 Esto pasa x que se deberia poder ver en que estado esta el tripulante en cualquier momento
-				 con la planificacion pausada
-			*/
 
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
@@ -134,8 +127,9 @@ void planificacion_segun_RR() {
 }
 
 void finalizar_tripulante_plani(uint32_t id_tripulante) {
-	t_tripulante* tripulante_por_expulsar = malloc(sizeof(t_tripulante));
-	free(tripulante_por_expulsar);
+	list_add(lista_expulsados, id_tripulante);
+//	t_tripulante* tripulante_por_expulsar = malloc(sizeof(t_tripulante));
+//	free(tripulante_por_expulsar);
 	// TODO NO ES ASI
 }
 
@@ -146,6 +140,7 @@ void crear_colas_planificacion() {
 	cola_exit = queue_create();
 	cola_bloq_E_S = queue_create();
 	cola_bloq_Emergencia = queue_create();
+	lista_expulsados = list_create();
 }
 
 void liberar_pcb_patota(t_patota* patota){

@@ -88,7 +88,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		finalizar_tripulante_plani(id_tripulante);
 
 		// Elimina el TCB y lo vuela del mapa
-		enviar_RAM_expulsar_tripulante(id_tripulante,socket_Mi_RAM_HQ);
+//		enviar_RAM_expulsar_tripulante(id_tripulante,socket_Mi_RAM_HQ);
 
 		return;
 	}

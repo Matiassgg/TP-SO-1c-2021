@@ -35,6 +35,7 @@ t_queue* cola_exec;
 t_queue* cola_exit;
 t_queue* cola_bloq_E_S;
 t_queue* cola_bloq_Emergencia;
+t_list* lista_expulsados;
 
 typedef struct {
 	t_tripulante* tripulante;

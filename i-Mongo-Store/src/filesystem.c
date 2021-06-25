@@ -21,6 +21,11 @@ void inicializar_paths_aux(){
 
 }
 
+
+void inicializar_bloques(){
+	;
+}
+
 void crear_superbloque() {
 	FILE* superbloque = fopen(ruta_superbloque,"wb");
 	t_bitarray* bitarray = crear_bitmap();

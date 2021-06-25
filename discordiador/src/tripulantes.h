@@ -6,6 +6,8 @@
 
 t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i);
 void ejecutar_tripulante(t_tripulante* tripulante);
+void actualizar_estado(t_tripulante* tripulante);
+bool verificar_estado(t_tripulante* tripulante);
 bool puedo_seguir(p_tripulante* tripulante_plani);
 void hacer_tarea(p_tripulante* tripulante);
 bool es_tarea_IO(char* tarea);

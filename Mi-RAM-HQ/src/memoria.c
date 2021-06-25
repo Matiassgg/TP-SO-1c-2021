@@ -70,7 +70,7 @@ void crear_tabla_segmentacion(uint32_t id_patota){
 }
 
 uint32_t cantidad_paginas_pedidas(uint32_t cantidad) {
-	return div(cantidad, tamanio_pagina);
+//	return div(cantidad, tamanio_pagina);  ??????????
 }
 
 t_pagina* crear_pagina() {
@@ -78,7 +78,7 @@ t_pagina* crear_pagina() {
 	pagina->bit_presencia = 0;
 	pagina->bit_modificado=0;
 	pagina->marco = NULL;
-	pagina->tipo_dato = NULL;
+//	pagina->tipo_dato = NULL; ???
 	return pagina;
 }
 
@@ -503,7 +503,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 					t_pcb* pcbEnMarco = malloc(8);
 					memcpy(pcbEnMarco, (marco->inicioMemoria + offset), 8);
 
-					if (!strcmp(pagina->tipo_dato, pcbEnMarco)) //CAMBIAR ESTO, COMPARA UN ENUM CON UN t_pcb
+//					if (!strcmp(pagina->tipo_dato, pcbEnMarco)) //CAMBIAR ESTO, COMPARA UN ENUM CON UN t_pcb
 						encont = true;
 					free(pcbEnMarco);
 				}
@@ -550,12 +550,12 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 
 
-	subir_marco_memoria(marco, buffer->stream);
+//	subir_marco_memoria(marco, buffer->stream);
 
 	uint32_t id_tripulante = 0;
 	if(tipo_dato == TCB)
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
-	subir_tabla_pagina(marco, id_patota_asociada, id_tripulante, tipo_dato);
+//	subir_tabla_pagina(marco, id_patota_asociada, id_tripulante, tipo_dato);
 }
 
 t_list* entradas_segun_patota(uint32_t idPatota){
