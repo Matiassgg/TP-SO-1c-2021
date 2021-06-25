@@ -43,7 +43,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
 
 	t_patota* patota = malloc(sizeof(t_patota));
-	tarea_Mongo* tarea = malloc(sizeof(t_tarea));
+	tarea_Mongo* tarea = malloc(sizeof(tarea_Mongo));
 	t_mover_hacia* posicion = malloc(sizeof(t_mover_hacia));
 	//Procesar mensajes recibidos
 	switch (cod_op) {
@@ -181,18 +181,18 @@ uint32_t cantidad_caracteres_archivo(char caracter, char* archivo){
 	return cantidad;
 }
 
-int quitar_caracteres_a_archivo(char caracter, uint32_t cantidadActual, uint32_t cantidadASacar,char* archivo){
+int quitar_caracteres_a_archivo(char caracter, uint32_t cantidad_actual, uint32_t cantidad_a_sacar,char* archivo){
 	char* ruta_completa_archivo = obtener_path_files(archivo);
 	FILE * file = fopen(ruta_completa_archivo, "wb");
 	if(file==NULL){
 		log_warning(logger, "Error al abrir archivo %s cuando se quiso quitarle caracteres %c", archivo, caracter);
 		return -1;
 	}
-	int nuevaCantidad = cantidadActual-cantidadASacar;
-	char* caracteres = string_repeat(caracter,nuevaCantidad);
+	int nueva_cantidad = cantidad_actual-cantidad_a_sacar;
+	char* caracteres = string_repeat(caracter,nueva_cantidad);
 	fprintf(file,"%s",caracteres);
 	fclose(file);
-	log_info(logger, "El archivo %s se le quitaron %d caracteres %c. De %d paso a %d",archivo,cantidadASacar,caracter,cantidadActual,nuevaCantidad);
+	log_info(logger, "El archivo %s se le quitaron %d caracteres %c. De %d paso a %d",archivo,cantidad_a_sacar,caracter,cantidad_actual,nueva_cantidad);
 	return 1;
 }
 
