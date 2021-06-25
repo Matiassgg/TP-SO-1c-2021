@@ -22,12 +22,15 @@ void inicializar_paths_aux(){
 }
 
 void crear_superbloque() {
-	FILE* superbloque = fopen(ruta_superbloque,"w");
+	FILE* superbloque = fopen(ruta_superbloque,"wb");
+	t_bitarray* bitarray = crear_bitmap();
 
-	fprintf(superbloque,"BLOCK_SIZE=%i\nBLOCKS=%i\nBITMAP=",block_size,blocks);
-	fwrite(crear_bitmap(),sizeof(t_bitarray),1,superbloque);
+	fwrite(&block_size,sizeof(uint32_t),1,superbloque);
+	fwrite(&blocks,sizeof(uint32_t),1,superbloque);
+	fwrite(bitarray->bitarray, bitarray->size, 1,superbloque);
 
-	fprintf(superbloque,"\n");
+	free(bitarray);
+
 	fclose(superbloque);
 }
 
@@ -53,18 +56,10 @@ void leer_superbloque(FILE* archivo){
 		i++;
 		leido= (char*) realloc(leido,i+1);
 	}
+
 	leido= (char*) realloc(leido,i+1);
 
-	// _bloque_FS* bloqueAux = crear_bloque(leido,0);
 	free(leido);
-
-//	magic_number = string_duplicate(obtener_dato_string(bloqueAux, "MAGIC_NUMBER"));
-//	blocks = obtener_dato_int(bloqueAux,"BLOCKS");
-//	block_size = obtener_dato_int(bloqueAux,"BLOCK_SIZE");
-
-//	dictionary_destroy(bloqueAux->diccionario);
-//	free(bloqueAux->stream);
-//	free(bloqueAux);
 }
 
 
