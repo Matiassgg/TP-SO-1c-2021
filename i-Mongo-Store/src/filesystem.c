@@ -66,21 +66,23 @@ void crear_blocks(char* ruta_blocks,char* path_superbloque){
  ruta_blocks = string_duplicate(ruta_blocks);
 
  log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO", blocks, block_size);
-//
-//	for(int i = 1; i <= blocks; i++){
-//		char* pathArchivoBloque = string_new();
-//		string_append_with_format(&pathArchivoBloque, "%s", ruta_blocks);
-//		string_append_with_format(&pathArchivoBloque, "/%d.", i);
-//
-//		if(!archivo_existe(pathArchivoBloque)){
-//			FILE* bloque = fopen(pathArchivoBloque, "w");
-//			fclose(bloque);
-//		}
-//
-//		free(pathArchivoBloque);
-//	}
+//TODO
+
 }
 
+void crear_bitacoras_de_tripulantes(uint32_t tripulantes){
+	for(int i = 1; i <= tripulantes; i++){
+		char* pathArchivoBitacora = string_new();
+		string_append_with_format(&pathArchivoBitacora, "%s", path_bitacoras);
+		string_append_with_format(&pathArchivoBitacora, "/Tripulante%d.", i);
+
+		if(!archivo_existe(pathArchivoBitacora)){
+			FILE* bloque = fopen(pathArchivoBitacora, "w");
+			fclose(bloque);
+		}
+		free(pathArchivoBitacora);
+	}
+}
 
 void inicializar_bitmap(){
 	path_superbloque = string_new();
