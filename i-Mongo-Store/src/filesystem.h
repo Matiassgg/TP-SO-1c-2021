@@ -15,6 +15,7 @@ int crear_archivo(char*);
 int crear_archivo_recursos(char*);
 int eliminar_archivo(char*);
 void vaciar_archivo(char* archivo);
+void crear_blocks(char*,char*);
 
 t_bitarray* crear_bitmap(void);
 #endif /* I_MONGO_STORE_SRC_FILESYSTEM_H_ */

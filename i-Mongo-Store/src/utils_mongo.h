@@ -33,9 +33,8 @@ uint32_t blocks;
 uint32_t block_size;
 t_bitarray* bitmap;
 
-char* ruta_bloques;
 char* path_files;
-char* path_bloques;
+char* ruta_blocks;
 char* ruta_superbloque;
 char* path_bitacoras;
 char* bitarray_string;

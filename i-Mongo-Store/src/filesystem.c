@@ -3,10 +3,10 @@
 void inicializar_paths_aux(){
 	ruta_superbloque = string_new();
 	path_files = string_new();
-	path_bloques = string_new();
+	ruta_blocks = string_new();
 	path_bitacoras = string_new();
 
-	string_append_with_format(&path_bloques, "%s/Blocks.ims", punto_montaje);
+	string_append_with_format(&ruta_blocks, "%s/Blocks.ims", punto_montaje);
 	string_append_with_format(&path_files, "%s/Files", punto_montaje);
 	string_append_with_format(&ruta_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_bitacoras, "%s/Bitacoras", path_files);
@@ -19,11 +19,6 @@ void inicializar_paths_aux(){
 		mkdir(path_bitacoras, 0700);
 	}
 
-}
-
-
-void inicializar_bloques(){
-	;
 }
 
 void crear_superbloque() {
@@ -40,7 +35,7 @@ void crear_superbloque() {
 }
 
 void obtener_superbloque(){
-	FILE* superbloque = fopen(ruta_superbloque, "rb");
+	FILE* superbloque = fopen(ruta_superbloque, "r");
 
 	if(superbloque){
 		log_info(logger, "MONGO-STORE :: SE LEE EL SUPERBLOQUE");
@@ -67,30 +62,14 @@ void leer_superbloque(FILE* archivo){
 	free(leido);
 }
 
+void crear_blocks(char* ruta_blocks,char* path_superbloque){
+ ruta_blocks = string_duplicate(ruta_blocks);
 
-//void inicializar_bloques(){
-//	path_bloques = string_new();
-//
-//	string_append_with_format(&path_bloques, "%s/Blocks", punto_montaje);
-//
-//
-//	if (!directorio_existe(path_bloques)) {
-//			mkdir(path_bloques, 0700);
-//	}
-//
-//	crear_bloques(path_bloques,ruta_superbloque);
-//}
-
-
-//void crear_bloques(char* path_bloques,char* path_superbloque){
-//
-//	ruta_bloques = string_duplicate(path_bloques);
-//
-//	log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO", blocks, block_size);
+ log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO", blocks, block_size);
 //
 //	for(int i = 1; i <= blocks; i++){
 //		char* pathArchivoBloque = string_new();
-//		string_append_with_format(&pathArchivoBloque, "%s", path_bloques);
+//		string_append_with_format(&pathArchivoBloque, "%s", ruta_blocks);
 //		string_append_with_format(&pathArchivoBloque, "/%d.", i);
 //
 //		if(!archivo_existe(pathArchivoBloque)){
@@ -100,7 +79,7 @@ void leer_superbloque(FILE* archivo){
 //
 //		free(pathArchivoBloque);
 //	}
-//}
+}
 
 
 void inicializar_bitmap(){
@@ -161,14 +140,14 @@ bool directorio_existe(char* path) {
 	return existe;
 }
 
-bool archivo_existe(char* nombre_archivo){
+bool archivo_existe(char* nombreArchivo){
 
-    if (access(nombre_archivo, F_OK) != 0){
-        log_warning(logger,"'%s' no existe\n", nombre_archivo);
+    if (access(nombreArchivo, F_OK) != 0){
+        log_warning(logger,"'%s' no existe\n", nombreArchivo);
         return false;
     }
     else {
-        log_info(logger,"'%s' existe\n", nombre_archivo);
+        log_info(logger,"'%s' existe\n", nombreArchivo);
         return true;
     }
 
@@ -190,20 +169,20 @@ int crear_archivo(char* archivo){
 	return 1;
 }
 
-char* obtener_path_files(char* path_relativo) {
+char* obtener_path_files(char* pathRelativo) {
 	char* path = string_new();
-	string_append_with_format(&path, "%s/%s", path_files,path_relativo);
+	string_append_with_format(&path, "%s/%s", path_files,pathRelativo);
 
 	return path;
 }
 
-bool archivo_recursos_existe(char* nombre_archivo){
-	char* ruta_archivo_recursos = obtener_path_files(nombre_archivo);
+bool archivo_recursos_existe(char* nombreArchivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
 	return archivo_existe(ruta_archivo_recursos);
 }
 
-int crear_archivo_recursos(char* nombre_archivo){
-	char* ruta_archivo_recursos = obtener_path_files(nombre_archivo);
+int crear_archivo_recursos(char* nombreArchivo){
+	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
 	if(crear_archivo(ruta_archivo_recursos)){
 		return 1;
 	}

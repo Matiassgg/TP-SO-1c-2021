@@ -20,7 +20,7 @@ void iniciar_mongo(void) {
     inicializar_filesystem();
 
     if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
-    	log_error(logger, "DISCORDIADOR :: No me pude conectar al DISCORDIADOR");
+    	log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
     else
     	log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
 
@@ -34,8 +34,8 @@ void inicializar_filesystem() {
 	else
 	    obtener_superbloque();
 
-	if(!archivo_existe(path_bloques))
-	    inicializar_bloques();
+	if(!archivo_existe(ruta_blocks))
+	    crear_blocks();
 }
 
 void FS_RESET(){
@@ -93,13 +93,11 @@ void terminar_programa() {
 	config_destroy(config);
 
 	//pthread_mutex_destroy(mutexBlocks);
-
-	free(ruta_bloques);
+	free(ruta_blocks);
 	//free(bitarrayFS);
 	free(ruta_superbloque);
 //	free(mutexBlocks);
 	free(path_files);
 	free(path_bitacoras);
-	free(path_bloques);
 	//TODO Terminar conexiones...
 }
