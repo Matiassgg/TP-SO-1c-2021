@@ -14,6 +14,7 @@ void arrancar_servidor(void){
 	}
 }
 
+
 void serve_client(int* socket_que_nos_pasan) {
 	uint32_t socket = *socket_que_nos_pasan;
 	free(socket_que_nos_pasan);
@@ -34,6 +35,7 @@ void serve_client(int* socket_que_nos_pasan) {
 	}
 
 }
+
 
 void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 

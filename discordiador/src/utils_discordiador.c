@@ -45,6 +45,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	//Procesar mensajes recibidos
 	switch (cod_op) {
 		t_list* lista_tripulantes_respuesta = list_create();
+		t_posicion* posicion_sabotaje = malloc(sizeof(t_posicion));
 
 		case ESTA_ON:
 			log_info(logger, "Estamos on");
@@ -52,7 +53,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 
 		case LISTAR_TRIPULANTES:
-			// Obtengo el listado a partir de RAM
 			obtener_listado_tripulantes(lista_tripulantes_respuesta);
 			uint32_t cantidad_tripulantes = list_size(lista_tripulantes_respuesta);
 
@@ -76,9 +76,23 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 				free(respuesta);
 			}
 			log_info(logger, "--------------------------------------------------------");
-
-
 		break;
+
+		case SABOTAJE:
+			posicion_sabotaje = deserializar_posicion_sabotaje(cliente_fd);
+			log_info(logger, "DISCORDIADOR :: Me llego SABOTAJE de MONGO STORE en la posicion %i|%i",
+					posicion_sabotaje->pos_x,
+					posicion_sabotaje->pos_y
+					);
+			log_info(logger, "El sabotaje tendra una duracion de %d", duracion_sabotaje);
+
+
+			// REVISAR
+//			detener_tripulantes_con_tareas();
+//			planificar_tripulante_para_sabotaje();
+
+			free(posicion_sabotaje);
+			break;
 	}
 
 }

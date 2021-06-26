@@ -96,13 +96,6 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"INICIAR_PLANIFICACION")) {
-		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 0))
-			log_warning(logger, "No metas la pata, aca no hacen faltan argumentos");
-
-//		Con este comando se dará inicio a la planificación, la idea es que hasta este punto no hayan
-//		movimientos entre las colas de planificación ni de los tripulantes. Este mensaje no contiene ningún
-//		parámetro.
-
 		iniciar_planificacion();
 
 		log_info(logger, "DISCORDIADOR :: Se da inicio a la planificacion");
@@ -113,10 +106,6 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"PAUSAR_PLANIFICACION")) {
-
-//		Este comando lo que busca es detener la planificación en cualquier momento. Este mensaje no
-//		contiene ningún parámetro.
-
 		log_info(logger, "DISCORDIADOR :: Se esta deteniendo la planificacion");
 
 		pausar_planificacion();
@@ -127,23 +116,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"OBTENER_BITACORA")) {
-//		Este comando obtendrá la bitácora del tripulante pasado por parámetro a través de una consulta a
-//		i-Mongo-Store.
-
 		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %s", palabras_del_mensaje[1]);
 
 		// Consulta a i-Mongo-Store para obtener la bitacora
-
-		return;
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////
-
-	if(son_iguales(palabras_del_mensaje[0] ,"SABOTAJE")) {
-		log_info(logger, "DISCORDIADOR :: Nos llego SABOTAJE de i-Mongo-Store");
-
-		// Este mensaje llega a discordiador cuando le llega la señal al mongo
-		// Falta resolver como averiguar la posicion de sabotaje desde aca
 
 		return;
 	}

@@ -19,6 +19,11 @@ void iniciar_mongo(void) {
 
     inicializar_filesystem();
 
+    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
+    	log_error(logger, "DISCORDIADOR :: No me pude conectar al DISCORDIADOR");
+    else
+    	log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
+
 }
 
 void inicializar_filesystem() {
@@ -52,8 +57,13 @@ void leer_config(void) {
 	punto_montaje = config_get_string_value(config,"PUNTO_MONTAJE");
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 	tiempo_sincronizacion = config_get_int_value(config, "TIEMPO_SINCRONIZACION");
+
 	ip_Mongo_Store = config_get_string_value(config, "IP_I_MONGO_STORE");
 	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+
+	ip_discordiador = config_get_string_value(config, "IP_DISCORDIADOR");
+	puerto_discordiador = config_get_string_value(config, "PUERTO_DISCORDIADOR");
+
 	blocks = config_get_int_value(config, "BLOCKS");
 	block_size = config_get_int_value(config, "BLOCK_SIZE");
 
@@ -76,7 +86,7 @@ void obtener_posiciones_sabotaje() {
 }
 
 void terminar_programa() {
-
+	liberar_conexion(&socket_Mi_RAM_HQ);
 	log_info(logger,"\t\t\t~. MONGO STORE FINALIZADO .~\n");
 	log_destroy(logger);
 

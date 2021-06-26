@@ -274,3 +274,16 @@ t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente) {
 	return tarea;
 }
 
+t_posicion* deserializar_posicion_sabotaje(uint32_t socket_cliente) {
+	//------------ORDEN------------
+	//1. Posicion x
+	//2. Posicion y
+	//-----------------------------
+
+	t_posicion* posicion = malloc(sizeof(t_posicion));
+	recv(socket_cliente, &(posicion->pos_x), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(posicion->pos_y), sizeof(uint32_t), 0);
+
+	return posicion;
+}
+

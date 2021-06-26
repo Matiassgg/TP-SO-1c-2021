@@ -24,6 +24,7 @@ typedef enum {
 	EXPULSAR_TRIPULANTE,
 	OBTENER_BITACORA,
 	ESTA_ON,
+	SABOTAJE,
 	// Tripulantes ?
 	ARRANCAR_TAREAS,					// 1.	Informar al módulo Mi-RAM HQ que desea iniciar, indicando a qué patota pertenece
 	MOVER_HACIA,

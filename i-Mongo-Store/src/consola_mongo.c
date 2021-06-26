@@ -1,15 +1,32 @@
 #include "consola_mongo.h"
 
-void leer_consola() { // TODO HAY UNA CONSOLA EN MONGO?
-	char* leido = readline(">");
-	while (!son_iguales(leido, "\0")) {
-		procesar_mensajes_en_consola_mongo(string_split(leido, " "));
-		free(leido);
-		leido = readline(">");
-	}
-	free(leido);
+t_posicion* obtener_proxima_posicion_sabotaje(void) {
+	t_posicion* posicion = malloc(sizeof(t_posicion));
+
+	// POR AHORA HARDCODEO :: Se obtiene de la lista
+	posicion->pos_x = 10;
+	posicion->pos_y = 10;
+
+	//list_get(posiciones_sabotaje, proxima_posicion_sabotaje);
+
+	return posicion;
 }
 
+void funcionFulera(int signal) {
+	log_info(logger, "SE RECIBE EL SIGNAL %d", signal);
+	t_posicion* posicion_sabotaje = obtener_proxima_posicion_sabotaje();
+	enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
+}
+
+// TODO HAY UNA CONSOLA EN MONGO? -> No es necesaria para mandar el signal o ke ?
+void leer_consola() {
+	signal(SIGUSR1, &funcionFulera);
+	while (1) {
+		// Tiene que seguir porque puede recibir mas señales de sabotaje supongo nose
+	}
+}
+
+// CREO QUE ESTO NO SE USA
 void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje) {
 
 	//////////////////////////////////////////////////////////////////////////////////////

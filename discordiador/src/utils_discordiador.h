@@ -2,6 +2,7 @@
 #define DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_
 
 #include "../../utils/utils/utils.h"
+#include "msg_discordiador.h"
 
 char* ip_discordiador;
 char* puerto_escucha;
