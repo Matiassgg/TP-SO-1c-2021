@@ -1,14 +1,14 @@
 #include "filesystem.h"
 
 void inicializar_paths_aux(){
-	ruta_superbloque = string_new();
+	path_superbloque = string_new();
 	path_files = string_new();
-	ruta_blocks = string_new();
+	path_blocks = string_new();
 	path_bitacoras = string_new();
 
-	string_append_with_format(&ruta_blocks, "%s/Blocks.ims", punto_montaje);
+	string_append_with_format(&path_blocks, "%s/Blocks.ims", punto_montaje);
 	string_append_with_format(&path_files, "%s/Files", punto_montaje);
-	string_append_with_format(&ruta_superbloque, "%s/SuperBloque.ims", punto_montaje);
+	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_bitacoras, "%s/Bitacoras", path_files);
 
 	if (!directorio_existe(path_files)) {
@@ -22,7 +22,7 @@ void inicializar_paths_aux(){
 }
 
 void crear_superbloque() {
-	FILE* superbloque = fopen(ruta_superbloque,"wb");
+	FILE* superbloque = fopen(path_superbloque,"wb");
 	t_bitarray* bitarray = crear_bitmap();
 
 	fwrite(&block_size,sizeof(uint32_t),1,superbloque);
@@ -35,7 +35,7 @@ void crear_superbloque() {
 }
 
 void obtener_superbloque(){
-	FILE* superbloque = fopen(ruta_superbloque, "r");
+	FILE* superbloque = fopen(path_superbloque, "r");
 
 	if(superbloque){
 		log_info(logger, "MONGO-STORE :: SE LEE EL SUPERBLOQUE");
@@ -62,23 +62,28 @@ void leer_superbloque(FILE* archivo){
 	free(leido);
 }
 
-void crear_blocks(char* ruta_blocks,char* path_superbloque){
- ruta_blocks = string_duplicate(ruta_blocks);
+void crear_blocks(){
+	log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO EN EL ARCHIVO %s", blocks, block_size, path_blocks);
+	int fd = crear_archivo(path_blocks);
+	if(fd == -1) {
+		log_error(logger, "MONGO-STORE :: NO SE CREO EL ARCHIVO BLOCKS CORRECTAMENTE");
+	}
+	else {
+		log_info(logger, "MONGO-STORE :: SE CREO EL ARCHIVO BLOCKS CORRECTAMENTE");
+		contenido_blocks = mmap(NULL,block_size * blocks, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
 
- log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO", blocks, block_size);
-//TODO
-
+		close(fd);
+	}
 }
 
 void crear_bitacoras_de_tripulantes(uint32_t tripulantes){
 	for(int i = 1; i <= tripulantes; i++){
+		int fd;
 		char* pathArchivoBitacora = string_new();
-		string_append_with_format(&pathArchivoBitacora, "%s", path_bitacoras);
-		string_append_with_format(&pathArchivoBitacora, "/Tripulante%d.", i);
+		string_append_with_format(&pathArchivoBitacora, "%s/Tripulante%d.ims", path_bitacoras, i);
 
-		if(!archivo_existe(pathArchivoBitacora)){
-			FILE* bloque = fopen(pathArchivoBitacora, "w");
-			fclose(bloque);
+		if((fd = crear_archivo(pathArchivoBitacora))==-1){
+			close(fd);
 		}
 		free(pathArchivoBitacora);
 	}
@@ -90,7 +95,7 @@ void inicializar_bitmap(){
 	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
 
 	if (!directorio_existe(path_superbloque)) {
-		log_info(logger, "NO EXISTE EL SUPERBLOQUE");
+		log_error(logger, "NO EXISTE EL SUPERBLOQUE");
 		exit(0);
 	}
 
@@ -114,8 +119,7 @@ t_bitarray* crear_bitmap() {
 }
 
 t_bitarray* leer_bitmap(){
-
-	FILE* superbloque = fopen(ruta_superbloque,"rb");
+	FILE* superbloque = fopen(path_superbloque,"rb");
 
 	fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
 
@@ -131,6 +135,19 @@ t_bitarray* leer_bitmap(){
 	}
 
 	return NULL;
+
+}
+
+void subir_bitmap(t_bitarray* bitarray){
+	FILE* superbloque = fopen(path_superbloque,"ab+");
+	fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
+
+	if(superbloque){
+
+		fwrite(bitarray->bitarray,bitarray->size,1,superbloque);
+
+		fclose(superbloque);
+	}
 
 }
 
@@ -163,12 +180,7 @@ int eliminar_archivo(char* archivo){
 }
 
 int crear_archivo(char* archivo){
-	FILE * file;
-	file = fopen(archivo, "wb");
-	if(file==NULL){
-		return 0;
-	}
-	return 1;
+	return open(archivo, O_RDWR | O_CREAT);
 }
 
 char* obtener_path_files(char* pathRelativo) {
@@ -203,3 +215,39 @@ void vaciar_archivo(char* archivo){
 		log_warning(logger,"No se pudo abrir el archivo %s al querer vaciarlo",archivo);
 	fclose(file);
 }
+
+uint32_t minimo(uint32_t numero1, uint32_t numero2){
+	if(numero1 < numero2)
+		return numero1;
+	return numero2;
+}
+
+int dar_bloque_libre(){
+	t_bitarray* bitarray = leer_bitmap();
+	for(int i=0;i<blocks;i++){
+		if(bitarray_test_bit(bitarray, i) == 0){
+			bitarray_set_bit(bitarray,i);
+			subir_bitmap(bitarray);
+			bitarray_destroy(bitarray);
+			return i;
+		}
+	}
+	bitarray_destroy(bitarray);
+	return -1;
+}
+
+
+
+void subir_buffer_FS(t_buffer* buffer){
+	uint32_t offset = 0;
+	while(offset < buffer->size){
+		int bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
+
+		uint32_t tamanio_subida = minimo((buffer->size-offset),block_size);
+
+		memcpy(contenido_blocks + (bloque_libre*block_size),buffer->stream,tamanio_subida);
+
+		offset += tamanio_subida;
+	}
+}
+

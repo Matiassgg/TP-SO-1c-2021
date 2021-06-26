@@ -58,6 +58,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
+			crear_bitacoras_de_tripulantes(patota->cant_tripulantes);
 //			GUARDAR EN FS Y HACER LAS TARES CORRESPONDIENTES
 			list_destroy(patota->posiciones);
 			free(patota->path_tareas);

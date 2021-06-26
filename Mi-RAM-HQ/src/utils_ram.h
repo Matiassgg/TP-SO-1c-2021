@@ -67,7 +67,6 @@ typedef struct {
 
 typedef struct {
 	uint32_t inicioMemoria;
-	uint32_t indice;
 	uint32_t numero_marco;
 	bool bitUso;
 	char* timeStamp;

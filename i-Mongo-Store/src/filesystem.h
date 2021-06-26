@@ -1,6 +1,11 @@
 #ifndef I_MONGO_STORE_SRC_FILESYSTEM_H_
 #define I_MONGO_STORE_SRC_FILESYSTEM_H_
+
 #include "utils_mongo.h"
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 void inicializar_paths_aux();
 void leer_superbloque(FILE* archivo);
@@ -15,7 +20,7 @@ int crear_archivo(char*);
 int crear_archivo_recursos(char*);
 int eliminar_archivo(char*);
 void vaciar_archivo(char* archivo);
-void crear_blocks(char*,char*);
+void crear_blocks();
 
 t_bitarray* crear_bitmap(void);
 #endif /* I_MONGO_STORE_SRC_FILESYSTEM_H_ */

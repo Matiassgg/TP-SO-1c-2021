@@ -29,12 +29,12 @@ void iniciar_mongo(void) {
 void inicializar_filesystem() {
 
     inicializar_paths_aux();
-	if(!archivo_existe(ruta_superbloque))
+	if(!archivo_existe(path_superbloque))
 		crear_superbloque();
 	else
 	    obtener_superbloque();
 
-	if(!archivo_existe(ruta_blocks))
+	if(!archivo_existe(path_blocks))
 	    crear_blocks();
 }
 
@@ -93,9 +93,9 @@ void terminar_programa() {
 	config_destroy(config);
 
 	//pthread_mutex_destroy(mutexBlocks);
-	free(ruta_blocks);
+	free(path_blocks);
 	//free(bitarrayFS);
-	free(ruta_superbloque);
+	free(path_superbloque);
 //	free(mutexBlocks);
 	free(path_files);
 	free(path_bitacoras);

@@ -267,14 +267,14 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		log_info(logger, "Desplazamiento: %d", offset);
 
 		t_marco* nuevaEntrada = malloc(sizeof(t_marco));
-		nuevaEntrada->indice = cantidad_de_marcos;
+		nuevaEntrada->numero_marco = cantidad_de_marcos;
 		nuevaEntrada->bitUso = false;
 		nuevaEntrada->idPatota = -1;
 		nuevaEntrada->inicioMemoria = offset;
 		nuevaEntrada->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevaEntrada);
-		log_info(logger, "Marco numero: %d", nuevaEntrada->indice);
+		log_info(logger, "Marco numero: %d", nuevaEntrada->numero_marco);
 		cantidad_de_marcos++;
 	}
 
@@ -528,18 +528,18 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 				marco->bitUso = true;
 				marco->idPatota = id_patota_asociada;
 
-				log_info(logger, "Marco seleccionado: %d", marco->indice);
+				log_info(logger, "Marco seleccionado: %d", marco->numero_marco);
 
 				// Agrego a lista de timestamp por marco
 				if (!strcmp(algoritmo_reemplazo, "LRU")) {
 					marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
-					log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->indice, marco->timeStamp);
+					log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->numero_marco, marco->timeStamp);
 				}
 
 				// Agrego a lista de timestamp por marco
 				if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
 					marco->bitUso = true;
-					log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->indice, marco->bitUso);
+					log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numero_marco, marco->bitUso);
 				}
 
 				// Agrego el marco a la lista de marcos del pedido
@@ -809,7 +809,7 @@ void seleccionar_victima_LRU(void){
 	list_sort(tablaDeMarcos, mas_viejo);
 	t_marco* entrada_mas_vieja = list_get(tablaDeMarcos, 0);
 
-	log_info(logger, "Victima seleccionada: %d", entrada_mas_vieja->indice);
+	log_info(logger, "Victima seleccionada: %d", entrada_mas_vieja->numero_marco);
 
 	//todo FALTA VER QUE PASA CON SWAP ACA
 
@@ -851,7 +851,7 @@ void seleccionar_victima_CLOCK(void){
 
 	pthread_mutex_lock(&mutexFree);
 
-	log_info(logger, "Victima seleccionada: %d", punteroMarcoClock->indice);
+	log_info(logger, "Victima seleccionada: %d", punteroMarcoClock->numero_marco);
 
 	// todo Escribo en SWAP
 
