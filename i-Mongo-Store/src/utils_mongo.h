@@ -30,7 +30,7 @@ pthread_t hiloReceive;
 uint32_t blocks;
 uint32_t block_size;
 t_bitarray* bitmap;
-char* contenido_blocks;
+void* contenido_blocks;
 
 char* path_files;
 char* path_blocks;

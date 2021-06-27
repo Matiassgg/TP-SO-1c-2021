@@ -45,6 +45,7 @@ void FS_RESET(){
 
 	if(borrarFS){
 		char* aux = string_new();
+//		eliminar_archivo()
 		string_append_with_format(&aux, "sh ../src/eliminadorFS.sh %s", punto_montaje);
 		system(aux);
 		free(aux);

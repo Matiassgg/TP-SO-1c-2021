@@ -32,7 +32,7 @@ INICIAR_PLANIFICACION
 EXPULSAR_TRIPULANTE 2
 
 
-INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno.txt 1|2
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno2.txt 4|3
 INICIAR_PLANIFICACION
 
 -------------------------------------------------------------------------------------------------------------------------------------
@@ -58,12 +58,12 @@ INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno.txt 5|5
 ---------------------------------------------------SEGMENTACION
 
 
-INICIAR_PATOTA 10 /home/utnso/a-mongos-pruebas/Generales/espartana.txt 
+INICIAR_PATOTA 10 /home/utnso/a-mongos-pruebas/Generales/espartana.txt
 INICIAR_PLANIFICACION
 
 Una vez iniciada la planificación eliminar los tripulantes 4, 5 y 6 de la patota espartana
 
-INICIAR_PATOTA 6 /home/utnso/a-mongos-pruebas/Generales/persa.txt 
+INICIAR_PATOTA 6 /home/utnso/a-mongos-pruebas/Generales/persa.txt
 
 Una vez verificada la asignación de la memoria finalizar todos los tripulantes de la patota espartana y verificar el estado de la memoria.
 Enviar la señal para compactar y verificar el estado de la memoria..

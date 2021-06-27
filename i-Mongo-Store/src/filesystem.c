@@ -62,6 +62,31 @@ void leer_superbloque(FILE* archivo){
 	free(leido);
 }
 
+char* dar_hash_md5(char* archivo){
+	char* system_command = string_new();
+	string_append_with_format(&system_command, "md5sum %s > aux", archivo);
+	system(system_command);
+	free(system_command);
+
+	int archivo_aux = open("aux", O_RDWR);
+	if(archivo_aux == -1){
+		log_error(logger, "no se abrio archivo");
+	}
+	struct stat file_st;
+	fstat(archivo_aux, &file_st);
+
+	char* contenido = malloc(file_st.st_size+1);
+	read(archivo_aux,contenido,file_st.st_size);
+//	log_info(logger, "contenido %s", contenido);
+
+
+	char** hash = string_split(contenido," ");
+
+	eliminar_archivo("aux");
+
+	return hash[0];
+}
+
 void crear_blocks(){
 	log_info(logger, "MONGO-STORE :: SE INICIALIZARAN LOS %d BLOQUES DE %d TAMANIO EN EL ARCHIVO %s", blocks, block_size, path_blocks);
 	int fd = crear_archivo(path_blocks);
@@ -72,7 +97,7 @@ void crear_blocks(){
 		log_info(logger, "MONGO-STORE :: SE CREO EL ARCHIVO BLOCKS CORRECTAMENTE");
 		contenido_blocks = calloc(1,block_size * blocks);
 		write(fd,contenido_blocks,block_size * blocks);
-		log_info(logger, "%s",contenido_blocks);
+//		log_info(logger, "%s\nHASH de %s:\n%s\n",contenido_blocks, path_blocks, dar_hash_md5(path_blocks));
 		struct stat file_st;
 		fstat(fd, &file_st);
 		contenido_blocks = mmap(NULL,file_st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -190,7 +215,7 @@ int eliminar_archivo(char* archivo){
 }
 
 int crear_archivo(char* archivo){
-	return creat(archivo, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	return open(archivo, O_RDWR | O_CREAT);
 }
 
 char* obtener_path_files(char* pathRelativo) {
@@ -210,11 +235,11 @@ int crear_archivo_recursos(char* nombreArchivo){
 	FILE* archivo = fopen(ruta_archivo_recursos, "w+");
 	if(archivo){
 		char* file_generico = "SIZE=0\nBLOCK_COUNT=0\nBLOCKS=[]\nCARACTER_LLENADO=\nMD5_ARCHIVO=";
-//		char* hash = conseguir_hash(ruta_archivo_recursos); TODO
-//		string_append(&file_generico,hash);
 		fwrite(file_generico,string_length(file_generico),1,archivo);
 
 		fclose(archivo);
+//		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
+
 		return 1;
 	}
 	return 0;
@@ -320,7 +345,7 @@ t_list* agregar_caracteres_blocks(char* stream_a_agregar, int ultimo_bloque, int
 }
 
 
-char* obtener_stream_tarea(char* tarea, t_list* bloques, uint32_t size){
+char* obtener_stream_tarea(char caracter, t_list* bloques, uint32_t size){
 	//------------ORDEN------------
 		//1. SIZE
 		//2. BLOCK_COUNT
@@ -330,7 +355,7 @@ char* obtener_stream_tarea(char* tarea, t_list* bloques, uint32_t size){
 	//-----------------------------
 	uint32_t cant_bloques = (uint32_t) list_size(bloques);
 
-	char* stream = "SIZE=";
+	char* stream = string_duplicate("SIZE=");
 	string_append_with_format(&stream, "%i\n", size);
 	string_append_with_format(&stream, "BLOCK_COUNT=%i\n", cant_bloques);
 	string_append_with_format(&stream, "BLOCKS=[");
@@ -340,7 +365,7 @@ char* obtener_stream_tarea(char* tarea, t_list* bloques, uint32_t size){
 			string_append_with_format(&stream, ",");
 	}
 	string_append_with_format(&stream, "]\n");
-	string_append_with_format(&stream, "CARACTER_LLENADO=%c\n", obtener_caracter_llenado(tarea));
+	string_append_with_format(&stream, "CARACTER_LLENADO=%c\n", caracter);
 	string_append_with_format(&stream, "MD5_ARCHIVO=%s\n", "XD");
 
 	return stream;
@@ -348,20 +373,22 @@ char* obtener_stream_tarea(char* tarea, t_list* bloques, uint32_t size){
 
 void sumar_bloques_config(t_list* bloques, t_config* config){
 	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
-	char** bloques_config = config_get_array_value(config, "BLOCK_COUNT");
-	for(int i=0; i<cant_bloques;i++){
-		list_add(bloques, atoi(bloques_config[i]));
+	if(cant_bloques != 0){
+		char** bloques_config = config_get_array_value(config, "BLOCKS");
+		for(int i=0; i<cant_bloques;i++){
+			list_add(bloques, atoi(bloques_config[i]));
+		}
 	}
 }
 
-char* actualizar_stream_tarea(char* tarea, t_list* bloques, uint32_t size, t_config* config){
+char* actualizar_stream_tarea(char caracter, t_list* bloques, uint32_t size, t_config* config){
 	sumar_bloques_config(bloques, config);
 	uint32_t size_old = config_get_int_value(config, "SIZE");
-	return obtener_stream_tarea(tarea, bloques, size+size_old);
+	return obtener_stream_tarea(caracter, bloques, size+size_old);
 }
 
-void actualizar_archivo_file(char* tarea, t_list* bloques, t_config* config, uint32_t size){
-	char* stream = actualizar_stream_tarea(tarea, bloques, size, config);
+void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, uint32_t size){
+	char* stream = actualizar_stream_tarea(caracter, bloques, size, config);
 
 	FILE* archivo = fopen(config->path,"w+");
 	fwrite(stream,string_length(stream),1,archivo);
@@ -385,7 +412,7 @@ t_buffer* serializar_tarea(tarea_Mongo* tarea) {
 int ultimo_bloque_config(t_config* config){
 	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
 	if(cant_bloques != 0){
-		char** bloques_config = config_get_array_value(config, "BLOCK_COUNT");
+		char** bloques_config = config_get_array_value(config, "BLOCKS");
 
 		return atoi(bloques_config[cant_bloques-1]);
 	}
@@ -407,7 +434,7 @@ void subir_tarea(char* caracteres, char* archivo){
 	int tamanio_restante = tamanio_restante_config(config);
 	t_list* bloques = agregar_caracteres_blocks(caracteres, ultimo_bloque, tamanio_restante);
 
-	actualizar_archivo_file(caracteres, bloques, config, string_length(caracteres));
+	actualizar_archivo_file(caracteres[0], bloques, config, string_length(caracteres));
 
 }
 
