@@ -51,11 +51,11 @@ typedef struct {
 	uint32_t id_patota_asociada;
 } t_tabla_segmentos;
 
-typedef struct {
-	uint32_t nro_segmento;
-	uint32_t id_asociado;
-	e_tipo_dato tipo_dato;
-} t_asociador_segmento;
+//typedef struct {
+//	uint32_t nro_segmento;
+//	uint32_t id_asociado;
+//	e_tipo_dato tipo_dato;
+//} t_asociador_segmento;
 
 //---------Paginación simple--------//
 
@@ -78,8 +78,7 @@ typedef struct {
 	t_marco* marco;
 	bool bit_presencia;
 	bool bit_modificado;
-	e_tipo_dato tipo_dato;
-	//t_asociador_pagina* asociador;
+	t_dictionary* diccionario_pagina;
 } t_pagina;
 
 typedef struct {
@@ -88,7 +87,6 @@ typedef struct {
 } t_pagina_en_marco;
 
 typedef struct {
-	uint32_t tam;
 	t_list* paginas;
 	uint32_t id_patota_asociada;
 } t_tabla_paginas;

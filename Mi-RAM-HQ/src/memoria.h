@@ -8,11 +8,13 @@
 #define TAMANIO_TCB 21
 #define TAMANIO_OFFSET 1000
 
+#define TAMANIO_INICIAL_TABLA_PAGINACION 256
+
 pthread_t hiloReceiveMapa;
 
 void iniciar_memoria(void);
 void preparar_memoria(void);
-void crear_tabla_segmentacion(uint32_t id_patota);
+void crear_tabla(uint32_t id_patota);
 uint32_t cantidad_paginas_pedidas(uint32_t cantidad);
 t_pagina* crear_pagina();
 t_list* crear_tabla_paginacion(uint32_t tam);

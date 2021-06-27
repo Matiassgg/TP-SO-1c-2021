@@ -44,7 +44,7 @@ void preparar_memoria() {
 
 }
 
-void crear_tabla_segmentacion(uint32_t id_patota){
+void crear_tabla(uint32_t id_patota){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")){
 		log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
@@ -58,19 +58,21 @@ void crear_tabla_segmentacion(uint32_t id_patota){
 
 	}else if(son_iguales(esquema_memoria, "PAGINACION")){
 		log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
-		t_tabla_paginas* tabla_pagina_patota = malloc(sizeof(t_tabla_paginas));
-		tabla_pagina_patota->id_patota_asociada = id_patota;
-		tabla_pagina_patota->paginas = list_create();
-		tabla_pagina_patota->tam = sizeof(tabla_pagina_patota->paginas);
+		t_tabla_paginas* tabla = crear_tabla_paginacion(id_patota);
 
 		pthread_mutex_lock(&mutex_tablas);
-		list_add(lista_tablas_paginas, tabla_pagina_patota);
+		list_add(lista_tablas_paginas, tabla);
 		pthread_mutex_unlock(&mutex_tablas);
 	}
 }
 
-uint32_t cantidad_paginas_pedidas(uint32_t cantidad) {
-//	return div(cantidad, tamanio_pagina);  ??????????
+uint32_t cantidad_paginas_pedidas() {
+	div_t aux = div(TAMANIO_INICIAL_TABLA_PAGINACION, tamanio_pagina);
+		if (aux.rem == 0) {
+			return aux.quot;
+		} else {
+			return aux.quot + 1;
+		}
 }
 
 t_pagina* crear_pagina() {
@@ -78,27 +80,43 @@ t_pagina* crear_pagina() {
 	pagina->bit_presencia = 0;
 	pagina->bit_modificado=0;
 	pagina->marco = NULL;
-//	pagina->tipo_dato = NULL; ???
+	pagina->diccionario_pagina = dictionary_create();
 	return pagina;
 }
 
-t_list* crear_tabla_paginacion(uint32_t tam) {
-	int cantidadDePaginas = cantidad_paginas_pedidas(tam);
-	t_list *lista = list_create();
+t_tabla_paginas* crear_tabla_paginacion(uint32_t id_patota) {
+	t_tabla_paginas* tabla = malloc(sizeof(t_tabla_paginas));
+	tabla->paginas = list_create();
+	tabla->id_patota_asociada = id_patota;
+
+	int cantidadDePaginas = cantidad_paginas_pedidas();
 	t_pagina *pagina;
 
 	for (int i = 0; i < cantidadDePaginas; i++) {
 		pagina = crear_pagina();
 		pagina->numeroPagina=i;
-		list_add(lista, pagina);
+		list_add(tabla->paginas, pagina);
 	}
-	return lista;
+	return tabla->paginas;
+}
+
+void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice ){
+	t_pagina *pagina;
+	int indicePagina=indice;
+		for (int i = 0; i < cantidad; i++) {
+			pagina = crear_pagina();
+			pagina->numeroPagina=indicePagina;
+			asignar_marco(pagina);
+			indicePagina++;
+			list_add(tabla, pagina);
+		}
 }
 
 void asignar_marco(t_pagina* pagina) {
 	t_marco *marco = buscar_marco_libre();
 	sem_wait(&mutex_marcos);
 	if(!marco){
+		log_error("Hasta implementar swap, no quedan marcos libres.");
 		// asignar_marco_en_swap(pagina);
 	} else {
 		// bitarray_set_bit(BIT_ARRAY_MARCOS, (off_t) marco->numero_marco); NO CREO Q HAGA FALTA
@@ -132,7 +150,7 @@ t_pcb* crear_pcb(t_patota* patota){
 	return pcb;
 }
 
-void cargar_memoria_patota(t_patota* patota,uint32_t tamanio_tabla_paginas){
+void cargar_memoria_patota(t_patota* patota){
 	pthread_mutex_lock(&mutex_subir_patota);
 	t_pcb* pcb_nuevo = crear_pcb(patota);
 
@@ -140,7 +158,7 @@ void cargar_memoria_patota(t_patota* patota,uint32_t tamanio_tabla_paginas){
 
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		crear_tabla_segmentacion(pcb_nuevo->pid);
+		crear_tabla(pcb_nuevo->pid);
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -157,7 +175,7 @@ void cargar_memoria_patota(t_patota* patota,uint32_t tamanio_tabla_paginas){
 
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
-			t_list* tabla_de_paginas = crear_tabla_paginacion(tamanio_tabla_paginas);
+			t_tabla_paginas* tabla = crear_tabla_paginacion(pcb_nuevo->pid);
 
 			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
