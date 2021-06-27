@@ -60,14 +60,8 @@ typedef struct {
 //---------Paginación simple--------//
 
 typedef struct {
-	uint32_t nro_pagina;
-	uint32_t id_asociado;
-	e_tipo_dato tipo_dato;
-} t_asociador_pagina;
-
-typedef struct {
 	uint32_t inicioMemoria;
-	uint32_t numero_marco;
+	uint32_t numeroMarco;
 	bool bitUso;
 	char* timeStamp;
 	int idPatota;
@@ -76,9 +70,9 @@ typedef struct {
 typedef struct {
 	uint32_t numeroPagina;
 	t_marco* marco;
+	t_dictionary* diccionario_pagina;
 	bool bit_presencia;
 	bool bit_modificado;
-	t_dictionary* diccionario_pagina;
 } t_pagina;
 
 typedef struct {
@@ -115,8 +109,6 @@ t_list* lista_tablas_paginas;
 t_list* patotas_creadas;
 t_marco* punteroMarcoClock;
 t_list* tablaDeMarcos;
-t_bitarray *BIT_ARRAY_MARCOS;
-t_bitarray *BIT_ARRAY_MARCOS_SWAP;
 t_list* tareas;
 char* path_tareas;
 //-------------------------//

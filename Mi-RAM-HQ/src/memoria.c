@@ -97,7 +97,7 @@ t_tabla_paginas* crear_tabla_paginacion(uint32_t id_patota) {
 		pagina->numeroPagina=i;
 		list_add(tabla->paginas, pagina);
 	}
-	return tabla->paginas;
+	return tabla;
 }
 
 void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice ){
@@ -108,26 +108,75 @@ void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice )
 			pagina->numeroPagina=indicePagina;
 			asignar_marco(pagina);
 			indicePagina++;
-			list_add(tabla, pagina);
+			list_add(tabla->paginas, pagina);
 		}
 }
 
 void asignar_marco(t_pagina* pagina) {
 	t_marco *marco = buscar_marco_libre();
-	sem_wait(&mutex_marcos);
+	pthread_mutex_lock(&mutex_marcos);
 	if(!marco){
 		log_error(logger,"Hasta implementar swap, no quedan marcos libres.");
-		// asignar_marco_en_swap(pagina);
+		//asignar_marco_en_swap(pagina);
 	} else {
-		// bitarray_set_bit(BIT_ARRAY_MARCOS, (off_t) marco->numero_marco); NO CREO Q HAGA FALTA
 		pagina->marco = marco;
-		pagina->bit_presencia = true;
 		pagina->marco->bitUso = true;
+		pagina->bit_presencia = true;
 		pagina->bit_modificado = false;
-		// agregar_a_lista_de_marcos_en_paginas(pagina);
 	}
 
-	sem_post(&mutex_marcos);
+	pthread_mutex_unlock(&mutex_marcos);
+}
+
+t_marco* buscar_marco_libre(){
+
+	bool marco_esta_libre(void* parametro){
+			t_marco* marco = (t_marco*) parametro;
+			return marco->bitUso == false;
+	}
+
+	if (!hay_marcos_libres()) {
+		log_error(logger, "No hay marcos libres hasta implementar swap.");
+//		log_info(logger, "No hay marcos libres. Seleccionando victima.");
+//
+//		pthread_t hilo;
+//
+//		pthread_mutex_lock(&mutexVictima);
+//		pthread_create(&hilo, NULL, (void*) seleccionar_victima, NULL);
+//		pthread_join(hilo, 0);
+//		pthread_mutex_unlock(&mutexVictima);
+	}
+	t_list* marcos_libres = list_filter(tablaDeMarcos, marco_esta_libre);
+
+	t_marco* buscado = list_get(marcos_libres, 0);
+	list_destroy(marcos_libres);
+
+	return  buscado;
+}
+
+bool hay_marcos_libres(void){
+
+	bool marco_esta_libre(void* parametro){
+				t_marco* marco = (t_marco*) parametro;
+				return marco->bitUso == false;
+	}
+
+	t_list* marcos_libres = list_filter(tablaDeMarcos, marco_esta_libre);
+
+	int tamanio = list_size(marcos_libres);
+
+	list_destroy(marcos_libres);
+
+	return tamanio > 0;
+}
+
+
+t_marco* buscar_marco(uint32_t marco){
+	bool el_que_quiero(void* parametro){
+		return ((t_marco*)parametro)->inicioMemoria == marco;
+	}
+
+	return list_find(tablaDeMarcos, el_que_quiero);
 }
 
 void asignar_marco_en_swap(t_pagina* pagina){
@@ -136,7 +185,12 @@ void asignar_marco_en_swap(t_pagina* pagina){
 
 uint32_t buscar_lugar_en_swap(){
 	//TODO
+	return 0;
 }
+
+
+
+
 
 
 
@@ -285,14 +339,14 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		log_info(logger, "Desplazamiento: %d", offset);
 
 		t_marco* nuevaEntrada = malloc(sizeof(t_marco));
-		nuevaEntrada->numero_marco = cantidad_de_marcos;
+		nuevaEntrada->numeroMarco = cantidad_de_marcos;
 		nuevaEntrada->bitUso = false;
 		nuevaEntrada->idPatota = -1;
 		nuevaEntrada->inicioMemoria = offset;
 		nuevaEntrada->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevaEntrada);
-		log_info(logger, "Marco numero: %d", nuevaEntrada->numero_marco);
+		log_info(logger, "Marco numero: %d", nuevaEntrada->numeroMarco);
 		cantidad_de_marcos++;
 	}
 
@@ -490,15 +544,6 @@ void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, 
 
 }
 
-t_marco* buscar_marco_libre(){
-	bool esta_libre(t_marco* marco){
-		return (marco->bitUso == false);
-	}
-
-	return (t_segmento*) list_remove_by_condition(tablaDeMarcos, esta_libre);
-
-}
-
 void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato
 									,t_pagina pagina, bool esta_en_memoria){
 	t_marco* marco;
@@ -514,23 +559,23 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 			t_marco* marco;
 
 			for (int i = 0; i < cantidadMarcos && !encont; i++) {
-				//REVISAR ESTO CON TOPY
-				if(tipo_dato == PCB){
-					marco = list_get(marcosDeLaPatota, i);
-					int offset = 0;
-					t_pcb* pcbEnMarco = malloc(8);
-					memcpy(pcbEnMarco, (marco->inicioMemoria + offset), 8);
-
-//					if (!strcmp(pagina->tipo_dato, pcbEnMarco)) //CAMBIAR ESTO, COMPARA UN ENUM CON UN t_pcb
-						encont = true;
-					free(pcbEnMarco);
-				}
-				else if(tipo_dato == TCB){
-
-				}
-				else if(tipo_dato == TAREAS){
-
-				}
+//				//REVISAR ESTO CON TOPY
+//				if(tipo_dato == PCB){
+//					marco = list_get(marcosDeLaPatota, i);
+//					int offset = 0;
+//					t_pcb* pcbEnMarco = malloc(8);
+//					memcpy(pcbEnMarco, (marco->inicioMemoria + offset), 8);
+//
+////					if (!strcmp(pagina->tipo_dato, pcbEnMarco)) //CAMBIAR ESTO, COMPARA UN ENUM CON UN t_pcb
+//						encont = true;
+//					free(pcbEnMarco);
+//				}
+//				else if(tipo_dato == TCB){
+//
+//				}
+//				else if(tipo_dato == TAREAS){
+//
+//				}
 			}
 
 			if (!strcmp(algoritmo_reemplazo, "LRU")) {
@@ -542,22 +587,22 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 			}
 		}
 		else {
-				marco = asignar_entrada_marco_libre();
+				marco = buscar_marco_libre();
 				marco->bitUso = true;
 				marco->idPatota = id_patota_asociada;
 
-				log_info(logger, "Marco seleccionado: %d", marco->numero_marco);
+				log_info(logger, "Marco seleccionado: %d", marco->numeroMarco);
 
 				// Agrego a lista de timestamp por marco
 				if (!strcmp(algoritmo_reemplazo, "LRU")) {
 					marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
-					log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->numero_marco, marco->timeStamp);
+					log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->numeroMarco, marco->timeStamp);
 				}
 
 				// Agrego a lista de timestamp por marco
 				if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
 					marco->bitUso = true;
-					log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numero_marco, marco->bitUso);
+					log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numeroMarco, marco->bitUso);
 				}
 
 				// Agrego el marco a la lista de marcos del pedido
@@ -731,40 +776,6 @@ t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
 	return (t_segmento*) list_remove_by_condition(lista_segmentos_libres, esta_libre);
 }
 
-t_marco* buscar_entrada(void* marco){
-	bool el_que_quiero(void* parametro){
-		return ((t_marco*)parametro)->inicioMemoria == marco;
-	}
-
-	return list_find(tablaDeMarcos, el_que_quiero);
-}
-
-t_marco* asignar_entrada_marco_libre(void){
-	bool este_libre(void* parametro){
-		t_marco* marco = (t_marco*) parametro;
-		return marco->bitUso == false;
-	}
-
-	if (!hay_marcos_libres()) {
-		log_info(logger, "No hay marcos libres. Seleccionando victima.");
-
-		pthread_t hilo;
-
-		pthread_mutex_lock(&mutexVictima);
-		pthread_create(&hilo, NULL, (void*) seleccionar_victima, NULL);
-		pthread_join(hilo, 0);
-		pthread_mutex_unlock(&mutexVictima);
-	}
-
-	t_list* entradas_marcos_libres = list_filter(tablaDeMarcos, este_libre);
-
-	t_marco* buscado = list_get(entradas_marcos_libres, 0);
-
-	list_destroy(entradas_marcos_libres);
-
-	return buscado;
-}
-
 void* convertir(char* algoritmo_nombre) {
 	if (!strcmp(algoritmo_nombre, "LRU")) return (void*) seleccionar_victima_LRU;
 	if (!strcmp(algoritmo_nombre, "CLOCK")) return (void*) seleccionar_victima_CLOCK;
@@ -825,13 +836,13 @@ void seleccionar_victima_LRU(void){
 	pthread_mutex_lock(&mutexFree);
 
 	list_sort(tablaDeMarcos, mas_viejo);
-	t_marco* entrada_mas_vieja = list_get(tablaDeMarcos, 0);
+	t_marco* marco_mas_vieja = list_get(tablaDeMarcos, 0);
 
-	log_info(logger, "Victima seleccionada: %d", entrada_mas_vieja->numero_marco);
+	log_info(logger, "Victima seleccionada: %d", marco_mas_vieja->numeroMarco);
 
 	//todo FALTA VER QUE PASA CON SWAP ACA
 
-	entrada_mas_vieja->bitUso = false;
+	marco_mas_vieja->bitUso = false;
 
 	pthread_mutex_unlock(&mutexFree);
 }
@@ -869,7 +880,7 @@ void seleccionar_victima_CLOCK(void){
 
 	pthread_mutex_lock(&mutexFree);
 
-	log_info(logger, "Victima seleccionada: %d", punteroMarcoClock->numero_marco);
+	log_info(logger, "Victima seleccionada: %d", punteroMarcoClock->numeroMarco);
 
 	// todo Escribo en SWAP
 
@@ -897,20 +908,6 @@ int indice_elemento(t_list* lista, void* elemento){
 	}
 
 	return indice;
-}
-
-bool hay_marcos_libres(void){
-	bool este_libre(void* parametro){
-		return ((t_marco*)parametro)->bitUso = false;
-	}
-
-	t_list* marcos_libres = list_filter(tablaDeMarcos, este_libre);
-
-	int tamanio = list_size(marcos_libres);
-
-	list_destroy(marcos_libres);
-
-	return tamanio > 0;
 }
 
 t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -952,6 +949,4 @@ void expulsar_tripulante(t_tripulante* tripulante){
 
 	eliminar_tripulante(tripulante->id);
 }
-
-
 
