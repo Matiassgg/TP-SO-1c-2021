@@ -116,7 +116,7 @@ void asignar_marco(t_pagina* pagina) {
 	t_marco *marco = buscar_marco_libre();
 	sem_wait(&mutex_marcos);
 	if(!marco){
-		log_error("Hasta implementar swap, no quedan marcos libres.");
+		log_error(logger,"Hasta implementar swap, no quedan marcos libres.");
 		// asignar_marco_en_swap(pagina);
 	} else {
 		// bitarray_set_bit(BIT_ARRAY_MARCOS, (off_t) marco->numero_marco); NO CREO Q HAGA FALTA
