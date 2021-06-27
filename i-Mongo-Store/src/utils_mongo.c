@@ -41,6 +41,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 	uint32_t buffer_size;
 	recv(cliente_fd, &buffer_size, sizeof(uint32_t), MSG_WAITALL);
+	log_info(logger, "procesar_mensaje_recibido");
 
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
 
@@ -92,8 +93,10 @@ void verificar_archivo_tarea(tarea_Mongo* tarea){
 	if(son_iguales(tarea->tarea,"GENERAR_OXIGENO") || son_iguales(tarea->tarea,"CONSUMIR_OXIGENO")){
 		if(archivo_recursos_existe("Oxigeno.ims"))
 			procesar_tarea(tarea);
-		else
+		else{
 			procesar_falta_archivo(tarea,"Oxigeno.ims");
+			procesar_tarea(tarea);
+		}
 	} else if(son_iguales(tarea->tarea,"GENERAR_COMIDA") || son_iguales(tarea->tarea,"CONSUMIR_COMIDA")){
 		if(archivo_recursos_existe("Comida.ims"))
 			procesar_tarea(tarea);
@@ -134,16 +137,31 @@ void agregar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantida
 	}
 }
 
+char obtener_caracter_llenado(char* nombre_tarea){
+	if(string_contains(nombre_tarea,"OXIGENO")){
+		return 'O';
+	}
+	else if(string_contains(nombre_tarea,"COMIDA")){
+		return 'C';
+	}
+	else if(string_contains(nombre_tarea,"BASURA")){
+		return 'B';
+	}
+}
+
 void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){
 	char* ruta_archivo = obtener_path_files(archivo);
-	FILE* file = fopen(ruta_archivo, "ab+");
-	if(file == NULL){
+	if(!archivo_existe(ruta_archivo)){
 		log_error(logger,"No se pudo abrir el archivo %s para su escritura", archivo);
 	}else{
 		char* caracteres = string_repeat(caracter,cantidad);
-		log_info(logger,"Se va a llenar el archivo %s con %s", archivo, caracteres);
-		fwrite(caracteres,string_length(caracteres)+1,1,file);
+		log_info(logger,"Se va a llenar el archivo %s con %s", ruta_archivo, caracteres);
+		subir_tarea(caracteres, ruta_archivo);
+//		fwrite(caracteres,string_length(caracteres)+1,1,file);
 	}
+
+
+//	subir_tarea(tarea, fd);
 }
 
 void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantidad){

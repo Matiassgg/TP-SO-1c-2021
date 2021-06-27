@@ -15,7 +15,7 @@ void iniciar_mongo(void) {
 	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
 	leer_config();
     log_info(logger, "Ya obtuvimos la config del mongo");
-    FS_RESET();
+//    FS_RESET();
 
     inicializar_filesystem();
 

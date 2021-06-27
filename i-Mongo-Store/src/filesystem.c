@@ -70,9 +70,19 @@ void crear_blocks(){
 	}
 	else {
 		log_info(logger, "MONGO-STORE :: SE CREO EL ARCHIVO BLOCKS CORRECTAMENTE");
-		contenido_blocks = mmap(NULL,block_size * blocks, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
+		contenido_blocks = calloc(1,block_size * blocks);
+		write(fd,contenido_blocks,block_size * blocks);
+		log_info(logger, "%s",contenido_blocks);
+		struct stat file_st;
+		fstat(fd, &file_st);
+		contenido_blocks = mmap(NULL,file_st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+//		log_info(logger, "%s",contenido_blocks);
+		if(contenido_blocks == MAP_FAILED) {
+			log_error(logger,"Error  mapping - file_st.st_size %i", file_st.st_size);
+			exit(1);
+		}
 
-		close(fd);
+//		close(fd);
 	}
 }
 
@@ -180,7 +190,7 @@ int eliminar_archivo(char* archivo){
 }
 
 int crear_archivo(char* archivo){
-	return open(archivo, O_RDWR | O_CREAT);
+	return creat(archivo, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 }
 
 char* obtener_path_files(char* pathRelativo) {
@@ -197,7 +207,14 @@ bool archivo_recursos_existe(char* nombreArchivo){
 
 int crear_archivo_recursos(char* nombreArchivo){
 	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
-	if(crear_archivo(ruta_archivo_recursos)){
+	FILE* archivo = fopen(ruta_archivo_recursos, "w+");
+	if(archivo){
+		char* file_generico = "SIZE=0\nBLOCK_COUNT=0\nBLOCKS=[]\nCARACTER_LLENADO=\nMD5_ARCHIVO=";
+//		char* hash = conseguir_hash(ruta_archivo_recursos); TODO
+//		string_append(&file_generico,hash);
+		fwrite(file_generico,string_length(file_generico),1,archivo);
+
+		fclose(archivo);
 		return 1;
 	}
 	return 0;
@@ -236,18 +253,163 @@ int dar_bloque_libre(){
 	return -1;
 }
 
+//
+//t_list* subir_buffer_blocks(t_buffer* buffer, uint32_t ultimo_bloque){
+//	uint32_t offset = 0;
+//	t_list* bloques = list_create();
+//	int bloque_libre;
+//	while(offset < buffer->size){
+//		if(ultimo_bloque != -1){
+//			uint32_t espacio_libre = espacio_libre_bloque(ultimo_bloque);
+//
+//			if(espacio_libre > 0)
+//				bloque_libre = ultimo_bloque;
+//			else
+//				bloque_libre = dar_bloque_libre();
+//		}
+//		else
+//			bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
+//		list_add(bloques, bloque_libre);
+//
+//		uint32_t tamanio_subida = minimo((buffer->size-offset),block_size);
+//
+//		memcpy(contenido_blocks + (bloque_libre*block_size),buffer->stream,tamanio_subida);
+//
+//		offset += tamanio_subida;
+//	}
+//
+//	return bloques;
+//}
 
+void* obtener_informacion_bloque(uint32_t bloque){
+	void* informacion = malloc(block_size);
+	memcpy(informacion, contenido_blocks + (bloque*block_size),block_size);
 
-void subir_buffer_FS(t_buffer* buffer){
+	return informacion;
+}
+
+t_list* agregar_caracteres_blocks(char* stream_a_agregar, int ultimo_bloque, int tamanio_restante){
+	char* stream = string_duplicate(stream_a_agregar);
 	uint32_t offset = 0;
-	while(offset < buffer->size){
-		int bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
+	t_list* bloques = list_create();
+	int bloque_libre;
 
-		uint32_t tamanio_subida = minimo((buffer->size-offset),block_size);
+	uint32_t cant_caracteres = string_length(stream);
+	while(offset < cant_caracteres){
+		uint32_t tamanio_subida;
+		if(ultimo_bloque != -1){
+			bloque_libre = ultimo_bloque;
+			ultimo_bloque = -1;
+			if(tamanio_restante != -1)
+				tamanio_subida = tamanio_restante;
+		}
+		else{
+			bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
+			list_add(bloques, bloque_libre);
+			tamanio_subida = minimo((cant_caracteres - offset),block_size);
+		}
 
-		memcpy(contenido_blocks + (bloque_libre*block_size),buffer->stream,tamanio_subida);
+		log_info(logger, "bloque_libre %i - stream %s - tamanio_subida %i", bloque_libre, stream + offset, tamanio_subida);
+
+		memcpy(contenido_blocks + (bloque_libre*block_size), stream + offset, tamanio_subida);
 
 		offset += tamanio_subida;
 	}
+
+	return bloques;
 }
+
+
+char* obtener_stream_tarea(char* tarea, t_list* bloques, uint32_t size){
+	//------------ORDEN------------
+		//1. SIZE
+		//2. BLOCK_COUNT
+		//3. BLOCKS   					 	} COMO ES LISTA IRA DENTRO DE UN FOR
+		//4. CARACTER_LLENADO
+		//5. MD5_ARCHIVO
+	//-----------------------------
+	uint32_t cant_bloques = (uint32_t) list_size(bloques);
+
+	char* stream = "SIZE=";
+	string_append_with_format(&stream, "%i\n", size);
+	string_append_with_format(&stream, "BLOCK_COUNT=%i\n", cant_bloques);
+	string_append_with_format(&stream, "BLOCKS=[");
+	for(int i=0;i<cant_bloques;i++){
+		string_append_with_format(&stream, "%i", list_get(bloques,i));
+		if(i!=cant_bloques-1)
+			string_append_with_format(&stream, ",");
+	}
+	string_append_with_format(&stream, "]\n");
+	string_append_with_format(&stream, "CARACTER_LLENADO=%c\n", obtener_caracter_llenado(tarea));
+	string_append_with_format(&stream, "MD5_ARCHIVO=%s\n", "XD");
+
+	return stream;
+}
+
+void sumar_bloques_config(t_list* bloques, t_config* config){
+	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
+	char** bloques_config = config_get_array_value(config, "BLOCK_COUNT");
+	for(int i=0; i<cant_bloques;i++){
+		list_add(bloques, atoi(bloques_config[i]));
+	}
+}
+
+char* actualizar_stream_tarea(char* tarea, t_list* bloques, uint32_t size, t_config* config){
+	sumar_bloques_config(bloques, config);
+	uint32_t size_old = config_get_int_value(config, "SIZE");
+	return obtener_stream_tarea(tarea, bloques, size+size_old);
+}
+
+void actualizar_archivo_file(char* tarea, t_list* bloques, t_config* config, uint32_t size){
+	char* stream = actualizar_stream_tarea(tarea, bloques, size, config);
+
+	FILE* archivo = fopen(config->path,"w+");
+	fwrite(stream,string_length(stream),1,archivo);
+	fclose(archivo);
+}
+
+t_buffer* serializar_tarea(tarea_Mongo* tarea) {
+	t_buffer* buffer = crear_buffer();
+	uint32_t offset = 0;
+
+	char* caracteres = string_repeat(obtener_caracter_llenado(tarea->tarea),tarea->parametro);
+
+	buffer->size = string_length(caracteres)+1;
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, caracteres, buffer->size);
+
+	return buffer;
+}
+
+int ultimo_bloque_config(t_config* config){
+	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
+	if(cant_bloques != 0){
+		char** bloques_config = config_get_array_value(config, "BLOCK_COUNT");
+
+		return atoi(bloques_config[cant_bloques-1]);
+	}
+	return -1;
+}
+int tamanio_restante_config(t_config* config){
+	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
+	if(cant_bloques != 0){
+		uint32_t size = config_get_int_value(config, "SIZE");
+		return size % cant_bloques;
+
+	}
+	return -1;
+}
+
+void subir_tarea(char* caracteres, char* archivo){
+	t_config* config = config_create(archivo);
+	int ultimo_bloque = ultimo_bloque_config(config);
+	int tamanio_restante = tamanio_restante_config(config);
+	t_list* bloques = agregar_caracteres_blocks(caracteres, ultimo_bloque, tamanio_restante);
+
+	actualizar_archivo_file(caracteres, bloques, config, string_length(caracteres));
+
+}
+
+
 

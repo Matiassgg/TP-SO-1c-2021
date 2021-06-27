@@ -31,6 +31,10 @@ PAUSAR_PLANIFICACION
 INICIAR_PLANIFICACION
 EXPULSAR_TRIPULANTE 2
 
+
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno.txt 1|2
+INICIAR_PLANIFICACION
+
 -------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------DISCORDIADOR
 
