@@ -64,11 +64,12 @@ void leer_superbloque(FILE* archivo){
 
 char* dar_hash_md5(char* archivo){
 	char* system_command = string_new();
-	string_append_with_format(&system_command, "md5sum %s > aux", archivo);
+	char* path_aux = string_duplicate("aux.tmp");
+	string_append_with_format(&system_command, "md5sum %s > %s", archivo,path_aux);
 	system(system_command);
 	free(system_command);
 
-	int archivo_aux = open("aux", O_RDWR);
+	int archivo_aux = open(path_aux, O_RDWR);
 	if(archivo_aux == -1){
 		log_error(logger, "no se abrio archivo");
 	}
@@ -79,10 +80,9 @@ char* dar_hash_md5(char* archivo){
 	read(archivo_aux,contenido,file_st.st_size);
 //	log_info(logger, "contenido %s", contenido);
 
-
 	char** hash = string_split(contenido," ");
 
-	eliminar_archivo("aux");
+	eliminar_archivo(path_aux);
 
 	return hash[0];
 }
@@ -134,7 +134,17 @@ void inicializar_bitmap(){
 		exit(0);
 	}
 
-	crear_bitmap();
+	t_bitarray* bitarray = crear_bitmap();
+	FILE* superbloque = fopen(path_superbloque,"ab+");
+
+	if(superbloque){
+		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
+		fwrite(bitarray->bitarray, bitarray->size, 1, superbloque);
+
+		fclose(superbloque);
+	}
+
+
 }
 
 t_bitarray* crear_bitmap() {
@@ -175,10 +185,9 @@ t_bitarray* leer_bitmap(){
 
 void subir_bitmap(t_bitarray* bitarray){
 	FILE* superbloque = fopen(path_superbloque,"ab+");
-	fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
 
 	if(superbloque){
-
+		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
 		fwrite(bitarray->bitarray,bitarray->size,1,superbloque);
 
 		fclose(superbloque);
