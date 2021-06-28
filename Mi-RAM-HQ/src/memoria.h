@@ -3,6 +3,9 @@
 
 #include "utils_ram.h"
 #include "mapa.h"
+#include <bits/fcntl-linux.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 #define TAMANIO_PCB 8
 #define TAMANIO_TCB 21
@@ -59,6 +62,12 @@ t_marco* buscar_marco_libre();
 void agregar_a_lista_de_marcos_en_paginas(t_pagina* pagina);
 void asignar_marco(t_pagina* pagina);
 void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice );
+uint32_t crear_archivo_swap();
+void llenar_archivo(int fd, uint32_t tamanio);
+uint32_t buscar_lugar_en_swap();
+void inicializar_bitmap_swap();
+int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos);
+void asignar_marco_en_swap(t_pagina* pagina);
 
 //void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);
 

@@ -99,8 +99,10 @@ t_config* config; //1
 t_log* logger; //1
 uint32_t socketConexionApp;//1
 void* memoria;
+void* memoria_virtual;
+t_bitarray *BIT_ARRAY_SWAP;
 FILE* espacio_swap;
-t_list* entradas_swap;
+t_list* marcos_swap;
 uint32_t tamanio_pagina;
 t_list* lista_segmentos_libres;
 t_list* lista_tablas_segmentos;

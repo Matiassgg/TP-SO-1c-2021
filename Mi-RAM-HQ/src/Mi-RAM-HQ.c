@@ -18,7 +18,7 @@ void iniciar_Mi_RAM_HQ() {
 
 	//dic_discordiador_tabla_segmentos = dictionary_create();// REVISAR ESTO
 	tablaDeMarcos = list_create();
-	entradas_swap = list_create();
+	marcos_swap = list_create();
 	patotas_creadas = list_create();
 	tareas = list_create();
 

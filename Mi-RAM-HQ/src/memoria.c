@@ -516,6 +516,8 @@ void liberar_segmento(t_segmento* segmento){
 void preparar_memoria_para_esquema_de_paginacion() {
 	cantidad_de_marcos = 0;
 	cantidad_de_marcos_swap=0;
+	tablaDeMarcos = list_create();
+	marcos_swap = list_create();
 
 	if((espacio_swap = fopen(path_swap,"wb+")) == NULL){
 		log_error(logger, "No se pudo crear el espacio de SWAP");
@@ -550,7 +552,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		nuevaEntrada->indiceMarcoSwap = indice;
 		indice ++;
 
-		list_add(entradas_swap, nuevaEntrada);
+		list_add(marcos_swap, nuevaEntrada);
 		cantidad_de_marcos_swap++;
 	}
 
@@ -673,15 +675,6 @@ t_marco* buscar_marco(uint32_t marco){
 	return list_find(tablaDeMarcos, el_que_quiero);
 }
 
-void asignar_marco_en_swap(t_pagina* pagina){
-	//TODO
-}
-
-uint32_t buscar_lugar_en_swap(){
-	//TODO
-	return 0;
-}
-
 void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato
 									,t_pagina pagina, bool esta_en_memoria){
 	t_marco* marco;
@@ -738,7 +731,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 				}
 
 				// Agrego a lista de timestamp por marco
-				if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
+				if (!strcmp(algoritmo_reemplazo, "CLOCK")) {
 					marco->bitUso = true;
 					log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numeroMarco, marco->bitUso);
 				}
@@ -769,6 +762,75 @@ t_list* entradas_segun_patota(uint32_t idPatota){
 
 	return entradas;
 }
+
+//////////////////////////////////////////SWAP/////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t crear_archivo_swap(){
+	int fd = open("/home/utnso/tp-2021-1c-LaMitad-1/swapFile.bin", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // SI EXISTE ABRE EL ARCHIVO PARA LECTURA, SINO LO CREA
+	struct stat statfile;
+	if(fstat(fd,&statfile)==-1)
+		return -1;
+	llenar_archivo(fd, tamanio_swap);
+	memoria_virtual = mmap(NULL,tamanio_swap,PROT_READ | PROT_WRITE,MAP_SHARED,fd,0);
+	close(fd);
+	return 0;
+}
+
+void llenar_archivo(int fd, uint32_t tamanio){
+	void* buffer = malloc(tamanio);
+	char a = '\0';
+	memset(buffer,a,tamanio);
+	write(fd, buffer, tamanio);
+	free(buffer);
+}
+
+void asignar_marco_en_swap(t_pagina* pagina){
+	uint32_t lugar = buscar_lugar_en_swap();
+	bitarray_set_bit(BIT_ARRAY_SWAP, (off_t) lugar);
+	pagina->marco->bitUso = false;
+	pagina->marco = NULL;
+	pagina->bit_presencia = false;
+}
+
+uint32_t buscar_lugar_en_swap(){
+	int lugar = -1;
+	int i=0;
+	bool encontrado = false;
+	while(!encontrado && i<=(bitarray_get_max_bit(BIT_ARRAY_SWAP)-1)){
+		if(!bitarray_test_bit(BIT_ARRAY_SWAP, i)){
+			lugar = i;
+			encontrado=true;
+		}
+		i++;
+	}
+	return lugar;
+}
+
+void inicializar_bitmap_swap(){
+	int cantidadDeMarcos = tamanio_swap/tamanio_pagina;
+	int bytes = cantidad_de_marcos_pedidos_swap(cantidadDeMarcos);
+
+	char *punteroABits = (char*) malloc(bytes);
+
+	BIT_ARRAY_SWAP = bitarray_create_with_mode(punteroABits, (size_t) bytes,LSB_FIRST);
+
+	for(int i=0;i<cantidadDeMarcos;i++){
+		bitarray_clean_bit(BIT_ARRAY_SWAP,i);
+	}
+
+}
+
+int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos) {
+	div_t aux = div(cantidadDeMarcos, 8);
+
+	if (aux.rem == 0) {
+		return aux.quot;
+	} else {
+		return aux.quot + 1;
+	}
+}
+
 
 //////////////////////////////////////////ALGORITMOS/////////////////////////////////////////////////////////////////
 //////////////////////////////////////////LRU Y CLOCK/////////////////////////////////////////////////////////////////
