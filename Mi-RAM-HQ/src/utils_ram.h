@@ -88,10 +88,10 @@ typedef struct {
 
 
 typedef struct {
-	int indiceMarcoSwap;
+	uint32_t inicioMemoriaSwap;
+	int numeroMarcoSwap;
 	uint32_t bitUso;
 	int idPatota;
-	// char* nombreTripulante;
 } t_marco_en_swap;
 
 //---------MAIN--------//

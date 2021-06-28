@@ -528,15 +528,15 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		// Cargar estructuras administrativass
 		log_info(logger, "Desplazamiento: %d", offset);
 
-		t_marco* nuevaEntrada = malloc(sizeof(t_marco));
-		nuevaEntrada->numeroMarco = cantidad_de_marcos;
-		nuevaEntrada->bitUso = false;
-		nuevaEntrada->idPatota = -1;
-		nuevaEntrada->inicioMemoria = offset;
-		nuevaEntrada->timeStamp = NULL;
+		t_marco* nuevoMarco = malloc(sizeof(t_marco));
+		nuevoMarco->numeroMarco = cantidad_de_marcos;
+		nuevoMarco->bitUso = false;
+		nuevoMarco->idPatota = -1;
+		nuevoMarco->inicioMemoria = offset;
+		nuevoMarco->timeStamp = NULL;
 
-		list_add(tablaDeMarcos, nuevaEntrada);
-		log_info(logger, "Marco numero: %d", nuevaEntrada->numeroMarco);
+		list_add(tablaDeMarcos, nuevoMarco);
+		log_info(logger, "Marco numero: %d", nuevoMarco->numeroMarco);
 		cantidad_de_marcos++;
 	}
 
@@ -544,15 +544,15 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 	// Aca viene la parte de swap
 	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
-		// void* marco = memoria + offset;
 
-		t_marco_en_swap* nuevaEntrada = malloc(sizeof(t_marco_en_swap));
-		nuevaEntrada->idPatota = -1;
-		nuevaEntrada->bitUso = false;
-		nuevaEntrada->indiceMarcoSwap = indice;
+		t_marco_en_swap* nuevoMarco = malloc(sizeof(t_marco_en_swap));
+		nuevoMarco->numeroMarcoSwap = indice;
+		nuevoMarco->idPatota = -1;
+		nuevoMarco->bitUso = false;
+		nuevoMarco->inicioMemoriaSwap = offset;
 		indice ++;
 
-		list_add(marcos_swap, nuevaEntrada);
+		list_add(marcos_swap, nuevoMarco);
 		cantidad_de_marcos_swap++;
 	}
 
@@ -632,7 +632,6 @@ t_marco* buscar_marco_libre(){
 	}
 
 	if (!hay_marcos_libres()) {
-		log_error(logger, "No hay marcos libres hasta implementar swap.");
 //		log_info(logger, "No hay marcos libres. Seleccionando victima.");
 //
 //		pthread_t hilo;
@@ -785,51 +784,51 @@ void llenar_archivo(int fd, uint32_t tamanio){
 	free(buffer);
 }
 
-void asignar_marco_en_swap(t_pagina* pagina){
-	uint32_t lugar = buscar_lugar_en_swap();
-	bitarray_set_bit(BIT_ARRAY_SWAP, (off_t) lugar);
-	pagina->marco->bitUso = false;
-	pagina->marco = NULL;
-	pagina->bit_presencia = false;
-}
-
-uint32_t buscar_lugar_en_swap(){
-	int lugar = -1;
-	int i=0;
-	bool encontrado = false;
-	while(!encontrado && i<=(bitarray_get_max_bit(BIT_ARRAY_SWAP)-1)){
-		if(!bitarray_test_bit(BIT_ARRAY_SWAP, i)){
-			lugar = i;
-			encontrado=true;
-		}
-		i++;
-	}
-	return lugar;
-}
-
-void inicializar_bitmap_swap(){
-	int cantidadDeMarcos = tamanio_swap/tamanio_pagina;
-	int bytes = cantidad_de_marcos_pedidos_swap(cantidadDeMarcos);
-
-	char *punteroABits = (char*) malloc(bytes);
-
-	BIT_ARRAY_SWAP = bitarray_create_with_mode(punteroABits, (size_t) bytes,LSB_FIRST);
-
-	for(int i=0;i<cantidadDeMarcos;i++){
-		bitarray_clean_bit(BIT_ARRAY_SWAP,i);
-	}
-
-}
-
-int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos) {
-	div_t aux = div(cantidadDeMarcos, 8);
-
-	if (aux.rem == 0) {
-		return aux.quot;
-	} else {
-		return aux.quot + 1;
-	}
-}
+//void asignar_marco_en_swap(t_pagina* pagina){
+//	uint32_t lugar = buscar_lugar_en_swap();
+//	bitarray_set_bit(BIT_ARRAY_SWAP, (off_t) lugar);
+//	pagina->marco->bitUso = false;
+//	pagina->marco = NULL;
+//	pagina->bit_presencia = false;
+//}
+//
+//uint32_t buscar_lugar_en_swap(){
+//	int lugar = -1;
+//	int i=0;
+//	bool encontrado = false;
+//	while(!encontrado && i<=(bitarray_get_max_bit(BIT_ARRAY_SWAP)-1)){
+//		if(!bitarray_test_bit(BIT_ARRAY_SWAP, i)){
+//			lugar = i;
+//			encontrado=true;
+//		}
+//		i++;
+//	}
+//	return lugar;
+//}
+//
+//void inicializar_bitmap_swap(){
+//	int cantidadDeMarcos = tamanio_swap/tamanio_pagina;
+//	int bytes = cantidad_de_marcos_pedidos_swap(cantidadDeMarcos);
+//
+//	char *punteroABits = (char*) malloc(bytes);
+//
+//	BIT_ARRAY_SWAP = bitarray_create_with_mode(punteroABits, (size_t) bytes,LSB_FIRST);
+//
+//	for(int i=0;i<cantidadDeMarcos;i++){
+//		bitarray_clean_bit(BIT_ARRAY_SWAP,i);
+//	}
+//
+//}
+//
+//int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos) {
+//	div_t aux = div(cantidadDeMarcos, 8);
+//
+//	if (aux.rem == 0) {
+//		return aux.quot;
+//	} else {
+//		return aux.quot + 1;
+//	}
+//}
 
 
 //////////////////////////////////////////ALGORITMOS/////////////////////////////////////////////////////////////////
