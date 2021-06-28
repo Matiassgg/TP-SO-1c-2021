@@ -11,13 +11,13 @@ void sincronizar_blocks(){
 
 void inicializar_paths_aux(){
 	path_superbloque = string_new();
-	path_files = string_new();
 	path_blocks = string_new();
+	path_files = string_new();
 	path_bitacoras = string_new();
 
+	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_blocks, "%s/Blocks.ims", punto_montaje);
 	string_append_with_format(&path_files, "%s/Files", punto_montaje);
-	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_bitacoras, "%s/Bitacoras", path_files);
 
 	if (!directorio_existe(path_files)) {
@@ -97,7 +97,7 @@ char* dar_hash_md5(char* archivo){
 }
 
 void obtener_blocks(){
-	log_info(logger, "MONGO-STORE :: SE OBTENDRAM LOS %d BLOQUES DE %d TAMANIO EN EL ARCHIVO %s", blocks, block_size, path_blocks);
+	log_info(logger, "MONGO-STORE :: SE OBTENDRAN LOS %d BLOQUES DE %d TAMANIO EN EL ARCHIVO %s", blocks, block_size, path_blocks);
 	int fd = crear_archivo(path_blocks);
 	if(fd == -1) {
 		log_error(logger, "MONGO-STORE :: NO SE ABRIO EL ARCHIVO BLOCKS CORRECTAMENTE");
