@@ -3,7 +3,6 @@
 
 #include "utils_ram.h"
 #include "mapa.h"
-#include <bits/fcntl-linux.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 
