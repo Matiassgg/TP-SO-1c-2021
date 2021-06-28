@@ -7,10 +7,12 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <netdb.h>
 #include <string.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>

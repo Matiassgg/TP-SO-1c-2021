@@ -31,6 +31,7 @@ uint32_t blocks;
 uint32_t block_size;
 t_bitarray* bitmap;
 void* contenido_blocks;
+void* contenido_blocks_aux;
 
 char* path_files;
 char* path_blocks;

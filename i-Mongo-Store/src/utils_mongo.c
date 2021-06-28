@@ -223,7 +223,7 @@ int quitar_caracteres_a_archivo(char caracter, uint32_t cantidad_actual, uint32_
 void procesar_falta_archivo(tarea_Mongo* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
 	if(string_contains(nombre_tarea,"GENERAR")){
-		if(crear_archivo_recursos(archivo)){
+		if(crear_archivo_recursos(archivo, obtener_caracter_llenado(tarea->tarea))){
 			log_info(logger, "El archivo %s se creo correctamente",archivo);
 		}
 	}

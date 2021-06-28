@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+void sincronizar_blocks();
 void inicializar_paths_aux();
 void leer_superbloque(FILE* archivo);
 void crear_superbloque();
@@ -17,7 +18,7 @@ bool archivo_existe(char* nombreArchivo);
 bool archivo_recursos_existe(char* nombreArchivo);
 char* obtener_path_files(char*);
 int crear_archivo(char*);
-int crear_archivo_recursos(char*);
+int crear_archivo_recursos(char*, char caracter_llenado);
 int eliminar_archivo(char*);
 void vaciar_archivo(char* archivo);
 void crear_blocks();

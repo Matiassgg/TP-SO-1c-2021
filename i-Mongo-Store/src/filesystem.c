@@ -1,5 +1,14 @@
 #include "filesystem.h"
 
+void sincronizar_blocks(){
+	sleep(tiempo_sincronizacion);
+	memcpy(contenido_blocks,contenido_blocks_aux,block_size * blocks);
+	if(msync(contenido_blocks,block_size * blocks,MS_SYNC)==-1)
+		log_error(logger, "Error con la sincronizacion de blocks");
+	else
+		log_info(logger, "Se sincronizo correctamente blocks");
+}
+
 void inicializar_paths_aux(){
 	path_superbloque = string_new();
 	path_files = string_new();
@@ -49,17 +58,16 @@ void obtener_superbloque(){
 }
 
 void leer_superbloque(FILE* archivo){
-	char* leido = malloc(sizeof(char));
-	int i=0;
+	FILE* superbloque = fopen(path_superbloque,"rb");
 
-	while(fread(leido+i,1,1,archivo)){
-		i++;
-		leido= (char*) realloc(leido,i+1);
-	}
+	fread(&block_size,sizeof(uint32_t),1,superbloque);
+	fread(&blocks,sizeof(uint32_t),1,superbloque);
+	bitarray_string = malloc(blocks / 8);
+	fread(bitarray_string,blocks/8,1,superbloque);	// TODO hara falta leer el bitarray? eso se lee en el momento por lo gral
 
-	leido= (char*) realloc(leido,i+1);
+//	t_bitarray* bitarray = bitarray_create(bitarray_string,blocks/8);
 
-	free(leido);
+	fclose(superbloque);
 }
 
 char* dar_hash_md5(char* archivo){
@@ -76,6 +84,7 @@ char* dar_hash_md5(char* archivo){
 	struct stat file_st;
 	fstat(archivo_aux, &file_st);
 
+	log_info(logger, "file_st.st_size %i", file_st.st_size);
 	char* contenido = malloc(file_st.st_size+1);
 	read(archivo_aux,contenido,file_st.st_size);
 //	log_info(logger, "contenido %s", contenido);
@@ -85,6 +94,31 @@ char* dar_hash_md5(char* archivo){
 	eliminar_archivo(path_aux);
 
 	return hash[0];
+}
+
+void obtener_blocks(){
+	log_info(logger, "MONGO-STORE :: SE OBTENDRAM LOS %d BLOQUES DE %d TAMANIO EN EL ARCHIVO %s", blocks, block_size, path_blocks);
+	int fd = crear_archivo(path_blocks);
+	if(fd == -1) {
+		log_error(logger, "MONGO-STORE :: NO SE ABRIO EL ARCHIVO BLOCKS CORRECTAMENTE");
+	}
+	else {
+		log_info(logger, "MONGO-STORE :: SE ABRIO EL ARCHIVO BLOCKS CORRECTAMENTE");struct stat file_st;
+		fstat(fd, &file_st);
+		contenido_blocks = calloc(1,file_st.st_size);
+//		log_info(logger, "%s\nHASH de %s:\n%s\n",contenido_blocks, path_blocks, dar_hash_md5(path_blocks));
+
+		contenido_blocks = mmap(NULL,file_st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		contenido_blocks_aux = calloc(1,file_st.st_size);
+		memcpy(contenido_blocks_aux,contenido_blocks,file_st.st_size);
+//		log_info(logger, "%s",contenido_blocks);
+		if(contenido_blocks == MAP_FAILED) {
+			log_error(logger,"Error  mapping - file_st.st_size %i", file_st.st_size);
+			exit(1);
+		}
+
+//		close(fd);
+	}
 }
 
 void crear_blocks(){
@@ -101,6 +135,8 @@ void crear_blocks(){
 		struct stat file_st;
 		fstat(fd, &file_st);
 		contenido_blocks = mmap(NULL,file_st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		contenido_blocks_aux = calloc(1,block_size * blocks);
+		memcpy(contenido_blocks_aux,contenido_blocks,block_size * blocks);
 //		log_info(logger, "%s",contenido_blocks);
 		if(contenido_blocks == MAP_FAILED) {
 			log_error(logger,"Error  mapping - file_st.st_size %i", file_st.st_size);
@@ -140,6 +176,7 @@ void inicializar_bitmap(){
 	if(superbloque){
 		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
 		fwrite(bitarray->bitarray, bitarray->size, 1, superbloque);
+		free(bitarray);
 
 		fclose(superbloque);
 	}
@@ -224,7 +261,7 @@ int eliminar_archivo(char* archivo){
 }
 
 int crear_archivo(char* archivo){
-	return open(archivo, O_RDWR | O_CREAT);
+	return open(archivo, O_RDWR | O_CREAT,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 }
 
 char* obtener_path_files(char* pathRelativo) {
@@ -239,15 +276,16 @@ bool archivo_recursos_existe(char* nombreArchivo){
 	return archivo_existe(ruta_archivo_recursos);
 }
 
-int crear_archivo_recursos(char* nombreArchivo){
+int crear_archivo_recursos(char* nombreArchivo, char caracter_llenado){
 	char* ruta_archivo_recursos = obtener_path_files(nombreArchivo);
 	FILE* archivo = fopen(ruta_archivo_recursos, "w+");
 	if(archivo){
-		char* file_generico = "SIZE=0\nBLOCK_COUNT=0\nBLOCKS=[]\nCARACTER_LLENADO=\nMD5_ARCHIVO=";
+		char* file_generico = string_duplicate("SIZE=0\nBLOCK_COUNT=0\nBLOCKS=[]\nCARACTER_LLENADO=");
+		string_append_with_format(&file_generico,"%c\nMD5_ARCHIVO=", caracter_llenado);
 		fwrite(file_generico,string_length(file_generico),1,archivo);
 
 		fclose(archivo);
-//		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
+		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
 
 		return 1;
 	}
@@ -317,7 +355,7 @@ int dar_bloque_libre(){
 
 void* obtener_informacion_bloque(uint32_t bloque){
 	void* informacion = malloc(block_size);
-	memcpy(informacion, contenido_blocks + (bloque*block_size),block_size);
+	memcpy(informacion, contenido_blocks_aux + (bloque*block_size),block_size);
 
 	return informacion;
 }
@@ -329,23 +367,30 @@ t_list* agregar_caracteres_blocks(char* stream_a_agregar, int ultimo_bloque, int
 	int bloque_libre;
 
 	uint32_t cant_caracteres = string_length(stream);
+	log_info(logger, "ultimo_bloque %i - tamanio_restante %i",ultimo_bloque,tamanio_restante);
 	while(offset < cant_caracteres){
+		log_info(logger, "Se entra al while");
 		uint32_t tamanio_subida;
 		if(ultimo_bloque != -1){
+			log_info(logger, "Se entra al ultimo_bloque != -1");
 			bloque_libre = ultimo_bloque;
 			ultimo_bloque = -1;
 			if(tamanio_restante != -1)
-				tamanio_subida = tamanio_restante;
+				tamanio_subida = minimo((cant_caracteres - offset),tamanio_restante);
+			else
+				log_info(logger, "No se entra al tamanio_restante != -1");
 		}
 		else{
+			log_info(logger, "No se entra al ultimo_bloque != -1");
 			bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
 			list_add(bloques, bloque_libre);
 			tamanio_subida = minimo((cant_caracteres - offset),block_size);
+			log_info(logger, "tamanio_subida = min(%i,%i)",(cant_caracteres - offset),block_size);
 		}
 
-		log_info(logger, "bloque_libre %i - stream %s - tamanio_subida %i", bloque_libre, stream + offset, tamanio_subida);
+		log_info(logger, "bloque_libre %i - stream %s - tamanio_subida %i\ncontenido_blocks_aux + (bloque_libre*block_size) %s", bloque_libre, stream + offset, tamanio_subida, (char*)contenido_blocks_aux);
 
-		memcpy(contenido_blocks + (bloque_libre*block_size), stream + offset, tamanio_subida);
+		memcpy(contenido_blocks_aux + (bloque_libre*block_size), stream + offset, tamanio_subida);
 
 		offset += tamanio_subida;
 	}
@@ -385,7 +430,11 @@ void sumar_bloques_config(t_list* bloques, t_config* config){
 	if(cant_bloques != 0){
 		char** bloques_config = config_get_array_value(config, "BLOCKS");
 		for(int i=0; i<cant_bloques;i++){
-			list_add(bloques, atoi(bloques_config[i]));
+			bool esta_presente(uint32_t bloque){
+				return atoi(bloques_config[i]) == bloque;
+			}
+			if(!list_any_satisfy(bloques, esta_presente))
+				list_add(bloques, atoi(bloques_config[i]));
 		}
 	}
 }
@@ -431,7 +480,7 @@ int tamanio_restante_config(t_config* config){
 	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
 	if(cant_bloques != 0){
 		uint32_t size = config_get_int_value(config, "SIZE");
-		return size % cant_bloques;
+		return (cant_bloques*block_size) - size;
 
 	}
 	return -1;
@@ -442,6 +491,7 @@ void subir_tarea(char* caracteres, char* archivo){
 	int ultimo_bloque = ultimo_bloque_config(config);
 	int tamanio_restante = tamanio_restante_config(config);
 	t_list* bloques = agregar_caracteres_blocks(caracteres, ultimo_bloque, tamanio_restante);
+
 
 	actualizar_archivo_file(caracteres[0], bloques, config, string_length(caracteres));
 

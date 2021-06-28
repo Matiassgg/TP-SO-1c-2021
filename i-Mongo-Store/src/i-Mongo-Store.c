@@ -3,10 +3,13 @@
 
 int main(int argc, char* argv[]) {
 	iniciar_mongo();
+	pthread_t hilo_sincronizador;
+	pthread_create(&hilo_sincronizador, NULL, (void*) sincronizar_blocks, NULL);
+	pthread_detach(hilo_sincronizador);
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
-	pthread_detach(hiloReceive);
+	pthread_join(hiloReceive, NULL);
 
-	leer_consola();
+//	leer_consola();
 
     return EXIT_SUCCESS;
 }
@@ -19,10 +22,10 @@ void iniciar_mongo(void) {
 
     inicializar_filesystem();
 
-    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
-    	log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
-    else
-    	log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
+//    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
+//    	log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
+//    else
+//    	log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
 
 }
 
@@ -36,6 +39,8 @@ void inicializar_filesystem() {
 
 	if(!archivo_existe(path_blocks))
 	    crear_blocks();
+	else
+		obtener_blocks();
 }
 
 void FS_RESET(){
