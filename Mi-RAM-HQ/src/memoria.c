@@ -169,6 +169,22 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 }
 
+t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota){
+	bool el_que_quiero(t_tabla_paginas* tabla){
+		return tabla->id_patota_asociada == id_patota;
+	}
+
+	return (t_tabla_paginas*) list_find(lista_tablas_paginas, el_que_quiero);
+}
+
+t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla){
+	bool el_que_quiero(t_pagina* pagina){
+		return pagina->espacio_libre > 0;
+	}
+
+	return (t_pagina*) list_find(tabla, el_que_quiero);
+}
+
 void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 	t_buffer* buffer;
 	switch(tipo_dato){
@@ -187,7 +203,7 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 		escribir_en_memoria_segmentacion(buffer, patota_asociada, tipo_dato);
 	}
 	else{
-
+		escribir_en_memoria_paginacion(buffer,patota_asociada,tipo_dato);
 	}
 }
 
@@ -590,6 +606,7 @@ t_tabla_paginas* crear_tabla_paginacion(uint32_t id_patota) {
 	for (int i = 0; i < cantidadDePaginas; i++) {
 		pagina = crear_pagina();
 		pagina->numeroPagina=i;
+		pagina->espacio_libre=tamanio_pagina;
 		asignar_marco(pagina);
 		list_add(tabla->paginas, pagina);
 	}
@@ -602,6 +619,7 @@ void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice )
 		for (int i = 0; i < cantidad; i++) {
 			pagina = crear_pagina();
 			pagina->numeroPagina=indicePagina;
+			pagina->espacio_libre=tamanio_pagina;
 			asignar_marco(pagina);
 			indicePagina++;
 			list_add(tabla->paginas, pagina);
@@ -609,8 +627,8 @@ void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice )
 }
 
 void asignar_marco(t_pagina* pagina) {
-	t_marco *marco = buscar_marco_libre();
 	pthread_mutex_lock(&mutex_marcos);
+	t_marco *marco = buscar_marco_libre();
 	if(!marco){
 		log_error(logger,"Hasta implementar swap, no quedan marcos libres.");
 		//asignar_marco_en_swap(pagina);
@@ -668,17 +686,19 @@ bool hay_marcos_libres(void){
 
 t_marco* buscar_marco(uint32_t marco){
 	bool el_que_quiero(void* parametro){
-		return ((t_marco*)parametro)->inicioMemoria == marco;
+		return ((t_marco*)parametro)->numeroMarco == marco;
 	}
 
 	return list_find(tablaDeMarcos, el_que_quiero);
 }
 
-void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato
-									,t_pagina pagina, bool esta_en_memoria){
+void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato){ // TODO La pagina no la deberia buscara aca?
+	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota_asociada);
+	t_pagina* pagina_libre = obtener_pagina_libre_tabla(tabla);
+
 	t_marco* marco;
 //	TODO si la tabla esta vacia pedir marco sino ver si entra en alguna pagina
-
+	bool esta_en_memoria;
 		if (esta_en_memoria) {
 
 			// Busco el marco de esa pagina (hay que ver como hacer para que tipo de dato buscar, PCB, tareas o TCB)

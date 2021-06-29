@@ -73,6 +73,7 @@ typedef struct {
 	t_dictionary* diccionario_pagina;
 	bool bit_presencia;
 	bool bit_modificado;
+	uint32_t espacio_libre;
 } t_pagina;
 
 typedef struct {
