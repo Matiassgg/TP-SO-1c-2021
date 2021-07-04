@@ -1,26 +1,32 @@
 #include "consola_mongo.h"
 
-t_posicion* obtener_proxima_posicion_sabotaje(void) {
-	t_posicion* posicion = malloc(sizeof(t_posicion));
+void procesar_nuevo_sabotaje(int signal) {
+	if(hay_sabotajes()) {
+		posicion_sabotaje = list_remove(posiciones_sabotaje, proxima_posicion_sabotaje);
+		log_info(logger, "MANDAMOS LA POSICION DE SABOTAJE %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
+	}
+	else {
+		log_warning(logger, "YA NO HAY MAS POSICIONES DE SABOTAJES");
+		return;
+	}
 
-	// POR AHORA HARDCODEO :: Se obtiene de la lista
-	posicion->pos_x = 10;
-	posicion->pos_y = 10;
+	// Levanto la conexion aca nomas, para los sabotajes ? Nose
+    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
+    	log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
+    else
+    	log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
 
-	//list_get(posiciones_sabotaje, proxima_posicion_sabotaje);
-
-	return posicion;
+	enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
+	liberar_conexion(&socket_discordiador);
 }
 
-void funcionFulera(int signal) {
-	log_info(logger, "SE RECIBE EL SIGNAL %d", signal);
-	t_posicion* posicion_sabotaje = obtener_proxima_posicion_sabotaje();
-	enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
+bool hay_sabotajes() {
+	return proxima_posicion_sabotaje < list_size(posiciones_sabotaje);
 }
 
 // TODO HAY UNA CONSOLA EN MONGO? -> No es necesaria para mandar el signal o ke ?
-void leer_consola() {
-	signal(SIGUSR1, &funcionFulera);
+void verificar_sabotaje() {
+	signal(SIGUSR1, &procesar_nuevo_sabotaje);
 	while (1) {
 		// Tiene que seguir porque puede recibir mas señales de sabotaje supongo nose
 	}

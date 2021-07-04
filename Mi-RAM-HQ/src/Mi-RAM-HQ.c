@@ -45,8 +45,13 @@ void leer_config() {
 	archivo_log = config_get_string_value(config, "PATH_ARCHIVO_LOG");
 	ip_Mi_RAM_HQ = config_get_string_value(config, "IP_RAM");
 	puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+
 	tamanio_memoria = config_get_int_value(config, "TAMANIO_MEMORIA");
 	esquema_memoria = config_get_string_value(config, "ESQUEMA_MEMORIA");
+
+	ip_discordiador = config_get_string_value(config, "IP_DISCORDIADOR");
+	puerto_discordiador = config_get_string_value(config, "PUERTO_DISCORDIADOR");
+
 	if(son_iguales(esquema_memoria,"PAGINACION")){
 		tamanio_pagina = config_get_int_value(config, "TAMANIO_PAGINA");
 		tamanio_swap = config_get_int_value(config, "TAMANIO_SWAP");

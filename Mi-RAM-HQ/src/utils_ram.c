@@ -85,11 +85,14 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "RAM :: Nos llego LISTAR_TRIPULANTES de DISCORDIADOR");
 			log_info(logger, "Se procede a obtener la info de los tripulantes");
 
-			// FALTA VER ESTO
-			//t_list* lista_tripulantes = list_create();
-			//obtener_listado_tripulantes(lista_tripulantes);
+			// Levanto la conexion aca nomas, para el listado ??
+		    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
+		    	log_error(logger, "No pudimos levantar la conexion con DISCORDIADOR para mandar el listado");
+		    else
+		    	log_info(logger, "RAM :: Pude conectar al DISCORDIADOR");
 
-			//enviar_respuesta_listado_tripulantes(lista_tripulantes, cliente_fd);
+			enviar_respuesta_listado_tripulantes(obtener_listado_tripulantes(), socket_discordiador);
+
 			log_info(logger, "RAM :: Se enviaron los datos de los tripulantes");
 
 		break;
@@ -267,19 +270,32 @@ bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
 }
 */
 
-/*
-void obtener_listado_tripulantes(t_list* lista_tripulantes) {
-	t_respuesta_listar_tripulantes* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulantes));
+t_respuesta_listado_tripulantes* obtener_listado_tripulantes() {
+	t_respuesta_listado_tripulantes* listado_de_tripulantes = malloc(sizeof(t_respuesta_listado_tripulantes));
+	listado_de_tripulantes->tripulantes = list_create();
+
+	t_respuesta_listar_tripulante* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulante));
+
+	// ALGO ASI ¡?
+	// cargar_tripulantes_a_lista(listado_de_tripulantes)
 
 	// TODO HARDCODEADO : SOLO ES PRUEBA AHORA
 	respuesta_prueba->id_tripulante = 1;
 	respuesta_prueba->id_patota= 1;
 	respuesta_prueba->estado = 'N';
-	list_add(lista_tripulantes, respuesta_prueba);
+	list_add(listado_de_tripulantes->tripulantes, respuesta_prueba);
+	respuesta_prueba->id_tripulante = 2;
+	respuesta_prueba->id_patota= 1;
+	respuesta_prueba->estado = 'N';
+	list_add(listado_de_tripulantes->tripulantes, respuesta_prueba);
+	respuesta_prueba->id_tripulante = 3;
+	respuesta_prueba->id_patota= 2;
+	respuesta_prueba->estado = 'E';
+	list_add(listado_de_tripulantes->tripulantes, respuesta_prueba);
 
-	// Libero memoria pero se tiene que mandar a discordiador la lista
-	list_destroy_and_destroy_elements(lista_tripulantes, (void*) free);
-	free(respuesta_prueba);
-}*/
+	listado_de_tripulantes->cantidad_tripulantes = 3;
+
+	return listado_de_tripulantes;
+}
 
 

@@ -287,3 +287,35 @@ t_posicion* deserializar_posicion_sabotaje(uint32_t socket_cliente) {
 	return posicion;
 }
 
+t_respuesta_listado_tripulantes* deserializar_respuesta_listado_tripulantes(uint32_t socket_cliente) {
+	//------------ORDEN------------
+	//1. Cantidad tripulantes
+	//2. Listado de tripulantes							} COMO ES LISTA IRA DENTRO DE UN FOR
+		//	1.1. Tripulante
+		//	1.2. Patota
+		//	1.3. Estado
+	//-----------------------------
+
+	t_respuesta_listado_tripulantes* listado_tripulantes = malloc(sizeof(t_respuesta_listado_tripulantes));
+	listado_tripulantes->tripulantes = list_create();
+	uint32_t cantidad_tripulantes;
+
+	recv(socket_cliente, &(cantidad_tripulantes), sizeof(uint32_t), 0);
+
+	for (int i = 0; i < cantidad_tripulantes; i++) {
+		t_respuesta_listar_tripulante* tripulante = malloc(sizeof(t_respuesta_listar_tripulante));
+
+		recv(socket_cliente, &(tripulante->id_tripulante), sizeof(uint32_t), 0);
+		recv(socket_cliente, &(tripulante->id_patota), sizeof(uint32_t), 0);
+		recv(socket_cliente, &(tripulante->estado), sizeof(char), 0);
+
+		log_info(logger, "NOS LLEGO ESTE ID TRIPULANTE :: %d", tripulante->id_tripulante);
+		log_info(logger, "NOS LLEGO ESTE ID PATOTA :: %d", tripulante->id_patota);
+		log_info(logger, "NOS LLEGO ESTE ESTADO :: %c", tripulante->estado);
+
+		list_add(listado_tripulantes->tripulantes, tripulante);
+
+	}
+	return listado_tripulantes;
+}
+

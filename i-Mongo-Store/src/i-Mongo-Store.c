@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
 	pthread_join(hiloReceive, NULL);
 
-//	leer_consola();
+//	verificar_sabotaje();
 
     return EXIT_SUCCESS;
 }
@@ -75,6 +75,8 @@ void leer_config(void) {
 
 	posiciones_sabotaje = list_create();
 	obtener_posiciones_sabotaje();
+
+	proxima_posicion_sabotaje = 0;
 }
 
 void obtener_posiciones_sabotaje() {

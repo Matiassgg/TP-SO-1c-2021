@@ -22,6 +22,8 @@ char* bitarrayFS;
 
 uint32_t tiempo_sincronizacion;
 t_list* posiciones_sabotaje;
+uint32_t proxima_posicion_sabotaje;
+t_posicion* posicion_sabotaje;
 
 t_config* config;
 t_log* logger;

@@ -27,6 +27,6 @@ void listar_tripulantes_respuesta(uint32_t socket_cliente);	// TODO ??
 t_tarea* recibir_tarea(uint32_t socket_cliente);
 t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente);
 t_posicion* deserializar_posicion_sabotaje(uint32_t socket_cliente);
-
+t_respuesta_listado_tripulantes* deserializar_respuesta_listado_tripulantes(uint32_t socket_cliente);
 
 #endif /* DISCORDIADOR_SRC_MSG_DISCORDIADOR_H_ */

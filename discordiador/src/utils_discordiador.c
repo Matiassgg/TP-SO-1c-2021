@@ -44,26 +44,30 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 	//Procesar mensajes recibidos
 	switch (cod_op) {
-		t_list* lista_tripulantes_respuesta = list_create();
 		t_posicion* posicion_sabotaje = malloc(sizeof(t_posicion));
+		t_respuesta_listado_tripulantes* listado_recibido = malloc(sizeof(t_respuesta_listado_tripulantes));
+		listado_recibido->tripulantes = list_create();
 
 		case ESTA_ON:
 			log_info(logger, "Estamos on");
 			enviar_respuesta(OK,cliente_fd);
 		break;
 
-		case LISTAR_TRIPULANTES:
-			obtener_listado_tripulantes(lista_tripulantes_respuesta);
-			uint32_t cantidad_tripulantes = list_size(lista_tripulantes_respuesta);
+		case RESPUESTA_LISTAR_TRIPULANTES:
+			log_info(logger, "NOS LLEGO EL LISTADO DE LOS TRIPULANTES");
+			listado_recibido = deserializar_respuesta_listado_tripulantes(cliente_fd);
 
-			if (cantidad_tripulantes == 0)
-				log_warning(logger, "DISCORDIADOR :: No pudimos obtener info. de los tripulante de Mi-RAM");
+			if (listado_recibido->cantidad_tripulantes == 0)
+				log_warning(logger, "DISCORDIADOR :: No pudimos obtener informacion de ninguno de los tripulantes de Mi-RAM");
 			else {
-				log_info(logger, "DISCORDIADOR :: Recorremos a los tripulantes");
-				t_respuesta_listar_tripulantes* respuesta = malloc(sizeof(t_respuesta_listar_tripulantes));
+				t_respuesta_listar_tripulante* respuesta = malloc(sizeof(t_respuesta_listar_tripulante));
 
-				for(int i = 0; i < cantidad_tripulantes; i++) {
-					respuesta = (t_respuesta_listar_tripulantes*) list_get(lista_tripulantes_respuesta, i);
+				log_info(logger, "--------------------------------------------------------");
+				log_info(logger, "DISCORDIADOR :: Estado de la nave: %s", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+				log_info(logger, "--------------------------------------------------------");
+
+				for(int i = 0; i < listado_recibido->cantidad_tripulantes; i++) {
+					respuesta = (t_respuesta_listar_tripulante*) list_get(listado_recibido->tripulantes, i);
 					log_info(
 							logger,
 							"Tripulante: %i\t Patota: %i\t Estado: %s",
@@ -71,7 +75,8 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 							respuesta->id_patota,
 							obtener_estado_segun_caracter(respuesta->estado)
 						);
-					// SON VARIOS TRIPULANTES, POR AHORA SE PRUEBA CON UNO HARDCODEADO NADA MAS
+					free(respuesta);
+					// POR AHORA SE PRUEBA CON TRIPULANTES HARDCODEADOS EN RAM NADA MAS
 				}
 				free(respuesta);
 			}
@@ -99,17 +104,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 void rafaga_cpu(uint32_t tiempo){
 	sleep(retardo_ciclo_cpu * tiempo);
-}
-
-// ESTO VA EN RAM
-void obtener_listado_tripulantes(t_list* lista_tripulantes) {
-	t_respuesta_listar_tripulantes* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulantes));
-
-	// TODO HARDCODEADO : SOLO ES PRUEBA : SE PIDE A MEMORIA
-	respuesta_prueba->id_tripulante = 1;
-	respuesta_prueba->id_patota= 1;
-	respuesta_prueba->estado = 'N';
-	list_add(lista_tripulantes, respuesta_prueba);
 }
 
 char* obtener_estado_segun_caracter(char estado) {

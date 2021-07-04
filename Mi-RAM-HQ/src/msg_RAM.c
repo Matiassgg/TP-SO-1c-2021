@@ -180,5 +180,48 @@ t_pcb* deserializar_memoria_pcb(void* stream){
 	return pcb;
 }
 
+void enviar_respuesta_listado_tripulantes(t_respuesta_listado_tripulantes* lista_tripulantes, uint32_t socket_cliente) {
+	t_paquete* paquete_a_enviar = crear_paquete(RESPUESTA_LISTAR_TRIPULANTES);
+	serializar_respuesta_listado_tripulantes(lista_tripulantes, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_cliente);
+}
+
+void serializar_respuesta_listado_tripulantes(t_respuesta_listado_tripulantes* lista_tripulantes, t_buffer* buffer) {
+	//------------ORDEN------------
+	//1. Cantidad de tripulantes
+	//2. Listado de tripulantes							} COMO ES LISTA IRA DENTRO DE UN FOR
+		//	1.1. Tripulante
+		//	1.2. Patota
+		//	1.3. Estado
+	//-----------------------------
+
+	uint32_t offset = 0;
+	t_respuesta_listado_tripulantes* listado_tripulantes = malloc(sizeof(t_respuesta_listado_tripulantes));
+	t_respuesta_listar_tripulante* tripulante = malloc(sizeof(t_respuesta_listar_tripulante));
+	listado_tripulantes->cantidad_tripulantes = lista_tripulantes->cantidad_tripulantes;
+
+	buffer->size = sizeof(uint32_t) + sizeof(t_respuesta_listar_tripulante)*listado_tripulantes->cantidad_tripulantes;
+	buffer->stream = malloc(buffer->size);
+
+	log_info(logger, "CANTIDAD :: %d", listado_tripulantes->cantidad_tripulantes);
+
+	memcpy(buffer->stream + offset, &(listado_tripulantes->cantidad_tripulantes), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	for (int i = 0; i < listado_tripulantes->cantidad_tripulantes; i++) {
+		tripulante = (t_respuesta_listar_tripulante*) list_get(lista_tripulantes->tripulantes,i);
+
+		memcpy(buffer->stream + offset, &(tripulante->id_tripulante), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		memcpy(buffer->stream + offset, &(tripulante->id_patota), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		memcpy(buffer->stream + offset, &(tripulante->estado), sizeof(char));
+		offset += sizeof(char);
+	}
+}
+
+
 
 

@@ -15,15 +15,23 @@ void* seleccionar_victima;
 //---------CONFIG--------//
 char* ip_Mi_RAM_HQ;
 char* puerto_escucha;
-char* punto_montaje;
+
+char* ip_discordiador;
+char* puerto_discordiador;
+uint32_t socket_discordiador;
+
 char* archivo_log;
+
 uint32_t tamanio_memoria;
 char* esquema_memoria;
+
 uint32_t tamanio_pagina;
 uint32_t tamanio_swap;
 char* path_swap;
+
 char* algoritmo_reemplazo;
 char* esquema_memoria;
+char* criterio_seleccion;
 char* criterio_seleccion;
 
 typedef enum {
@@ -147,6 +155,6 @@ void procesar_mensaje_recibido(int, int);
 t_tarea* obtener_tarea(t_tripulante* tripulante);
 char* obtener_tareas(t_patota* patota);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
-void obtener_listado_tripulantes(t_list*);
+t_respuesta_listado_tripulantes* obtener_listado_tripulantes(void);
 
 #endif /* MI_RAM_HQ_SRC_UTILS_RAM_H_ */

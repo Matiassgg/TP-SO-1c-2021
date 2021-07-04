@@ -65,11 +65,6 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"LISTAR_TRIPULANTES")) {
-
-		log_info(logger, "--------------------------------------------------------");
-		log_info(logger, "DISCORDIADOR :: Estado de la nave: %s", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
-		log_info(logger, "--------------------------------------------------------");
-
 		// Envio mensaje a RAM y el se encarga de armar el listado de cada wachin
 		t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
 		enviar_paquete(paquete_a_enviar, socket_Mi_RAM_HQ);
