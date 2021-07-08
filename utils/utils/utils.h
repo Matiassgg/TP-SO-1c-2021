@@ -34,6 +34,7 @@
 
 t_log* iniciar_logger(char*, char*);
 int contar_elementos_array(char**);
+uint32_t minimo(uint32_t numero1, uint32_t numero2);
 int son_iguales(char*, char*);
 int chequear_argumentos_del_mensaje(char**, int);
 int existe_en_array(char**, char*);

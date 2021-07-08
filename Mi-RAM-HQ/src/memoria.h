@@ -30,7 +30,7 @@ void preparar_memoria_para_esquema_de_paginacion(void);
 void cargar_memoria_patota(t_patota* patota);
 
 uint32_t dar_direccion_logica(uint32_t nro_segmento, uint32_t offset);
-uint32_t dar_segmento_direccion_logica(uint32_t dir_logica);
+uint32_t dar_numero_particion_direccion_logica(uint32_t dir_logica);
 uint32_t dar_offset_direccion_logica(uint32_t dir_logica);
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante);
 
@@ -68,7 +68,13 @@ void inicializar_bitmap_swap();
 int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos);
 void asignar_marco_en_swap(t_pagina* pagina);
 
-//void escribir_en_memoria_paginacion(t_pagina* pagina, bool esta_en_memoria, uint32_t idPedido, bool modificado);
+t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
+t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);
+t_asocador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato);
+
+void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato);
+void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);
+void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 
 void* convertir(char* algoritmo_nombre);
 void seleccionar_victima_LRU(void);

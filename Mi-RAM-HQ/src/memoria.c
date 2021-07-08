@@ -52,7 +52,6 @@ void preparar_memoria() {
 void crear_tabla(uint32_t id_patota){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")){
-		log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
 		t_tabla_segmentos* tabla = malloc(sizeof(t_tabla_segmentos));
 		tabla->diccionario_segmentos = dictionary_create();
 		tabla->id_patota_asociada = id_patota;
@@ -62,13 +61,13 @@ void crear_tabla(uint32_t id_patota){
 		pthread_mutex_unlock(&mutex_tablas);
 
 	}else if(son_iguales(esquema_memoria, "PAGINACION")){
-		log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
 		t_tabla_paginas* tabla = crear_tabla_paginacion(id_patota);
 
 		pthread_mutex_lock(&mutex_tablas);
 		list_add(lista_tablas_paginas, tabla);
 		pthread_mutex_unlock(&mutex_tablas);
 	}
+	log_info(logger, "RAM :: Se crea la tabla para la patota %d", id_patota);
 }
 
 t_pcb* crear_pcb(t_patota* patota){
@@ -103,10 +102,10 @@ void cargar_memoria_patota(t_patota* patota){
 	t_pcb* pcb_nuevo = crear_pcb(patota);
 
 	char* tareas = obtener_tareas(patota);
+	crear_tabla(pcb_nuevo->pid);
 
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		crear_tabla(pcb_nuevo->pid);
 
 		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -123,7 +122,6 @@ void cargar_memoria_patota(t_patota* patota){
 
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
-			t_tabla_paginas* tabla = crear_tabla_paginacion(pcb_nuevo->pid);
 
 			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
@@ -154,16 +152,11 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 	t_tcb* tcb = crear_tcb(tripulante);
 
-	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		pthread_mutex_lock(&mutex_tocar_memoria);
-		escribir_en_memoria(tcb, tripulante->id_patota_asociado, TCB);
-		pthread_mutex_unlock(&mutex_tocar_memoria);
-		log_info(logger, "Se subio a memoria el tripulante");
+	pthread_mutex_lock(&mutex_tocar_memoria);
+	escribir_en_memoria(tcb, tripulante->id_patota_asociado, TCB);
+	pthread_mutex_unlock(&mutex_tocar_memoria);
+	log_info(logger, "Se subio a memoria el tripulante");
 
-	}
-	else{
-
-	}
 
 	pthread_mutex_unlock(&mutex_subir_patota);
 
@@ -179,7 +172,7 @@ t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota){
 
 t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla){
 	bool el_que_quiero(t_pagina* pagina){
-		return pagina->espacio_libre > 0;
+		return (pagina->espacio_libre > 0);
 	}
 
 	return (t_pagina*) list_find(tabla, el_que_quiero);
@@ -225,7 +218,7 @@ void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_d
 		modificar_memoria_segmentacion(buffer, id_patota, tipo_dato);
 	}
 	else{
-
+		modificar_memoria_paginacion(buffer, id_patota, tipo_dato);
 	}
 }
 
@@ -247,10 +240,18 @@ void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
 		informacion = leer_memoria_segmentacion(buscar_segmento_id(id, id_patota, tipo_dato));
 	}
 	else{
-//		return leer_memoria_paginacion();
+		informacion = leer_memoria_paginacion(id, id_patota, tipo_dato);
 	}
 	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return informacion;
+}
+
+t_pagina* dar_pagina_de_tabla(t_tabla_paginas* tabla, uint32_t nro_pagina){
+	bool es_pagina(t_pagina* pagina){
+		return pagina->numeroPagina == nro_pagina;
+	}
+
+	return list_find(tabla->paginas,es_pagina);
 }
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
@@ -288,8 +289,48 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 
 		return tarea;
 	}else if(son_iguales(esquema_memoria, "PAGINACION")) {
-		// return ;
+		t_tcb* tcb  = leer_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
+		uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
+		uint32_t nro_pagina = dar_numero_particion_direccion_logica(tcb->prox_instruccion);
+
+		t_tabla_paginas* tabla = dar_tabla_paginas(tripulante->id_patota_asociado);
+		t_pagina* pagina = dar_pagina_de_tabla(tabla, nro_pagina);
+		char* tarea_string = string_new();
+		char* c_leido = calloc(2,sizeof(char));
+		uint32_t new_offset=0;
+		log_info(logger,"offset: %i",offset);
+
+		if(offset >= tamanio_pagina)
+			return NULL;
+
+		uint32_t inicio_tarea = pagina->marco->inicioMemoria + offset;
+		log_info(logger,"inicio_tarea: %i",inicio_tarea);
+		do{
+			memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+			new_offset++;
+			string_append(&tarea_string, c_leido);
+		}while((c_leido[0] != '\n') && ((offset + new_offset) <= tamanio_pagina));
+		log_info(logger,"tarea_string: %s",tarea_string);
+		log_info(logger,"new_offset: %i",new_offset);
+//		t_list* paginas = obtener_paginas_asignadas(tabla, tripulante->id_patota_asociado, TAREAS);
+//		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
+//
+//		if(list_size(paginas) > 1){
+//			while((c_leido[0] != '\n') && ((offset + new_offset) <= tamanio_pagina)){
+//				memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+//				new_offset++;
+//				string_append(&tarea_string, c_leido);
+//			}
+//
+//		}
+
+		tcb->prox_instruccion = dar_direccion_logica(pagina->numeroPagina,new_offset+offset);
+		modificar_memoria_paginacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
+		t_tarea* tarea = obtener_tarea_archivo(tarea_string);
+
+		return tarea;
 	}
+	return NULL;
 }
 
 void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -343,24 +384,49 @@ void preparar_memoria_para_esquema_de_segmentacion() {
 
 }
 
-uint32_t obtener_direccion_pcb(uint32_t id_patota){
-	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
-
-	return dar_direccion_logica(segmento->nro_segmento,0);
+t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
+	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota);
+	return obtener_paginas_asignadas(tabla, id, tipo_dato);
 }
 
-uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
-	t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,TAREAS);
-	log_info(logger, "segmento->inicio = %i", segmento->inicio);
+uint32_t obtener_direccion_pcb(uint32_t id_patota){
+	if(son_iguales(esquema_memoria, "SEGMENTACION")){
+		t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
 
-	return dar_direccion_logica(segmento->nro_segmento,0);
+		return dar_direccion_logica(segmento->nro_segmento,0);
+	}
+	else if(son_iguales(esquema_memoria, "PAGINACION")){
+		t_list* paginas = buscar_paginas_id(id_patota, id_patota, PCB);
+		t_pagina* pagina = list_get(paginas, 0);
+		t_asocador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,PCB);
+
+		return dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
+	}
+}
+
+
+uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
+	if(son_iguales(esquema_memoria, "SEGMENTACION")){
+		t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,TAREAS);
+		log_info(logger, "segmento->inicio = %i", segmento->inicio);
+
+		return dar_direccion_logica(segmento->nro_segmento,0);
+	}
+	else if(son_iguales(esquema_memoria, "PAGINACION")){
+		t_list* paginas = buscar_paginas_id(id_patota, id_patota, TAREAS);
+		t_pagina* pagina = list_get(paginas, 0);
+		t_asocador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,TAREAS);
+
+		return dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
+	}
+
 }
 
 uint32_t dar_direccion_logica(uint32_t nro_segmento, uint32_t offset){
 	return nro_segmento*TAMANIO_OFFSET + offset;
 }
 
-uint32_t dar_segmento_direccion_logica(uint32_t dir_logica){
+uint32_t dar_numero_particion_direccion_logica(uint32_t dir_logica){
 	return dir_logica/TAMANIO_OFFSET;
 }
 
@@ -534,6 +600,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	cantidad_de_marcos_swap=0;
 	tablaDeMarcos = list_create();
 	marcos_swap = list_create();
+	lista_tablas_paginas = list_create();
 
 	if((espacio_swap = fopen(path_swap,"wb+")) == NULL){
 		log_error(logger, "No se pudo crear el espacio de SWAP");
@@ -635,7 +702,7 @@ void asignar_marco(t_pagina* pagina) {
 	} else {
 		pagina->marco = marco;
 		pagina->marco->bitUso = true;
-		pagina->bit_presencia = true;
+		pagina->bit_presencia = true; //TODO seria true?
 		pagina->bit_modificado = false;
 	}
 
@@ -644,12 +711,11 @@ void asignar_marco(t_pagina* pagina) {
 
 t_marco* buscar_marco_libre(){
 
-	bool marco_esta_libre(void* parametro){
-			t_marco* marco = (t_marco*) parametro;
-			return marco->bitUso == false;
+	bool marco_esta_libre(t_marco* marco){
+			return !marco->bitUso;
 	}
 
-	if (!hay_marcos_libres()) {
+	if (!list_any_satisfy(tablaDeMarcos,marco_esta_libre)) {
 //		log_info(logger, "No hay marcos libres. Seleccionando victima.");
 //
 //		pthread_t hilo;
@@ -659,19 +725,13 @@ t_marco* buscar_marco_libre(){
 //		pthread_join(hilo, 0);
 //		pthread_mutex_unlock(&mutexVictima);
 	}
-	t_list* marcos_libres = list_filter(tablaDeMarcos, marco_esta_libre);
 
-	t_marco* buscado = list_get(marcos_libres, 0);
-	list_destroy(marcos_libres);
-
-	return  buscado;
+	return  list_find(tablaDeMarcos, marco_esta_libre);
 }
 
 bool hay_marcos_libres(void){
-
-	bool marco_esta_libre(void* parametro){
-				t_marco* marco = (t_marco*) parametro;
-				return marco->bitUso == false;
+	bool marco_esta_libre(t_marco* marco){
+		return !marco->bitUso;
 	}
 
 	t_list* marcos_libres = list_filter(tablaDeMarcos, marco_esta_libre);
@@ -680,7 +740,7 @@ bool hay_marcos_libres(void){
 
 	list_destroy(marcos_libres);
 
-	return tamanio > 0;
+	return list_any_satisfy(tablaDeMarcos,marco_esta_libre);
 }
 
 
@@ -692,89 +752,194 @@ t_marco* buscar_marco(uint32_t marco){
 	return list_find(tablaDeMarcos, el_que_quiero);
 }
 
+void asignar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, t_asocador_pagina* asociador,  e_tipo_dato tipo_dato){
+	switch(tipo_dato){
+		case TAREAS:
+			dictionary_put(pagina->diccionario_pagina,"TAREAS", asociador);
+		break;
+		case PCB:
+			dictionary_put(pagina->diccionario_pagina,"PCB", asociador);
+		break;
+		case TCB:
+			dictionary_put(pagina->diccionario_pagina, dar_key_tripulante(id_tripulante), asociador);
+		break;
+	}
+}
+
 void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato){ // TODO La pagina no la deberia buscara aca?
 	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota_asociada);
-	t_pagina* pagina_libre = obtener_pagina_libre_tabla(tabla);
+	uint32_t tamanio_restante = buffer->size;
 
-	t_marco* marco;
-//	TODO si la tabla esta vacia pedir marco sino ver si entra en alguna pagina
-	bool esta_en_memoria;
-		if (esta_en_memoria) {
+	while(tamanio_restante > 0){
+		t_pagina* pagina_libre = obtener_pagina_libre_tabla(tabla);
+		//	TODO si la tabla esta vacia pedir marco sino ver si entra en alguna pagina
+		t_marco* marco = pagina_libre->marco;
 
-			// Busco el marco de esa pagina (hay que ver como hacer para que tipo de dato buscar, PCB, tareas o TCB)
-			t_list* marcosDeLaPatota = entradas_segun_patota(id_patota_asociada);
+		uint32_t tamanio_subir = minimo(pagina_libre->espacio_libre, tamanio_restante);
 
-			int cantidadMarcos = list_size(marcosDeLaPatota);
-			bool encont = false;
-			t_marco* marco;
+		if (marco == NULL) {
+			marco = buscar_marco_libre();
+			marco->bitUso = true;
+			marco->idPatota = id_patota_asociada; // ???
 
-			for (int i = 0; i < cantidadMarcos && !encont; i++) {
-//				//REVISAR ESTO CON TOPY
-//				if(tipo_dato == PCB){
-//					marco = list_get(marcosDeLaPatota, i);
-//					int offset = 0;
-//					t_pcb* pcbEnMarco = malloc(8);
-//					memcpy(pcbEnMarco, (marco->inicioMemoria + offset), 8);
-//
-////					if (!strcmp(pagina->tipo_dato, pcbEnMarco)) //CAMBIAR ESTO, COMPARA UN ENUM CON UN t_pcb
-//						encont = true;
-//					free(pcbEnMarco);
-//				}
-//				else if(tipo_dato == TCB){
-//
-//				}
-//				else if(tipo_dato == TAREAS){
-//
-//				}
-			}
+			log_info(logger, "Marco seleccionado: %d", marco->numeroMarco);
 
-			if (!strcmp(algoritmo_reemplazo, "LRU")) {
+			// Agrego a lista de timestamp por marco
+			if (son_iguales(algoritmo_reemplazo, "LRU")) {
 				marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+				log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->numeroMarco, marco->timeStamp);
 			}
 
-			if (!strcmp(algoritmo_reemplazo, "CLOCK_ME")) {
+			// Agrego a lista de timestamp por marco
+			if (son_iguales(algoritmo_reemplazo, "CLOCK")) {
 				marco->bitUso = true;
+				log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numeroMarco, marco->bitUso);
 			}
 		}
-		else {
-				marco = buscar_marco_libre();
-				marco->bitUso = true;
-				marco->idPatota = id_patota_asociada;
 
-				log_info(logger, "Marco seleccionado: %d", marco->numeroMarco);
-
-				// Agrego a lista de timestamp por marco
-				if (!strcmp(algoritmo_reemplazo, "LRU")) {
-					marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
-					log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->numeroMarco, marco->timeStamp);
-				}
-
-				// Agrego a lista de timestamp por marco
-				if (!strcmp(algoritmo_reemplazo, "CLOCK")) {
-					marco->bitUso = true;
-					log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numeroMarco, marco->bitUso);
-				}
-
-				// Agrego el marco a la lista de marcos del pedido
-				t_list* marcosDeLaPatota = entradas_segun_patota(id_patota_asociada);
-				list_add(marcosDeLaPatota, marco);
-				log_info(logger, "Se agrego el marco a la lista de marcos del pedido");
-			}
+		/*
 
 
+	// 			TODO ESTO MAS QUE EL ESCRIBIR SERIA EL MODIFICAR
+		// Busco el marco de esa pagina (hay que ver como hacer para que tipo de dato buscar, PCB, tareas o TCB)
+	//			t_list* marcosDeLaPatota = entradas_segun_patota(id_patota_asociada);
+	//
+	//			int cantidadMarcos = list_size(marcosDeLaPatota);
+	//			bool encont = false;
+	//			t_marco* marco;
+	//
+	//			for (int i = 0; i < cantidadMarcos && !encont; i++) {
+	////				//REVISAR ESTO CON TOPY
+	////				if(tipo_dato == PCB){
+	////					marco = list_get(marcosDeLaPatota, i);
+	////					int offset = 0;
+	////					t_pcb* pcbEnMarco = malloc(8);
+	////					memcpy(pcbEnMarco, (marco->inicioMemoria + offset), 8);
+	////
+	//////					if (!strcmp(pagina->tipo_dato, pcbEnMarco)) //CAMBIAR ESTO, COMPARA UN ENUM CON UN t_pcb
+	////						encont = true;
+	////					free(pcbEnMarco);
+	////				}
+	////				else if(tipo_dato == TCB){
+	////
+	////				}
+	////				else if(tipo_dato == TAREAS){
+	////
+	////				}
+	//			}
 
-//	subir_marco_memoria(marco, buffer->stream);
+	 */
 
+		uint32_t offset = tamanio_pagina - pagina_libre->espacio_libre;
+
+		memcpy(memoria + marco->inicioMemoria + offset, buffer->stream, tamanio_subir);
+
+		uint32_t id_tripulante = 0;
+		if(tipo_dato == TCB)
+			memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
+		t_asocador_pagina* asociador = malloc(sizeof(t_asocador_pagina));
+		asociador->inicio = offset;
+		asociador->tamanio = tamanio_subir;
+		asignar_asociador_pagina(pagina_libre, id_tripulante, asociador, tipo_dato);
+
+		if (son_iguales(algoritmo_reemplazo, "LRU")) {
+			marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+		}
+		if (son_iguales(algoritmo_reemplazo, "CLOCK_ME")) {
+			marco->bitUso = true;
+		}
+
+		pagina_libre->espacio_libre -= tamanio_subir;
+		tamanio_restante -= tamanio_subir;
+
+		log_info(logger, "Se subio %i en la pagina %i que contiene el marco %i", tamanio_subir, pagina_libre->numeroPagina, pagina_libre->marco->numeroMarco);
+	}
+
+	log_info(logger, "Se subio todo");
+}
+
+t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato){
+	char* key = string_new();
+	switch(tipo_dato){
+		case TAREAS:
+			key = string_duplicate("TAREAS");
+		break;
+		case PCB:
+			key = string_duplicate("PCB");
+		break;
+		case TCB:
+			key = dar_key_tripulante(id_tripulante);
+		break;
+	}
+
+	bool contiene_dato(t_pagina* pagina){
+		return dictionary_has_key(pagina->diccionario_pagina, key);
+	}
+
+	return list_filter(tabla->paginas, contiene_dato);
+}
+
+
+t_asocador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
+	switch(tipo_dato){
+		case TAREAS:
+			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina,"TAREAS");
+		break;
+		case PCB:
+			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina,"PCB");
+		break;
+		case TCB:
+			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina, dar_key_tripulante(id_tripulante));
+		break;
+	}
+}
+
+void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 	uint32_t id_tripulante = 0;
 	if(tipo_dato == TCB)
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
-//	subir_tabla_pagina(marco, id_patota_asociada, id_tripulante, tipo_dato);
+
+	t_tabla_paginas* tabla = dar_tabla_paginas(patota_asociada);
+
+	t_list* paginas = obtener_paginas_asignadas(tabla, id_tripulante, tipo_dato);
+
+	uint32_t tamanio_restante = buffer->size;
+
+	for(int i=0; i<list_size(paginas);i++){
+		t_pagina* pagina = list_get(paginas,i);
+		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, id_tripulante, tipo_dato);
+
+		memcpy(memoria + pagina->marco->inicioMemoria + asociador->inicio, buffer->stream, asociador->tamanio);
+		tamanio_restante -= asociador->tamanio;
+	}
+
+	if(tamanio_restante)
+		log_error(logger, "Falta info para subir");
+	else
+		log_info(logger, "Se actualizo correctamente");
+}
+
+void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
+	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota);
+	t_list* paginas = obtener_paginas_asignadas(tabla, id, tipo_dato);
+	void* dato_requerido;
+	int tamanio_total = 0;
+
+	for(int i=0; i<list_size(paginas);i++){
+		t_pagina* pagina = list_get(paginas,i);
+		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, id_patota, tipo_dato);
+		tamanio_total += asociador->tamanio;
+		dato_requerido = realloc(dato_requerido,tamanio_total);
+
+		memcpy(dato_requerido, memoria + pagina->marco->inicioMemoria + asociador->inicio, asociador->tamanio);
+	}
+
+	return dato_requerido;
 }
 
 t_list* entradas_segun_patota(uint32_t idPatota){
-	bool buscar_entradas_patota(void* parametro){
-		t_marco* entradaEnMem = (t_marco*) parametro;
-		return idPatota == entradaEnMem->idPatota;
+	bool buscar_entradas_patota(t_marco* marco){
+		return idPatota == marco->idPatota;
 	}
 
 	t_list* entradas = list_filter(tablaDeMarcos, buscar_entradas_patota);

@@ -85,6 +85,11 @@ typedef struct {
 } t_pagina;
 
 typedef struct {
+	uint32_t inicio;
+	uint32_t tamanio;
+} t_asocador_pagina;
+
+typedef struct {
 	t_pagina* pagina;
 	t_marco* marco;
 } t_pagina_en_marco;

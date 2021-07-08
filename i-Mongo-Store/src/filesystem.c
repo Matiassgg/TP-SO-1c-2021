@@ -305,12 +305,6 @@ void vaciar_archivo(char* archivo){
 	fclose(file);
 }
 
-uint32_t minimo(uint32_t numero1, uint32_t numero2){
-	if(numero1 < numero2)
-		return numero1;
-	return numero2;
-}
-
 int dar_bloque_libre(){
 	t_bitarray* bitarray = leer_bitmap();
 	for(int i=0;i<blocks;i++){

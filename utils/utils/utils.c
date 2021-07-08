@@ -12,6 +12,12 @@ int contar_elementos_array(char** array) {
 	return contador;
 }
 
+uint32_t minimo(uint32_t numero1, uint32_t numero2){
+	if(numero1 < numero2)
+		return numero1;
+	return numero2;
+}
+
 int son_iguales(char* cadenaA, char* cadenaB) {
 	return strcmp(cadenaA ,cadenaB) == 0;
 }
