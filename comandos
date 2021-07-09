@@ -31,6 +31,8 @@ PAUSAR_PLANIFICACION
 INICIAR_PLANIFICACION
 EXPULSAR_TRIPULANTE 2
 
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 4|3
+INICIAR_PLANIFICACION
 
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno2.txt 4|3
 INICIAR_PLANIFICACION

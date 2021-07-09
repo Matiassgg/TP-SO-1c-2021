@@ -88,6 +88,7 @@ t_tcb* crear_tcb(t_tripulante* tripulante){
 	tcb->tid = tripulante->id;
 	tcb->estado = 'N'; // TODO
 	tcb->prox_instruccion = obtener_direccion_tarea(tripulante->id_patota_asociado, 0);
+	log_info(logger,"prox_instruccion: %i",tcb->prox_instruccion);
 	tcb->posicion->pos_x = tripulante->posicion->pos_x;
 	tcb->posicion->pos_y = tripulante->posicion->pos_y;
 	tcb->puntero_pcb = obtener_direccion_pcb(tripulante->id_patota_asociado); // TODO CAMBIAR ESTA KK SI SE ARREGLA ESTO SE FACILITA EL DAR TAREAS
@@ -175,7 +176,7 @@ t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla){
 		return (pagina->espacio_libre > 0);
 	}
 
-	return (t_pagina*) list_find(tabla, el_que_quiero);
+	return (t_pagina*) list_find(tabla->paginas, el_que_quiero);
 }
 
 void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -289,7 +290,9 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 
 		return tarea;
 	}else if(son_iguales(esquema_memoria, "PAGINACION")) {
-		t_tcb* tcb  = leer_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
+		t_tcb* tcb  = deserializar_memoria_tcb(leer_memoria(tripulante->id, tripulante->id_patota_asociado, TCB));
+
+		log_info(logger,"prox_instruccion: %i",tcb->prox_instruccion);
 		uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
 		uint32_t nro_pagina = dar_numero_particion_direccion_logica(tcb->prox_instruccion);
 
@@ -298,7 +301,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		char* tarea_string = string_new();
 		char* c_leido = calloc(2,sizeof(char));
 		uint32_t new_offset=0;
-		log_info(logger,"offset: %i",offset);
+		log_info(logger,"offset: %d",offset);
 
 		if(offset >= tamanio_pagina)
 			return NULL;
@@ -312,19 +315,51 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		}while((c_leido[0] != '\n') && ((offset + new_offset) <= tamanio_pagina));
 		log_info(logger,"tarea_string: %s",tarea_string);
 		log_info(logger,"new_offset: %i",new_offset);
-//		t_list* paginas = obtener_paginas_asignadas(tabla, tripulante->id_patota_asociado, TAREAS);
-//		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
-//
-//		if(list_size(paginas) > 1){
-//			while((c_leido[0] != '\n') && ((offset + new_offset) <= tamanio_pagina)){
-//				memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
-//				new_offset++;
-//				string_append(&tarea_string, c_leido);
-//			}
-//
-//		}
 
-		tcb->prox_instruccion = dar_direccion_logica(pagina->numeroPagina,new_offset+offset);
+		nro_pagina = pagina->numeroPagina;
+		uint32_t offset_logico = new_offset+offset;
+
+		if((c_leido[0] != '\n') && (offset + new_offset) > tamanio_pagina){
+			log_info(logger,"Se entro al if 2");
+			t_list* paginas = obtener_paginas_asignadas(tabla, tripulante->id_patota_asociado, TAREAS);
+			if(list_size(paginas) > 1){
+				bool aux = false;
+				bool dar_proxima_pagina(t_pagina* pagina_A){
+					if(pagina_A->numeroPagina == pagina->numeroPagina){
+						aux = true;
+						return false;
+					}
+					return aux;
+				}
+				t_pagina* pagina_aux = list_find(paginas, dar_proxima_pagina);
+				t_asocador_pagina* asociador = dar_asociador_pagina(pagina_aux, tripulante->id_patota_asociado, TAREAS);
+				offset = asociador->inicio;
+
+				new_offset=0;
+				log_info(logger,"offset: %d",offset);
+
+				if(offset >= tamanio_pagina)
+					return NULL;
+
+				inicio_tarea = pagina_aux->marco->inicioMemoria + offset;
+				log_info(logger,"inicio_tarea: %i",inicio_tarea);
+
+				do{
+					memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+					new_offset++;
+					string_append(&tarea_string, c_leido);
+				}while((c_leido[0] != '\n') && ((offset + new_offset) <= tamanio_pagina));
+
+				nro_pagina = pagina_aux->numeroPagina;
+				offset_logico = new_offset+offset;
+
+				log_info(logger,"tarea_string: %s",tarea_string);
+				log_info(logger,"nro_pagina: %i",nro_pagina);
+
+			}
+		}
+
+		tcb->prox_instruccion = dar_direccion_logica(nro_pagina,offset_logico);
 		modificar_memoria_paginacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
 		t_tarea* tarea = obtener_tarea_archivo(tarea_string);
 
@@ -431,7 +466,7 @@ uint32_t dar_numero_particion_direccion_logica(uint32_t dir_logica){
 }
 
 uint32_t dar_offset_direccion_logica(uint32_t dir_logica){
-	return dir_logica*(1 - (1/TAMANIO_OFFSET));
+	return dir_logica-(dar_numero_particion_direccion_logica(dir_logica)*TAMANIO_OFFSET);
 }
 
 char* dar_key_tripulante(uint32_t id_tripulante){
@@ -831,8 +866,9 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 	 */
 
 		uint32_t offset = tamanio_pagina - pagina_libre->espacio_libre;
+		uint32_t offset_stream = buffer->size - tamanio_restante;
 
-		memcpy(memoria + marco->inicioMemoria + offset, buffer->stream, tamanio_subir);
+		memcpy(memoria + marco->inicioMemoria + offset, buffer->stream + offset_stream, tamanio_subir);
 
 		uint32_t id_tripulante = 0;
 		if(tipo_dato == TCB)
@@ -840,6 +876,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 		t_asocador_pagina* asociador = malloc(sizeof(t_asocador_pagina));
 		asociador->inicio = offset;
 		asociador->tamanio = tamanio_subir;
+		log_info(logger, "asociador en %i con inicio en %i y tamanio %i", asociador, asociador->inicio, asociador->tamanio);
 		asignar_asociador_pagina(pagina_libre, id_tripulante, asociador, tipo_dato);
 
 		if (son_iguales(algoritmo_reemplazo, "LRU")) {
@@ -883,12 +920,15 @@ t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante
 t_asocador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
 	switch(tipo_dato){
 		case TAREAS:
+			log_info(logger, "Se busca asociador de TAREAS");
 			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina,"TAREAS");
 		break;
 		case PCB:
+			log_info(logger, "Se busca asociador de PCB");
 			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina,"PCB");
 		break;
 		case TCB:
+			log_info(logger, "Se busca asociador de TCB");
 			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina, dar_key_tripulante(id_tripulante));
 		break;
 	}
@@ -908,8 +948,9 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 	for(int i=0; i<list_size(paginas);i++){
 		t_pagina* pagina = list_get(paginas,i);
 		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, id_tripulante, tipo_dato);
+		uint32_t offset_stream = buffer->size - tamanio_restante;
 
-		memcpy(memoria + pagina->marco->inicioMemoria + asociador->inicio, buffer->stream, asociador->tamanio);
+		memcpy(memoria + pagina->marco->inicioMemoria + asociador->inicio, buffer->stream+ offset_stream, asociador->tamanio);
 		tamanio_restante -= asociador->tamanio;
 	}
 
@@ -924,15 +965,27 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	t_list* paginas = obtener_paginas_asignadas(tabla, id, tipo_dato);
 	void* dato_requerido;
 	int tamanio_total = 0;
-
+	uint32_t offset = 0;
 	for(int i=0; i<list_size(paginas);i++){
+		log_info(logger, "list_size %i", list_size(paginas));
 		t_pagina* pagina = list_get(paginas,i);
 		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, id_patota, tipo_dato);
+		offset = tamanio_total;
 		tamanio_total += asociador->tamanio;
-		dato_requerido = realloc(dato_requerido,tamanio_total);
+		if(i == 0)
+			dato_requerido = malloc(tamanio_total);
+		else
+			dato_requerido = realloc(dato_requerido,tamanio_total);
 
-		memcpy(dato_requerido, memoria + pagina->marco->inicioMemoria + asociador->inicio, asociador->tamanio);
+		log_info(logger, "Se va a leer desde %i %i", pagina->marco->inicioMemoria + asociador->inicio, asociador->tamanio);
+
+		memcpy(dato_requerido + offset, memoria + pagina->marco->inicioMemoria + asociador->inicio, asociador->tamanio);
+		offset += asociador->tamanio;
 	}
+
+	t_tcb* tcb = deserializar_memoria_tcb(dato_requerido);
+	log_info(logger, "prox_instruccion %i - puntero_pcb %i", tcb->prox_instruccion, tcb->puntero_pcb);
+
 
 	return dato_requerido;
 }
