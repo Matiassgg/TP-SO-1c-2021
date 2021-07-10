@@ -85,13 +85,8 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "RAM :: Nos llego LISTAR_TRIPULANTES de DISCORDIADOR");
 			log_info(logger, "Se procede a obtener la info de los tripulantes");
 
-			// Levanto la conexion aca nomas, para el listado ??
-		    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
-		    	log_error(logger, "No pudimos levantar la conexion con DISCORDIADOR para mandar el listado");
-		    else
-		    	log_info(logger, "RAM :: Pude conectar al DISCORDIADOR");
 
-			enviar_respuesta_listado_tripulantes(obtener_listado_tripulantes(), socket_discordiador);
+			enviar_respuesta_listado_tripulantes(obtener_listado_tripulantes(), cliente_fd);
 
 			log_info(logger, "RAM :: Se enviaron los datos de los tripulantes");
 
@@ -270,31 +265,30 @@ bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
 }
 */
 
-t_respuesta_listado_tripulantes* obtener_listado_tripulantes() {
-	t_respuesta_listado_tripulantes* listado_de_tripulantes = malloc(sizeof(t_respuesta_listado_tripulantes));
-	listado_de_tripulantes->tripulantes = list_create();
+t_respuesta_listar_tripulante* de_tcb_a_listar(t_tcb* tcb, uint32_t id_patota){
+	t_respuesta_listar_tripulante* listar = malloc(sizeof(t_respuesta_listar_tripulante));
 
-	t_respuesta_listar_tripulante* respuesta_prueba = malloc(sizeof(t_respuesta_listar_tripulante));
+	listar->estado = tcb->estado;
+	listar->id_tripulante = tcb->tid;
+	listar->id_patota = id_patota;
 
-	// ALGO ASI ¡?
-	// cargar_tripulantes_a_lista(listado_de_tripulantes)
+	return listar;
+}
 
-	// TODO HARDCODEADO : SOLO ES PRUEBA AHORA
-	respuesta_prueba->id_tripulante = 1;
-	respuesta_prueba->id_patota= 1;
-	respuesta_prueba->estado = 'N';
-	list_add(listado_de_tripulantes->tripulantes, respuesta_prueba);
-	respuesta_prueba->id_tripulante = 2;
-	respuesta_prueba->id_patota= 1;
-	respuesta_prueba->estado = 'N';
-	list_add(listado_de_tripulantes->tripulantes, respuesta_prueba);
-	respuesta_prueba->id_tripulante = 3;
-	respuesta_prueba->id_patota= 2;
-	respuesta_prueba->estado = 'E';
-	list_add(listado_de_tripulantes->tripulantes, respuesta_prueba);
+t_list* obtener_listado_tripulantes() {
+	t_list* listado_de_tripulantes = list_create();
+	pthread_mutex_lock(&mutex_tablas);
+	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
+		t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
 
-	listado_de_tripulantes->cantidad_tripulantes = 3;
-
+		for(int j=1; j<=tabla->cant_tripulantes; j++){
+			if(dictionary_has_key(tabla->diccionario_segmentos, dar_key_tripulante(j))){
+				t_tcb* tcb = (t_tcb*) obtener_tripulante_memoria(j,tabla->id_patota_asociada);
+				list_add(listado_de_tripulantes, de_tcb_a_listar(tcb,tabla->id_patota_asociada));
+			}
+		}
+	}
+	pthread_mutex_unlock(&mutex_tablas);
 	return listado_de_tripulantes;
 }
 

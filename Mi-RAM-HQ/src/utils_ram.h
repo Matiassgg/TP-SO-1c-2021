@@ -57,6 +57,7 @@ typedef struct {
 typedef struct {
 	t_dictionary* diccionario_segmentos;
 	uint32_t id_patota_asociada;
+	uint32_t cant_tripulantes;
 } t_tabla_segmentos;
 
 //typedef struct {
@@ -160,6 +161,6 @@ void procesar_mensaje_recibido(int, int);
 t_tarea* obtener_tarea(t_tripulante* tripulante);
 char* obtener_tareas(t_patota* patota);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
-t_respuesta_listado_tripulantes* obtener_listado_tripulantes(void);
+t_list* obtener_listado_tripulantes(void);
 
 #endif /* MI_RAM_HQ_SRC_UTILS_RAM_H_ */

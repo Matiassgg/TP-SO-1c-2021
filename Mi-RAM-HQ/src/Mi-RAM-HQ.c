@@ -15,6 +15,7 @@ void iniciar_Mi_RAM_HQ() {
 	leer_config();
 	logger = iniciar_logger_RAM(archivo_log, "Mi-RAM-HQ.c");
     log_info(logger, "Ya obtuvimos la config de Mi RAM HQ\n");
+    log_info(logger, "El pid de Mi-RAM-HQ es %i\n",process_getpid());
 
 	//dic_discordiador_tabla_segmentos = dictionary_create();// REVISAR ESTO
 	tablaDeMarcos = list_create();

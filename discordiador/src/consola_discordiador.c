@@ -10,6 +10,34 @@ void leer_consola() {
 	free(leido);
 }
 
+
+char* estado_string(char estado){
+	switch(estado){
+		case 'n':case 'N':
+			return "NEW";
+		case 'r':case 'R':
+			return "READY";
+		case 'e':case 'E':
+			return "EXEC";
+		case 'b':case 'B':
+			return "BLOCK I/O";
+	}
+	return "ERROR";
+}
+
+char* de_listado_a_string(t_list* lista_tripulantes){
+	char* string_listado = string_new();
+	string_append(&string_listado, "--------------------------------------------------------------------\n");
+		string_append_with_format(&string_listado, "Estado de la Nave: %s\n", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+	for(int i=0;i<list_size(lista_tripulantes);i++){
+		t_respuesta_listar_tripulante* tripulante = list_get(lista_tripulantes,i);
+		string_append_with_format(&string_listado, "Tripulante: %i	Patota: %i	Status: %s\n", tripulante->id_tripulante, tripulante->id_patota, estado_string(tripulante->estado));
+	}
+	string_append(&string_listado, "--------------------------------------------------------------------");
+
+	return string_listado;
+}
+
 void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 	if(son_iguales(palabras_del_mensaje[0] ,"ESTAS_ON")) {
@@ -68,6 +96,13 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		// Envio mensaje a RAM y el se encarga de armar el listado de cada wachin
 		t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
 		enviar_paquete(paquete_a_enviar, socket_Mi_RAM_HQ);
+		t_list* lista_tripulantes = recibir_listado_tripulantes(socket_Mi_RAM_HQ);
+		char* string_listado = de_listado_a_string(lista_tripulantes);
+
+		log_info(logger, "\n\n%s\n", string_listado);
+
+		free(string_listado);
+		list_destroy_and_destroy_elements(lista_tripulantes, free);
 		return;
 	}
 

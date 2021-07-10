@@ -46,6 +46,7 @@ void enviar_mover_hacia(t_tripulante* tripulante, t_movimiento direccion){
 //	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
 
 }
+
 void serializar_iniciar_patota(t_patota* msg, t_buffer* buffer){
 	//------------ORDEN------------
 	//1. Cantidad tripulantes
@@ -246,6 +247,14 @@ t_tarea* recibir_tarea(uint32_t socket_cliente){
 		return NULL;
 }
 
+t_list* recibir_listado_tripulantes(int socket_cliente){
+	int aux;
+	recv(socket_cliente, &aux, sizeof(op_code), MSG_WAITALL);
+	recv(socket_cliente, &aux, sizeof(uint32_t), MSG_WAITALL);
+
+	return deserializar_respuesta_listado_tripulantes(socket_cliente);
+}
+
 t_tarea* deserializar_solicitar_tarea_respuesta(uint32_t socket_cliente) {
 	//------------ORDEN------------
 	//1. Tarea
@@ -287,7 +296,7 @@ t_posicion* deserializar_posicion_sabotaje(uint32_t socket_cliente) {
 	return posicion;
 }
 
-t_respuesta_listado_tripulantes* deserializar_respuesta_listado_tripulantes(uint32_t socket_cliente) {
+t_list* deserializar_respuesta_listado_tripulantes(uint32_t socket_cliente) {
 	//------------ORDEN------------
 	//1. Cantidad tripulantes
 	//2. Listado de tripulantes							} COMO ES LISTA IRA DENTRO DE UN FOR
@@ -296,8 +305,7 @@ t_respuesta_listado_tripulantes* deserializar_respuesta_listado_tripulantes(uint
 		//	1.3. Estado
 	//-----------------------------
 
-	t_respuesta_listado_tripulantes* listado_tripulantes = malloc(sizeof(t_respuesta_listado_tripulantes));
-	listado_tripulantes->tripulantes = list_create();
+	t_list* listado_tripulantes = list_create();
 	uint32_t cantidad_tripulantes;
 
 	recv(socket_cliente, &(cantidad_tripulantes), sizeof(uint32_t), 0);
@@ -313,7 +321,7 @@ t_respuesta_listado_tripulantes* deserializar_respuesta_listado_tripulantes(uint
 		log_info(logger, "NOS LLEGO ESTE ID PATOTA :: %d", tripulante->id_patota);
 		log_info(logger, "NOS LLEGO ESTE ESTADO :: %c", tripulante->estado);
 
-		list_add(listado_tripulantes->tripulantes, tripulante);
+		list_add(listado_tripulantes, tripulante);
 
 	}
 	return listado_tripulantes;

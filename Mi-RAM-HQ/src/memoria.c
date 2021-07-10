@@ -49,12 +49,20 @@ void preparar_memoria() {
 
 }
 
+char* dar_key_tripulante(uint32_t id_tripulante){
+	char* key_tripulante = string_duplicate("TCB");
+	string_append(&key_tripulante,string_itoa(id_tripulante));
+
+	return key_tripulante;
+}
+
 void crear_tabla(uint32_t id_patota){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")){
 		t_tabla_segmentos* tabla = malloc(sizeof(t_tabla_segmentos));
 		tabla->diccionario_segmentos = dictionary_create();
 		tabla->id_patota_asociada = id_patota;
+		tabla->cant_tripulantes = 0;
 
 		pthread_mutex_lock(&mutex_tablas);
 		list_add(lista_tablas_segmentos, tabla);
@@ -255,6 +263,10 @@ t_pagina* dar_pagina_de_tabla(t_tabla_paginas* tabla, uint32_t nro_pagina){
 	return list_find(tabla->paginas,es_pagina);
 }
 
+t_tcb* obtener_tripulante_memoria(uint32_t id_tripulante, uint32_t id_patota_asociada){
+	return (t_tcb*) deserializar_memoria_tcb(leer_memoria(id_tripulante, id_patota_asociada, TCB));
+}
+
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
@@ -400,6 +412,51 @@ int indice_elemento(t_list* lista, void* elemento){
 //////////////////////////////////////////SEGMENTACIÓN/////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ordenar_segmentos(){
+	pthread_mutex_lock(&mutex_tablas);
+	uint32_t inicio_nuevo = 0;
+	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
+		t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
+
+		t_segmento* segmento_pcb = dictionary_get(tabla->diccionario_segmentos, "PCB");
+		segmento_pcb->inicio = inicio_nuevo;
+		inicio_nuevo += segmento_pcb->tamanio;
+
+		t_segmento* segmento_tareas = dictionary_get(tabla->diccionario_segmentos, "TAREAS");
+		segmento_tareas->inicio = inicio_nuevo;
+		inicio_nuevo += segmento_tareas->tamanio;
+
+		for(int j=1; j<=tabla->cant_tripulantes; j++){
+			if(dictionary_has_key(tabla->diccionario_segmentos, dar_key_tripulante(j))){
+				t_segmento* segmento_tripulante = dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(j));
+				segmento_tripulante->inicio = inicio_nuevo;
+				inicio_nuevo += segmento_tripulante->tamanio;
+			}
+		}
+	}
+	log_info(logger, "COMPACTACION :: Ya se compactaron todos los segmentos y terminan en %i dando un tamaño libre de %i", inicio_nuevo, tamanio_memoria - inicio_nuevo);
+
+	list_clean_and_destroy_elements(lista_segmentos_libres, free);
+	log_info(logger, "COMPACTACION :: Se eliminaron los viejos segmentos libres (list_size=%i)", list_size(lista_segmentos_libres));
+
+	t_segmento* segmento_nuevo = malloc(sizeof(t_segmento));
+	segmento_nuevo->inicio = inicio_nuevo;
+	segmento_nuevo->nro_segmento = 0;
+	segmento_nuevo->tamanio = tamanio_memoria - inicio_nuevo;
+	list_add(lista_segmentos_libres, segmento_nuevo);
+	log_info(logger, "COMPACTACION :: Se creo el nuevo segmento libre");
+
+	pthread_mutex_unlock(&mutex_tablas);
+}
+
+void compactar_memoria(int signum) {
+	log_info(logger, "COMPACTACION :: Recibimos la señal para realizar la compactacion\n");
+	pthread_mutex_lock(&mutex_tocar_memoria);
+	ordenar_segmentos();
+
+	pthread_mutex_unlock(&mutex_tocar_memoria);
+
+}
 
 void preparar_memoria_para_esquema_de_segmentacion() {
 	lista_segmentos_libres = list_create();
@@ -415,6 +472,9 @@ void preparar_memoria_para_esquema_de_segmentacion() {
 	segmento->tamanio = tamanio_memoria;
 
 	list_add(lista_segmentos_libres, segmento);
+
+	signal(SIGUSR1, compactar_memoria);
+
 	log_info(logger, "Creamos las estructuras necesarias para segmentacion");
 
 }
@@ -467,13 +527,6 @@ uint32_t dar_numero_particion_direccion_logica(uint32_t dir_logica){
 
 uint32_t dar_offset_direccion_logica(uint32_t dir_logica){
 	return dir_logica-(dar_numero_particion_direccion_logica(dir_logica)*TAMANIO_OFFSET);
-}
-
-char* dar_key_tripulante(uint32_t id_tripulante){
-	char* key_tripulante = string_duplicate("TCB");
-	string_append(&key_tripulante,string_itoa(id_tripulante));
-
-	return key_tripulante;
 }
 
 t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
@@ -564,6 +617,7 @@ void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_
 		break;
 		case TCB:
 			dictionary_put(tabla_segmentos->diccionario_segmentos, dar_key_tripulante(id_tripulante), segmento);
+			tabla_segmentos->cant_tripulantes++;
 		break;
 	}
 
@@ -644,7 +698,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
 		// Cargar estructuras administrativass
-		log_info(logger, "Desplazamiento: %d", offset);
+//		log_info(logger, "Desplazamiento: %d", offset);
 
 		t_marco* nuevoMarco = malloc(sizeof(t_marco));
 		nuevoMarco->numeroMarco = cantidad_de_marcos;
@@ -654,7 +708,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		nuevoMarco->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevoMarco);
-		log_info(logger, "Marco numero: %d", nuevoMarco->numeroMarco);
+//		log_info(logger, "Marco numero: %d", nuevoMarco->numeroMarco);
 		cantidad_de_marcos++;
 	}
 
