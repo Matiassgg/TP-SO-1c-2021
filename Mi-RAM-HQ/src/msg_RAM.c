@@ -77,7 +77,6 @@ t_buffer* serializar_memoria_tareas(char* tareas){
 
 	buffer->size = string_length(tareas)+1;
 	buffer->stream = string_duplicate(tareas);
-	log_info(logger, "RAM :: Tareas obtenida:\n%s", buffer->stream);
 
 	return buffer;
 }

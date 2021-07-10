@@ -98,6 +98,7 @@ typedef struct {
 typedef struct {
 	t_list* paginas;
 	uint32_t id_patota_asociada;
+	t_list* tripulantes_activos;
 } t_tabla_paginas;
 
 

@@ -71,6 +71,7 @@ void asignar_marco_en_swap(t_pagina* pagina);
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);
 t_asocador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato);
+t_asocador_pagina* quitar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato);
 
 void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociada, e_tipo_dato tipo_dato);
 void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato);

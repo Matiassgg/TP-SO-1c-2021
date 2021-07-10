@@ -187,7 +187,6 @@ char* obtener_tareas(t_patota* patota){
 		log_info(logger, "Se pudo abrir el archivo:\n%s",patota->path_tareas);
 //		log_info(logger, "El archivo:\n%s\nY el primer caracter es:\n%s",patota->path_tareas, fgetc(archivo));
 		while(fread(caracter,1,1,archivo)){
-			log_info(logger, "El caracter leido es: %s",caracter);
 			string_append(&leido, caracter);
 		}
 		free(caracter);
@@ -278,15 +277,29 @@ t_respuesta_listar_tripulante* de_tcb_a_listar(t_tcb* tcb, uint32_t id_patota){
 t_list* obtener_listado_tripulantes() {
 	t_list* listado_de_tripulantes = list_create();
 	pthread_mutex_lock(&mutex_tablas);
-	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
-		t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		for(int i=0; i<list_size(lista_tablas_segmentos); i++){
+			t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
 
-		for(int j=1; j<=tabla->cant_tripulantes; j++){
-			if(dictionary_has_key(tabla->diccionario_segmentos, dar_key_tripulante(j))){
-				t_tcb* tcb = (t_tcb*) obtener_tripulante_memoria(j,tabla->id_patota_asociada);
+			for(int j=1; j<=tabla->cant_tripulantes; j++){
+				if(dictionary_has_key(tabla->diccionario_segmentos, dar_key_tripulante(j))){
+					t_tcb* tcb = (t_tcb*) obtener_tripulante_memoria(j,tabla->id_patota_asociada);
+					list_add(listado_de_tripulantes, de_tcb_a_listar(tcb,tabla->id_patota_asociada));
+				}
+			}
+		}
+
+	}
+	else if(son_iguales(esquema_memoria, "PAGINACION")) {
+		for(int i=0; i<list_size(lista_tablas_paginas); i++){
+			t_tabla_paginas* tabla = (t_tabla_paginas*) list_get(lista_tablas_paginas, i);
+
+			for(int j=0; j<list_size(tabla->tripulantes_activos); j++){
+				t_tcb* tcb = (t_tcb*) obtener_tripulante_memoria(list_get(tabla->tripulantes_activos,j),tabla->id_patota_asociada);
 				list_add(listado_de_tripulantes, de_tcb_a_listar(tcb,tabla->id_patota_asociada));
 			}
 		}
+
 	}
 	pthread_mutex_unlock(&mutex_tablas);
 	return listado_de_tripulantes;
