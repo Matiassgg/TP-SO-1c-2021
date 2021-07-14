@@ -104,6 +104,14 @@ typedef struct {
 } tarea_Mongo;
 
 typedef struct {
+	uint32_t id;
+	uint32_t tamanio_tarea;
+	char* tarea;
+} t_bitacora_tarea_Mongo;
+
+
+
+typedef struct {
 	char* stream;
 	t_dictionary* diccionario;
 } t_bloque_FS;

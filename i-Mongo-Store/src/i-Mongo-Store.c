@@ -3,9 +3,6 @@
 
 int main(int argc, char* argv[]) {
 	iniciar_mongo();
-	pthread_t hilo_sincronizador;
-	pthread_create(&hilo_sincronizador, NULL, (void*) sincronizar_blocks, NULL);
-	pthread_detach(hilo_sincronizador);
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
 	pthread_join(hiloReceive, NULL);
 
@@ -41,6 +38,10 @@ void inicializar_filesystem() {
 	    crear_blocks();
 	else
 		obtener_blocks();
+
+	pthread_t hilo_sincronizador;
+	pthread_create(&hilo_sincronizador, NULL, (void*) sincronizar_blocks, NULL);
+	pthread_detach(hilo_sincronizador);
 }
 
 void FS_RESET(){

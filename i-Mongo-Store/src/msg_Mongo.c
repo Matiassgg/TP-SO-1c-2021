@@ -43,6 +43,24 @@ tarea_Mongo* deserializar_tarea(uint32_t socket_cliente) {
 	return tarea;
 }
 
+t_bitacora_tarea_Mongo* deserializar_bitacora_tarea(uint32_t socket_cliente) {
+	//------------ORDEN------------
+	//1. ID
+	//2. Tamanio
+	//3. Tarea
+	//4. Parametro
+	//-----------------------------
+
+	t_bitacora_tarea_Mongo* tarea = malloc(sizeof(t_bitacora_tarea_Mongo));
+
+	recv(socket_cliente, &(tarea->id), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(tarea->tamanio_tarea), sizeof(uint32_t), 0);
+	tarea->tarea = calloc(1,tarea->tamanio_tarea);
+	recv(socket_cliente, tarea->tarea, tarea->tamanio_tarea, 0);
+
+	return tarea;
+}
+
 void serializar_sabotaje_en_mongo(t_posicion* posicion, t_buffer* buffer) {
 	//------------ORDEN------------
 	//1. Posicion x

@@ -74,7 +74,8 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		}
 		if(!puedo_seguir(tripulante_plani))
 			break;
-		hacer_tarea(tripulante_plani);
+		while(tripulante->tarea_act->tiempo > 0 && puedo_seguir(tripulante_plani))
+			hacer_tarea(tripulante_plani);
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		if(!verificar_estado(tripulante))
@@ -85,7 +86,6 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 	expulsar_tripulante(tripulante);
 	// TODO finalizar tripulante
 	// TODO supongo que plani dira che vos movete y este wacho se mueve, asi?
-
 }
 
 void actualizar_estado(t_tripulante* tripulante){
@@ -116,6 +116,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 	char* tarea_por_hacer = tripulante_plani->tripulante->tarea_act->tarea;
 
 	log_info(logger, "El tripulante %i iniciara la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
+	enviar_Mongo_bitacora_tarea(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_Mongo);
 
 	if(es_tarea_de_recursos(tarea_por_hacer) || es_tarea_de_eliminar_residuos(tarea_por_hacer)) {
 		// TODO FS DEBE ENTERARSE QUE SE VA A TRATAR DE ACCEDER A ALGUN ARCHIVO O KE ??
@@ -125,8 +126,6 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		queue_push(cola_bloq_E_S,tripulante_plani);
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
-
-		enviar_Mongo_bitacora_tarea(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_Mongo);
 
 		pthread_mutex_lock(&mutex_cola_bloqueados_io);
 		queue_pop(cola_bloq_E_S);
@@ -180,11 +179,11 @@ void hacer_ciclos_tarea(t_tripulante* tripulante){
 	if(son_iguales(algoritmo,"FIFO")){
 		rafaga_cpu(tripulante->tarea_act->tiempo);
 	}
-	else if(tripulante->tarea_act->tiempo > quantum){
-		rafaga_cpu(quantum);
-		tripulante->tarea_act->tiempo -= quantum;
+	else{
+		int cuantum = minimo(tripulante->tarea_act->tiempo, quantum);
+		rafaga_cpu(cuantum);
+		tripulante->tarea_act->tiempo -= cuantum;
 		log_info(logger, "El tripulante %i le queda %i para finalizar la tarea %s", tripulante->id, tripulante->tarea_act->tiempo, tripulante->tarea_act->tarea);
-
 		// TODO Y AHORA KE creo que habria que volver a ponerlo en ready, enotnces las colas de bloqueados de que va a servir? (estructura)
 	}
 }

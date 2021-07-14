@@ -30,7 +30,13 @@ void enviar_RAM_expulsar_tripulante(t_tripulante* tripulante, uint32_t socket_co
 }
 
 void enviar_Mongo_bitacora_tarea(t_tripulante* tripulante, uint32_t socket_conexion) {
-	t_paquete* paquete_a_enviar = crear_paquete(COMENZAR_EJECUCION_TAREA);
+	t_paquete* paquete_a_enviar = crear_paquete(EJECUTAR_TAREA);
+	serializar_bitacora_tarea(tripulante, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
+void enviar_Mongo_bitacora_tarea_finalizar(t_tripulante* tripulante, uint32_t socket_conexion) {
+	t_paquete* paquete_a_enviar = crear_paquete(FINALIZAR_TAREA);
 	serializar_bitacora_tarea(tripulante, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
@@ -41,9 +47,9 @@ void enviar_mover_hacia(t_tripulante* tripulante, t_movimiento direccion){
 	serializar_mover_hacia(tripulante, direccion, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_RAM);
 //	MONGO
-//	paquete_a_enviar = crear_paquete(MOVER_HACIA);
-//	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
-//	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
+	paquete_a_enviar = crear_paquete(MOVER_HACIA);
+	serializar_mover_hacia_Mongo(tripulante, direccion, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, tripulante->socket_conexion_Mongo);
 
 }
 

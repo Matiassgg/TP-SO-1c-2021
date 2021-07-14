@@ -44,10 +44,12 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	log_info(logger, "procesar_mensaje_recibido");
 
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
-
-	t_patota* patota = malloc(sizeof(t_patota));
-	tarea_Mongo* tarea = malloc(sizeof(tarea_Mongo));
-	t_mover_hacia* posicion = malloc(sizeof(t_mover_hacia));
+	// ES NECESARIO ALLOCAR MEMORIA A TODO?
+	t_patota* patota/* = malloc(sizeof(t_patota))*/;
+	tarea_Mongo* tarea/* = malloc(sizeof(tarea_Mongo))*/;
+	t_mover_hacia* posicion/* = malloc(sizeof(t_mover_hacia))*/;
+	t_bitacora_tarea_Mongo* tarea_bitacora;
+	char* string_bitacora = string_new();
 	//Procesar mensajes recibidos
 	switch (cod_op) {
 		case ESTA_ON:
@@ -65,28 +67,50 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(patota->path_tareas);
 			free(patota);
 		break;
-		case COMENZAR_EJECUCION_TAREA:
-			tarea = deserializar_tarea(cliente_fd);
-			log_info(logger, "Nos llego COMENZAR_EJECUCION_TAREA del tripulante %i", tarea->id);
-			verificar_archivo_tarea(tarea);
-			log_info(logger, "Se comenzo la ejecucion de tarea %s", tarea->tarea);
-
-		break;
-		case FINALIZAR_TAREA:
-			tarea = deserializar_tarea(cliente_fd);
-
-			log_info(logger, "Se finaliza la ejecucion de tarea %s", tarea->tarea);
-		break;
 		case MOVER_HACIA:
 			posicion = deserializar_mover_hacia_posicion(cliente_fd);
 
-			log_info(logger, "Se realiza movimiento desde pos (%i,%i) hacia pos(%i,%i)",
-					posicion->posicion_origen->pos_x,posicion->posicion_origen->pos_y,
-					posicion->posicion_destino->pos_x,posicion->posicion_destino->pos_y);
+			string_append_with_format(&string_bitacora, "Se mueve de %i|%i a %i|%",posicion->posicion_origen->pos_x, posicion->posicion_origen->pos_y, posicion->posicion_destino->pos_x, posicion->posicion_destino->pos_y);
+			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
+		case EJECUTAR_TAREA:
+			tarea_bitacora = deserializar_bitacora_tarea(cliente_fd);
 
+			string_append_with_format(&string_bitacora, "El tripulante %i comienza ejecución de tarea %s", tarea_bitacora->id, tarea_bitacora->tarea);
+			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
+		break;
+		case FINALIZAR_TAREA:
+			tarea_bitacora = deserializar_bitacora_tarea(cliente_fd);
+
+			string_append_with_format(&string_bitacora, "El tripulante %i finaliza la tarea %s", tarea_bitacora->id, tarea_bitacora->tarea);
+			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
+		break;
+		case RESOLVER_SABOTAJE:
+
+			string_append(&string_bitacora, "Se corre en pánico hacia la ubicación del sabotaje");
+			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
+		break;
+		case FINALIZAR_SABOTAJE:
+
+			string_append(&string_bitacora, "Se resuelve el sabotaje");
+			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
+		break;
 	}
 
+	free(string_bitacora);
+
+}
+
+void subir_a_bitacora(char* informacion,uint32_t id_tripulante){
+	char* path = path_bitacora_tripulante(id_tripulante);
+	if(!archivo_existe(path))
+		log_error(logger,"No se pudo abrir el archivo %s para su escritura", path);
+	else{
+		log_info(logger,"%s", informacion);
+		subir_FS(informacion, path, false);
+	}
+
+	free(path);
 }
 
 void verificar_archivo_tarea(tarea_Mongo* tarea){
@@ -156,7 +180,7 @@ void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char
 	}else{
 		char* caracteres = string_repeat(caracter,cantidad);
 		log_info(logger,"Se va a llenar el archivo %s con %s", ruta_archivo, caracteres);
-		subir_tarea(caracteres, ruta_archivo);
+		subir_FS(caracteres, ruta_archivo, true);
 //		fwrite(caracteres,string_length(caracteres)+1,1,file);
 	}
 
