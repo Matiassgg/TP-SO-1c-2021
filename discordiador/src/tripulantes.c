@@ -76,6 +76,8 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			break;
 		while(tripulante->tarea_act->tiempo > 0 && puedo_seguir(tripulante_plani))
 			hacer_tarea(tripulante_plani);
+		if(tripulante->tarea_act->tiempo > 0)
+			enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		if(!verificar_estado(tripulante))
