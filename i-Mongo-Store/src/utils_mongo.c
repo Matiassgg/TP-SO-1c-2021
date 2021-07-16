@@ -46,6 +46,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
 	// ES NECESARIO ALLOCAR MEMORIA A TODO?
 	t_patota* patota/* = malloc(sizeof(t_patota))*/;
+	t_tripulante* tripulante;
 	tarea_Mongo* tarea/* = malloc(sizeof(tarea_Mongo))*/;
 	t_mover_hacia* posicion/* = malloc(sizeof(t_mover_hacia))*/;
 	t_bitacora_tarea_Mongo* tarea_bitacora;
@@ -61,17 +62,25 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
-			crear_bitacoras_de_tripulantes(patota->cant_tripulantes);
+//			crear_bitacoras_de_tripulantes(patota->cant_tripulantes);
 //			GUARDAR EN FS Y HACER LAS TARES CORRESPONDIENTES
 			list_destroy(patota->posiciones);
 			free(patota->path_tareas);
 			free(patota);
 		break;
+		case INICIAR_TRIPULANTE:
+			tripulante = deserializar_iniciar_tripulante(cliente_fd);
+
+			log_info(logger, "Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
+
+			crear_bitacoras_de_tripulantes(tripulante->id);
+
+			free(tripulante);
 		case MOVER_HACIA:
 			posicion = deserializar_mover_hacia_posicion(cliente_fd);
 
-			string_append_with_format(&string_bitacora, "Se mueve de %i|%i a %i|%",posicion->posicion_origen->pos_x, posicion->posicion_origen->pos_y, posicion->posicion_destino->pos_x, posicion->posicion_destino->pos_y);
-			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
+			string_append_with_format(&string_bitacora, "El tripulante %i se mueve de %i|%i a %i|%i",posicion->id_tripulante, posicion->posicion_origen->pos_x, posicion->posicion_origen->pos_y, posicion->posicion_destino->pos_x, posicion->posicion_destino->pos_y);
+			subir_a_bitacora(string_bitacora, posicion->id_tripulante);
 		break;
 		case EJECUTAR_TAREA:
 			tarea_bitacora = deserializar_bitacora_tarea(cliente_fd);

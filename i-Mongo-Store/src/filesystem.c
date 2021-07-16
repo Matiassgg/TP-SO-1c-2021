@@ -160,7 +160,8 @@ void crear_bitacoras_de_tripulantes(uint32_t tripulantes){
 	for(int i = 1; i <= tripulantes; i++){
 		int fd;
 		char* pathArchivoBitacora = path_bitacora_tripulante(i);
-		if((fd = crear_archivo(pathArchivoBitacora))==-1){
+		if((fd = crear_archivo(pathArchivoBitacora))!=-1){
+
 			close(fd);
 		}
 		free(pathArchivoBitacora);
@@ -296,6 +297,21 @@ int crear_archivo_recursos(char* nombreArchivo, char caracter_llenado){
 
 		return 1;
 	}
+	return 0;
+}
+
+int crear_archivo_bitacora(uint32_t id_tripulante){
+	char* ruta_archivo_bitacora = path_bitacora_tripulante(id_tripulante);
+	FILE* archivo = fopen(ruta_archivo_bitacora, "w+");
+	if(archivo){
+		char* file_generico = string_duplicate("SIZE=0\nBLOCKS=[]");
+		fwrite(file_generico,string_length(file_generico),1,archivo);
+
+		fclose(archivo);
+		free(ruta_archivo_bitacora);
+		return 1;
+	}
+	free(ruta_archivo_bitacora);
 	return 0;
 }
 
@@ -446,7 +462,14 @@ char* obtener_stream_tarea(char caracter, t_list* bloques, uint32_t size){
 }
 
 void sumar_bloques_config(t_list* bloques, t_config* config){
-	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
+	int size = config_get_int_value(config, "SIZE");
+	uint32_t cant_bloques;
+	div_t aux = div(size, block_size);
+	if (aux.rem == 0)
+		cant_bloques = aux.quot;
+	else
+		cant_bloques = aux.quot + 1;
+
 	if(cant_bloques != 0){
 		char** bloques_config = config_get_array_value(config, "BLOCKS");
 		for(int i=0; i<cant_bloques;i++){
@@ -459,24 +482,46 @@ void sumar_bloques_config(t_list* bloques, t_config* config){
 	}
 }
 
-char* actualizar_stream_bitacora(char caracter, t_list* bloques, uint32_t size, t_config* config){
+char* obtener_stream_blocks(t_list* bloques){
+	uint32_t cant_bloques = (uint32_t) list_size(bloques);
+
+	char* stream = string_duplicate("[");
+	for(int i=0;i<cant_bloques;i++){
+		string_append_with_format(&stream, "%i", list_get(bloques,i));
+		if(i!=cant_bloques-1)
+			string_append_with_format(&stream, ",");
+	}
+	string_append_with_format(&stream, "]\n");
+
+	return stream;
+}
+
+void actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* config, uint32_t size){
 	sumar_bloques_config(bloques, config);
 	uint32_t size_old = config_get_int_value(config, "SIZE");
-	return obtener_stream_bitacora(caracter, bloques, size+size_old);
+	char* blocks_stream = obtener_stream_blocks(bloques);
+	config_set_value(config,"SIZE", string_itoa(size+size_old));
+	config_set_value(config,"BLOCKS",blocks_stream);
+	free(blocks_stream);
+
+	config_save(config);
 }
 
-char* actualizar_stream_tarea(char caracter, t_list* bloques, uint32_t size, t_config* config){
+void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, uint32_t size){
 	sumar_bloques_config(bloques, config);
 	uint32_t size_old = config_get_int_value(config, "SIZE");
-	return obtener_stream_tarea(caracter, bloques, size+size_old);
-}
+	char* stream_aux = obtener_stream_blocks(bloques);
+	config_set_value(config,"SIZE", string_itoa(size+size_old));
+	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques)));
+	config_set_value(config,"BLOCKS",stream_aux);
+	free(stream_aux);
+	config_set_value(config,"CARACTER_LLENADO",&caracter);
+	stream_aux = dar_hash_md5(config->path);
+	config_set_value(config,"BLOCKS",stream_aux);
 
-char* actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* config, uint32_t size){
-	return actualizar_stream_bitacora(caracter, bloques, size, config);
-}
+	free(stream_aux);
 
-char* actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, uint32_t size){
-	return actualizar_stream_tarea(caracter, bloques, size, config);
+	config_save(config);
 }
 
 t_buffer* serializar_tarea(tarea_Mongo* tarea) {
@@ -517,20 +562,13 @@ void subir_FS(char* a_subir, char* archivo, bool es_files){
 	int ultimo_bloque = ultimo_bloque_config(config);
 	int tamanio_restante = tamanio_restante_config(config);
 	t_list* bloques = agregar_stream_blocks(a_subir, ultimo_bloque, tamanio_restante);
-	char* stream_archivo;
 
 	if(es_files)
-		stream_archivo = actualizar_archivo_file(a_subir[0], bloques, config, string_length(a_subir));
+		actualizar_archivo_file(a_subir[0], bloques, config, string_length(a_subir));
 	else
-		stream_archivo = actualizar_archivo_bitacora(a_subir[0], bloques, config, string_length(a_subir));
-
-
-	FILE* archivo_file = fopen(config->path,"w+");
-	fwrite(stream_archivo,string_length(stream_archivo),1,archivo_file);
-	fclose(archivo_file);
+		actualizar_archivo_bitacora(a_subir[0], bloques, config, string_length(a_subir));
 
 	list_destroy(bloques);
-	free(stream_archivo);
 	config_destroy(config);
 }
 

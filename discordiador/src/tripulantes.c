@@ -52,6 +52,8 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 
 	// EL TRIPULANTE INFORMA A RAM QUE QUIERE INICIAR
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
+	// EL TRIPULANTE INFORMA A MONGO QUE QUIERE INICIAR
+	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_Mongo);
 
 	// TODO :: SOLICITA LA TAREA A EJECUTAR
 	solicitar_tarea(tripulante);
