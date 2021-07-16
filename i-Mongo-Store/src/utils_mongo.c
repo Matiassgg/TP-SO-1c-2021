@@ -41,7 +41,6 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 	uint32_t buffer_size;
 	recv(cliente_fd, &buffer_size, sizeof(uint32_t), MSG_WAITALL);
-	log_info(logger, "procesar_mensaje_recibido");
 
 	// logguear quien se me conecto: quiza hay que agregarle a los paquetes el nombre del modulo que envió el paquete, no lo sé
 	// ES NECESARIO ALLOCAR MEMORIA A TODO?
@@ -73,35 +72,35 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
 
-			crear_bitacoras_de_tripulantes(tripulante->id);
+			crear_archivo_bitacora(tripulante->id);
 
 			free(tripulante);
 		case MOVER_HACIA:
 			posicion = deserializar_mover_hacia_posicion(cliente_fd);
 
-			string_append_with_format(&string_bitacora, "El tripulante %i se mueve de %i|%i a %i|%i",posicion->id_tripulante, posicion->posicion_origen->pos_x, posicion->posicion_origen->pos_y, posicion->posicion_destino->pos_x, posicion->posicion_destino->pos_y);
+			string_append_with_format(&string_bitacora, "El tripulante %i se mueve de %i|%i a %i|%i\n",posicion->id_tripulante, posicion->posicion_origen->pos_x, posicion->posicion_origen->pos_y, posicion->posicion_destino->pos_x, posicion->posicion_destino->pos_y);
 			subir_a_bitacora(string_bitacora, posicion->id_tripulante);
 		break;
 		case EJECUTAR_TAREA:
 			tarea_bitacora = deserializar_bitacora_tarea(cliente_fd);
 
-			string_append_with_format(&string_bitacora, "El tripulante %i comienza ejecución de tarea %s", tarea_bitacora->id, tarea_bitacora->tarea);
+			string_append_with_format(&string_bitacora, "El tripulante %i comienza ejecución de tarea %s\n", tarea_bitacora->id, tarea_bitacora->tarea);
 			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
 		case FINALIZAR_TAREA:
 			tarea_bitacora = deserializar_bitacora_tarea(cliente_fd);
 
-			string_append_with_format(&string_bitacora, "El tripulante %i finaliza la tarea %s", tarea_bitacora->id, tarea_bitacora->tarea);
+			string_append_with_format(&string_bitacora, "El tripulante %i finaliza la tarea %s\n", tarea_bitacora->id, tarea_bitacora->tarea);
 			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
 		case RESOLVER_SABOTAJE:
 
-			string_append(&string_bitacora, "Se corre en pánico hacia la ubicación del sabotaje");
+			string_append(&string_bitacora, "Se corre en pánico hacia la ubicación del sabotaje\n");
 			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
 		case FINALIZAR_SABOTAJE:
 
-			string_append(&string_bitacora, "Se resuelve el sabotaje");
+			string_append(&string_bitacora, "Se resuelve el sabotaje\n");
 			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
 	}

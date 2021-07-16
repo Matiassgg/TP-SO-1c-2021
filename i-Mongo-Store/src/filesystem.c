@@ -491,7 +491,7 @@ char* obtener_stream_blocks(t_list* bloques){
 		if(i!=cant_bloques-1)
 			string_append_with_format(&stream, ",");
 	}
-	string_append_with_format(&stream, "]\n");
+	string_append_with_format(&stream, "]");
 
 	return stream;
 }
@@ -500,8 +500,8 @@ void actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* confi
 	sumar_bloques_config(bloques, config);
 	uint32_t size_old = config_get_int_value(config, "SIZE");
 	char* blocks_stream = obtener_stream_blocks(bloques);
-	config_set_value(config,"SIZE", string_itoa(size+size_old));
 	config_set_value(config,"BLOCKS",blocks_stream);
+	config_set_value(config,"SIZE", string_itoa(size+size_old));
 	free(blocks_stream);
 
 	config_save(config);
@@ -539,22 +539,33 @@ t_buffer* serializar_tarea(tarea_Mongo* tarea) {
 }
 
 int ultimo_bloque_config(t_config* config){
-	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
-	if(cant_bloques != 0){
-		char** bloques_config = config_get_array_value(config, "BLOCKS");
+	int size = config_get_int_value(config, "SIZE");
+	if(size){
+		uint32_t cant_bloques;
+		div_t aux = div(size, block_size);
+		if (aux.rem == 0)
+			cant_bloques = aux.quot;
+		else
+			cant_bloques = aux.quot + 1;
 
-		return atoi(bloques_config[cant_bloques-1]);
+		log_info(logger, "Hay %i bloques por %i/%i es %i y el resto es %i",cant_bloques, size, block_size, aux.quot, aux.rem);
+
+		if(cant_bloques != 0){
+			char** bloques_config = config_get_array_value(config, "BLOCKS");
+			for(int i=0;i<cant_bloques;i++)
+				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[cant_bloques-1]));
+
+			return atoi(bloques_config[cant_bloques-1]);
+		}
+		return -1;
 	}
 	return -1;
 }
 int tamanio_restante_config(t_config* config){
-	uint32_t cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
-	if(cant_bloques != 0){
-		uint32_t size = config_get_int_value(config, "SIZE");
-		return (cant_bloques*block_size) - size;
+	int size = config_get_int_value(config, "SIZE");
+	div_t aux = div(size, block_size);
 
-	}
-	return -1;
+	return aux.rem;
 }
 
 void subir_FS(char* a_subir, char* archivo, bool es_files){
