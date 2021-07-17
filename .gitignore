@@ -61,4 +61,4 @@ dkms.conf
 */bin/
 */obj/
 *.log
-polus/
+polus/*

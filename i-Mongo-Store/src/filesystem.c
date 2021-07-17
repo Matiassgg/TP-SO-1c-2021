@@ -12,6 +12,9 @@ void sincronizar_blocks(){
 }
 
 void inicializar_paths_aux(){
+	if (!directorio_existe(punto_montaje))
+		mkdir(punto_montaje, 0700);
+
 	path_superbloque = string_new();
 	path_blocks = string_new();
 	path_files = string_new();
@@ -156,18 +159,6 @@ char* path_bitacora_tripulante(uint32_t id_tripulante){
 	return pathArchivoBitacora;
 }
 
-void crear_bitacoras_de_tripulantes(uint32_t tripulantes){
-	for(int i = 1; i <= tripulantes; i++){
-		int fd;
-		char* pathArchivoBitacora = path_bitacora_tripulante(i);
-		if((fd = crear_archivo(pathArchivoBitacora))!=-1){
-
-			close(fd);
-		}
-		free(pathArchivoBitacora);
-	}
-}
-
 void inicializar_bitmap(){
 	path_superbloque = string_new();
 
@@ -179,7 +170,7 @@ void inicializar_bitmap(){
 	}
 
 	t_bitarray* bitarray = crear_bitmap();
-	FILE* superbloque = fopen(path_superbloque,"ab+");
+	FILE* superbloque = fopen(path_superbloque,"rb+");
 
 	if(superbloque){
 		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
@@ -200,7 +191,7 @@ t_bitarray* crear_bitmap() {
 		}
 
 		t_bitarray* bitarray = bitarray_create_with_mode(bitarray_string,blocks/8,LSB_FIRST);
-		for (int i = 0; i < blocks / 8; i++) {
+		for (int i = 0; i < blocks; i++) {
 			bitarray_clean_bit(bitarray, i);
 		}
 
@@ -211,13 +202,12 @@ t_bitarray* crear_bitmap() {
 t_bitarray* leer_bitmap(){
 	FILE* superbloque = fopen(path_superbloque,"rb");
 
-	fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
-
 	if(superbloque){
+		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
 
 		fread(bitarray_string,blocks/8,1,superbloque);
 
-		t_bitarray* bitarray = bitarray_create(bitarray_string,blocks/8);
+		t_bitarray* bitarray = bitarray_create_with_mode(bitarray_string,blocks/8,LSB_FIRST);
 
 		fclose(superbloque);
 
@@ -225,11 +215,10 @@ t_bitarray* leer_bitmap(){
 	}
 
 	return NULL;
-
 }
 
 void subir_bitmap(t_bitarray* bitarray){
-	FILE* superbloque = fopen(path_superbloque,"ab+");
+	FILE* superbloque = fopen(path_superbloque,"rb+");
 
 	if(superbloque){
 		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
@@ -332,7 +321,10 @@ int dar_bloque_libre(){
 	t_bitarray* bitarray = leer_bitmap();
 	for(int i=0;i<blocks;i++){
 		if(bitarray_test_bit(bitarray, i) == 0){
+			log_info(logger,"El bloque %i esta vacio",i);
 			bitarray_set_bit(bitarray,i);
+			if(bitarray_test_bit(bitarray, i) != 0)
+				log_info(logger,"El bloque %i se seteo correctamente con %i", i, bitarray_test_bit(bitarray, i));
 			subir_bitmap(bitarray);
 			bitarray_destroy(bitarray);
 			return i;
@@ -477,7 +469,7 @@ void sumar_bloques_config(t_list* bloques, t_config* config){
 				return atoi(bloques_config[i]) == bloque;
 			}
 			if(!list_any_satisfy(bloques, esta_presente))
-				list_add(bloques, atoi(bloques_config[i]));
+				list_add_in_index(bloques, i, atoi(bloques_config[i]));
 		}
 	}
 }
@@ -561,11 +553,12 @@ int ultimo_bloque_config(t_config* config){
 	}
 	return -1;
 }
+
 int tamanio_restante_config(t_config* config){
 	int size = config_get_int_value(config, "SIZE");
 	div_t aux = div(size, block_size);
 
-	return aux.rem;
+	return block_size - aux.rem;
 }
 
 void subir_FS(char* a_subir, char* archivo, bool es_files){
@@ -581,17 +574,6 @@ void subir_FS(char* a_subir, char* archivo, bool es_files){
 
 	list_destroy(bloques);
 	config_destroy(config);
-}
-
-void subir_tarea(char* caracteres, char* archivo){
-	t_config* config = config_create(archivo);
-	int ultimo_bloque = ultimo_bloque_config(config);
-	int tamanio_restante = tamanio_restante_config(config);
-	t_list* bloques = agregar_stream_blocks(caracteres, ultimo_bloque, tamanio_restante);
-
-
-	actualizar_archivo_file(caracteres[0], bloques, config, string_length(caracteres));
-
 }
 
 

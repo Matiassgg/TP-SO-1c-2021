@@ -14,6 +14,7 @@ TEST
 
 INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 1|1 3|4
 INICIAR_PLANIFICACION
+PAUSAR_PLANIFICACION
 
 INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatotaPlantas.txt 8|1 3|4
 INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota3.txt 8|1 3|4
