@@ -429,6 +429,47 @@ int indice_elemento(t_list* lista, void* elemento){
 	return indice;
 }
 
+//uint32_t crear_archivo_dump(){
+//	int fd = open("/home/utnso/tp-2021-1c-LaMitad-1/Dump_<Timestamp>.dmp", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // SI EXISTE ABRE EL ARCHIVO PARA LECTURA, SINO LO CREA
+//	struct stat statfile;
+//	if(fstat(fd,&statfile)==-1)
+//		return -1;
+//	close(fd);
+//	return 0;
+//}
+
+/* SUPONGO QUE EL DUMP DE ALGUNA MANERA VA A TENER QUE RECIBIR PATOTAS PARA MOSTRAR. SI EL
+ * ESQUEMA ES SEGMENTACIÓN, ESA PATOTA TENDRÁ UNA TABLA DE SEGMENTOS ASIGNADA, Y DE AHÍ VAMOS
+ * A LISTAR TODOS LOS RESPECTIVOS SEGMENTOS CON SU LUGAR EN MEMORIA Y TAMAÑO. SI ES PAGINACIÓN
+ * TAMBIEN MOSTRARA TODOS LOS FRAMES CON SU RESPECTIVO ESTADO, Y EL ID DE LA PATOTA QUE TIENE
+ * ASIGNADO ESE FRAME JUNTO CON EL NUMERO DE PAGINA.
+ *
+ */
+
+void dump_memoria_principal(){
+	log_debug(logger, "Se realiza un DUMP de la memoria principal");
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		t_list* segmentos_totales;
+
+		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
+			segmentos_totales = list_create();
+
+
+		}
+	else if(son_iguales(esquema_memoria,"PAGINACION")){
+		t_list* marcos_totales;
+
+		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
+			marcos_totales = list_create();
+
+
+		}
+
+
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////SEGMENTACIÓN/////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
