@@ -20,6 +20,8 @@ void inicializar_paths_aux(){
 	path_files = string_new();
 	path_bitacoras = string_new();
 
+	pthread_mutex_init(&mutex_bitmap, NULL);
+
 	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_blocks, "%s/Blocks.ims", punto_montaje);
 	string_append_with_format(&path_files, "%s/Files", punto_montaje);
@@ -318,6 +320,7 @@ void vaciar_archivo(char* archivo){
 }
 
 int dar_bloque_libre(){
+	pthread_mutex_lock(&mutex_bitmap);
 	t_bitarray* bitarray = leer_bitmap();
 	for(int i=0;i<blocks;i++){
 		if(bitarray_test_bit(bitarray, i) == 0){
@@ -327,10 +330,12 @@ int dar_bloque_libre(){
 				log_info(logger,"El bloque %i se seteo correctamente con %i", i, bitarray_test_bit(bitarray, i));
 			subir_bitmap(bitarray);
 			bitarray_destroy(bitarray);
+			pthread_mutex_unlock(&mutex_bitmap);
 			return i;
 		}
 	}
 	bitarray_destroy(bitarray);
+	pthread_mutex_unlock(&mutex_bitmap);
 	return -1;
 }
 
@@ -516,7 +521,7 @@ void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, u
 	config_save(config);
 }
 
-t_buffer* serializar_tarea(tarea_Mongo* tarea) {
+t_buffer* serializar_tarea(t_tarea_Mongo* tarea) {
 	t_buffer* buffer = crear_buffer();
 	uint32_t offset = 0;
 

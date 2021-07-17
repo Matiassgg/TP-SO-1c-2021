@@ -124,7 +124,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 
 	if(es_tarea_de_recursos(tarea_por_hacer) || es_tarea_de_eliminar_residuos(tarea_por_hacer)) {
 		// TODO FS DEBE ENTERARSE QUE SE VA A TRATAR DE ACCEDER A ALGUN ARCHIVO O KE ??
-
+		enviar_Mongo_tarea_e_s(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_Mongo);
 		// Se debe acceder al FS -> BLoquear al wachin hasta que termine de hacer la tarea
 		pthread_mutex_lock(&mutex_cola_bloqueados_io);
 		queue_push(cola_bloq_E_S,tripulante_plani);

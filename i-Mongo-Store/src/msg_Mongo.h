@@ -12,7 +12,7 @@ void serializar_sabotaje_en_mongo(t_posicion* posicion, t_buffer* buffer);
 
 //---------DESERIALIZACION--------//
 t_mover_hacia* deserializar_mover_hacia_posicion(uint32_t socket_cliente);
-tarea_Mongo* deserializar_tarea(uint32_t socket_cliente);
+t_tarea_Mongo* deserializar_tarea(uint32_t socket_cliente);
 
 
 //desearilizar_resolver_sabotaje(uint32_t socket_cliente);

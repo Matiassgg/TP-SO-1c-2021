@@ -46,7 +46,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	// ES NECESARIO ALLOCAR MEMORIA A TODO?
 	t_patota* patota/* = malloc(sizeof(t_patota))*/;
 	t_tripulante* tripulante;
-	tarea_Mongo* tarea/* = malloc(sizeof(tarea_Mongo))*/;
+	t_tarea_Mongo* tarea/* = malloc(sizeof(tarea_Mongo))*/;
 	t_mover_hacia* posicion/* = malloc(sizeof(t_mover_hacia))*/;
 	t_bitacora_tarea_Mongo* tarea_bitacora;
 	char* string_bitacora = string_new();
@@ -75,6 +75,16 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			crear_archivo_bitacora(tripulante->id);
 
 			free(tripulante);
+		break;
+		case TAREA_E_S:
+			tarea = deserializar_tarea(cliente_fd);
+
+			log_info(logger, "Nos llego TAREA_E_S del tripulante %i", tarea->id);
+
+			verificar_archivo_tarea(tarea);
+
+			free(tripulante);
+		break;
 		case MOVER_HACIA:
 			posicion = deserializar_mover_hacia_posicion(cliente_fd);
 
@@ -121,7 +131,7 @@ void subir_a_bitacora(char* informacion,uint32_t id_tripulante){
 	free(path);
 }
 
-void verificar_archivo_tarea(tarea_Mongo* tarea){
+void verificar_archivo_tarea(t_tarea_Mongo* tarea){
 	if(son_iguales(tarea->tarea,"GENERAR_OXIGENO") || son_iguales(tarea->tarea,"CONSUMIR_OXIGENO")){
 		if(archivo_recursos_existe("Oxigeno.ims"))
 			procesar_tarea(tarea);
@@ -143,7 +153,7 @@ void verificar_archivo_tarea(tarea_Mongo* tarea){
 
 }
 
-void procesar_tarea(tarea_Mongo* tarea){
+void procesar_tarea(t_tarea_Mongo* tarea){
 	char* nombre_tarea = tarea->tarea;
 	uint32_t cantidad = tarea->parametro; // [Consulta]¿Este parametro es la cantidad que menciona el enunciado, o es otra cosa?
 	if(string_contains(nombre_tarea,"GENERAR")){
@@ -252,7 +262,7 @@ int quitar_caracteres_a_archivo(char caracter, uint32_t cantidad_actual, uint32_
 }
 
 
-void procesar_falta_archivo(tarea_Mongo* tarea,char* archivo){
+void procesar_falta_archivo(t_tarea_Mongo* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
 	if(string_contains(nombre_tarea,"GENERAR")){
 		if(crear_archivo_recursos(archivo, obtener_caracter_llenado(tarea->tarea))){
@@ -267,7 +277,7 @@ void procesar_falta_archivo(tarea_Mongo* tarea,char* archivo){
 	}
 }
 
-void informar_falta_archivo(tarea_Mongo* tarea, char* archivo){
+void informar_falta_archivo(t_tarea_Mongo* tarea, char* archivo){
 	//ACA HAY QUE AVISARLE AL TRIPULANTE A CARGO DE LA TAREA Y FINALIZAR TAREA. TIENE QUE ESPERAR EN COLA DE BLOQUEADO.
 	log_error(logger, "El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
 

@@ -101,7 +101,7 @@ typedef struct {
 	uint32_t tamanio_tarea;
 	char* tarea;
 	uint32_t parametro;
-} tarea_Mongo;
+} t_tarea_Mongo;
 
 typedef struct {
 	uint32_t id;
