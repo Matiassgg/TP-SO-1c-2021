@@ -450,8 +450,7 @@ void dump_memoria_principal(){
 	log_debug(logger, "Se realiza un DUMP de la memoria principal");
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		t_list* segmentos_totales;
-
+		//ACÁ CREO QUE ESTA MAL, HAY QUE CREAR UN ARCHIVO .dmp NO UN LOG
 		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
 
 
@@ -500,12 +499,49 @@ void dump_memoria_principal(){
 		t_list* marcos_totales;
 
 		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
-			marcos_totales = list_create();
 
+			log_debug(logger_dump,"------------------------------------------------------------------");
+			log_debug(logger_dump,"Dump: %s", temporal_get_string_time());
+				for(int i=0;i<list_size(tablaDeMarcos);i++){
+					t_marco* marco = list_get(tablaDeMarcos,i);
+					t_pagina* pagina_asociada = obtenerPaginaAsociada(marco);
+
+					if(bit_uso_apagado(marco)){
+
+						log_debug(logger_dump,"Marco:  Estado:   Proceso:   Pagina: ",
+								marco->numeroMarco,
+								"Libre",
+								"-",
+								"-");
+					}
+					else{
+						log_debug(logger_dump,"Marco:  Estado:   Proceso:   Pagina:",
+								marco->numeroMarco,
+								"Ocupado",
+								marco->idPatota,
+								pagina_asociada->numeroPagina);
+					}
+
+				}
 
 		}
 
 
+}
+
+t_pagina* obtenerPaginaAsociada(t_marco* marco){
+
+	for(int i=0; i<=list_size(lista_tablas_paginas);i++){
+		t_tabla_paginas* tabla = list_get(lista_tablas_paginas,i);
+
+		for(int j=0;j<=list_size(tabla->paginas);j++){
+			t_pagina* pagina = list_get(tabla->paginas,j);
+
+			if(pagina->marco==marco){
+				return pagina;
+			}
+		}
+	}
 }
 
 
