@@ -88,7 +88,7 @@ typedef struct {
 typedef struct {
 	uint32_t inicio;
 	uint32_t tamanio;
-} t_asocador_pagina;
+} t_asociador_pagina;
 
 typedef struct {
 	t_pagina* pagina;
@@ -116,7 +116,7 @@ t_log* logger; //1
 uint32_t socketConexionApp;//1
 void* memoria;
 void* memoria_virtual;
-t_bitarray *BIT_ARRAY_SWAP;
+//t_bitarray *BIT_ARRAY_SWAP;
 FILE* espacio_swap;
 t_list* marcos_swap;
 uint32_t tamanio_pagina;

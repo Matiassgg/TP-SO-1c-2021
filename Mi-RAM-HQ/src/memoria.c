@@ -314,7 +314,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 
 		t_tabla_paginas* tabla = dar_tabla_paginas(tripulante->id_patota_asociado);
 		t_pagina* pagina = dar_pagina_de_tabla(tabla, nro_pagina);
-		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
+		t_asociador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
 
 		if(offset >= asociador->tamanio)
 			return NULL;
@@ -348,7 +348,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 					return aux;
 				}
 				t_pagina* pagina_aux = list_find(paginas, dar_proxima_pagina);
-				t_asocador_pagina* asociador_2 = dar_asociador_pagina(pagina_aux, tripulante->id_patota_asociado, TAREAS);
+				t_asociador_pagina* asociador_2 = dar_asociador_pagina(pagina_aux, tripulante->id_patota_asociado, TAREAS);
 				offset = asociador_2->inicio;
 
 				new_offset=0;
@@ -402,7 +402,7 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 
 		for(int i=0; i<list_size(paginas);i++){
 			t_pagina* pagina = list_get(paginas,i);
-			t_asocador_pagina* asociador = quitar_asociador_pagina(pagina, id, tipo_dato);
+			t_asociador_pagina* asociador = quitar_asociador_pagina(pagina, id, tipo_dato);
 			pagina->espacio_libre += asociador->tamanio;
 
 			log_info(logger, "Se saco desde %i %i bytes dejando %i libres", pagina->marco->inicioMemoria + asociador->inicio, asociador->tamanio, pagina->espacio_libre);
@@ -453,7 +453,46 @@ void dump_memoria_principal(){
 		t_list* segmentos_totales;
 
 		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
-			segmentos_totales = list_create();
+
+
+			log_debug(logger_dump,"------------------------------------------------------------------");
+					log_debug(logger_dump,"Dump: %s", temporal_get_string_time());
+					for(int i=0;i<list_size(lista_tablas_segmentos);i++){
+
+						//TODO HAY QUE ORDENAR LA LISTA DE TABLAS DE SEGMENTOS POR NRO DE PID
+						t_tabla_segmentos* tabla_segmentos = list_get(lista_tablas_segmentos,i);
+						uint32_t id_patota_asociada = tabla_segmentos->id_patota_asociada;
+						t_dictionary* diccionario_tabla = tabla_segmentos->diccionario_segmentos;
+
+						t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
+						t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
+
+
+						log_debug(logger_dump,"Proceso:  Segmento:   Inicio:    Tam:",
+								id_patota_asociada,
+								segmento_pcb->nro_segmento,
+								segmento_pcb->inicio,
+								segmento_pcb->tamanio);
+
+						log_debug(logger_dump,"Proceso:  Segmento:   Inicio:    Tam:",
+								id_patota_asociada,
+								segmento_tareas->nro_segmento,
+								segmento_tareas->inicio,
+								segmento_tareas->tamanio);
+
+
+						for(int j=1; j<=tabla_segmentos->cant_tripulantes; j++){
+									if(dictionary_has_key(diccionario_tabla, dar_key_tripulante(j))){
+										t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(j));
+
+										log_debug(logger_dump,"Proceso:  Segmento:   Inicio:    Tam:",
+												id_patota_asociada,
+												segmento_tripulante->nro_segmento,
+												segmento_tripulante->inicio,
+												segmento_tripulante->tamanio);
+									}
+								}
+					}
 
 
 		}
@@ -555,7 +594,7 @@ uint32_t obtener_direccion_pcb(uint32_t id_patota){
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
 		t_list* paginas = buscar_paginas_id(id_patota, id_patota, PCB);
 		t_pagina* pagina = list_get(paginas, 0);
-		t_asocador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,PCB);
+		t_asociador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,PCB);
 
 		return dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
 	}
@@ -572,7 +611,7 @@ uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
 		t_list* paginas = buscar_paginas_id(id_patota, id_patota, TAREAS);
 		t_pagina* pagina = list_get(paginas, 0);
-		t_asocador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,TAREAS);
+		t_asociador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,TAREAS);
 
 		return dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
 	}
@@ -904,7 +943,7 @@ t_marco* buscar_marco(uint32_t marco){
 	return list_find(tablaDeMarcos, el_que_quiero);
 }
 
-void asignar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, t_asocador_pagina* asociador,  e_tipo_dato tipo_dato){
+void asignar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, t_asociador_pagina* asociador,  e_tipo_dato tipo_dato){
 	switch(tipo_dato){
 		case TAREAS:
 			dictionary_put(pagina->diccionario_pagina,"TAREAS", asociador);
@@ -992,7 +1031,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 		memcpy(memoria + marco->inicioMemoria + offset, buffer->stream + offset_stream, tamanio_subir);
 
-		t_asocador_pagina* asociador = malloc(sizeof(t_asocador_pagina));
+		t_asociador_pagina* asociador = malloc(sizeof(t_asociador_pagina));
 		asociador->inicio = offset;
 		asociador->tamanio = tamanio_subir;
 		log_info(logger, "asociador con inicio en %i y tamanio %i", asociador->inicio, asociador->tamanio);
@@ -1035,39 +1074,39 @@ t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante
 	return list_filter(tabla->paginas, contiene_dato);
 }
 
-t_asocador_pagina* quitar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
+t_asociador_pagina* quitar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
 	switch(tipo_dato){
 		case TAREAS:
 			log_info(logger, "Se busca asociador de TAREAS");
-			return (t_asocador_pagina*) dictionary_remove(pagina->diccionario_pagina,"TAREAS");
+			return (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina,"TAREAS");
 		break;
 		case PCB:
 			log_info(logger, "Se busca asociador de PCB");
-			return (t_asocador_pagina*) dictionary_remove(pagina->diccionario_pagina,"PCB");
+			return (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina,"PCB");
 		break;
 		case TCB:
 			;
 			char* key_tcb = dar_key_tripulante(id_tripulante);
 			log_info(logger, "Se busca asociador de %s para el tripulante %i en la pagina %i", key_tcb, id_tripulante, pagina->numeroPagina);
-			return (t_asocador_pagina*) dictionary_remove(pagina->diccionario_pagina, key_tcb);
+			return (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina, key_tcb);
 	}
 }
 
-t_asocador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
+t_asociador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
 	switch(tipo_dato){
 		case TAREAS:
 			log_info(logger, "Se busca asociador de TAREAS");
-			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina,"TAREAS");
+			return (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina,"TAREAS");
 		break;
 		case PCB:
 			log_info(logger, "Se busca asociador de PCB");
-			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina,"PCB");
+			return (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina,"PCB");
 		break;
 		case TCB:
 			;
 			char* key_tcb = dar_key_tripulante(id_tripulante);
 			log_info(logger, "Se busca asociador de %s para el tripulante %i en la pagina %i", key_tcb, id_tripulante, pagina->numeroPagina);
-			return (t_asocador_pagina*) dictionary_get(pagina->diccionario_pagina, key_tcb);
+			return (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina, key_tcb);
 	}
 }
 
@@ -1085,7 +1124,7 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 	for(int i=0; i<list_size(paginas);i++){
 		t_pagina* pagina = list_get(paginas,i);
 		log_info(logger, "Se buscara asociador para el tripulante %i en la pagina %i", id_tripulante, pagina->numeroPagina);
-		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, id_tripulante, tipo_dato);
+		t_asociador_pagina* asociador = dar_asociador_pagina(pagina, id_tripulante, tipo_dato);
 		uint32_t offset_stream = buffer->size - tamanio_restante;
 
 		memcpy(memoria + pagina->marco->inicioMemoria + asociador->inicio, buffer->stream+ offset_stream, asociador->tamanio);
@@ -1107,7 +1146,7 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	for(int i=0; i<list_size(paginas);i++){
 		log_info(logger, "list_size %i", list_size(paginas));
 		t_pagina* pagina = list_get(paginas,i);
-		t_asocador_pagina* asociador = dar_asociador_pagina(pagina, id, tipo_dato);
+		t_asociador_pagina* asociador = dar_asociador_pagina(pagina, id, tipo_dato);
 		offset = tamanio_total;
 		tamanio_total += asociador->tamanio;
 		if(i == 0)
