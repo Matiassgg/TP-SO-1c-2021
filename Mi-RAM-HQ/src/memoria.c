@@ -471,9 +471,9 @@ void agregar_a_dump(char* stream){
 	fclose(dump);
 }
 
-char* agregar_segmento_dump(uint32_t pid, t_segmento* segmento){
+char* agregar_segmento_dump(uint32_t pid, t_segmento* segmento, uint32_t nro_segmento){
 	char* stream_aux = string_duplicate("Proceso:");
-	string_append_with_format(&stream_aux, " %-3i Segmento: %-3i Inicio: 0x%04X	Tam: %ib\n", pid, segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+	string_append_with_format(&stream_aux, " %-3i Segmento: %-3i Inicio: 0x%04X	Tam: %ib\n", pid, nro_segmento, segmento->inicio, segmento->tamanio);
 
 	return stream_aux;
 }
@@ -514,12 +514,14 @@ void dump_memoria_principal(){
 			t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
 			t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
 
-			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas));
-			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb));
+			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas,0));
+			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb,1));
 
 			for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
+				int k = 2;
 				t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
-				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante));
+				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
+				k++;
 			}
 		}
 	}
