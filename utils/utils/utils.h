@@ -21,6 +21,7 @@
 #include <commons/bitarray.h>
 #include <commons/txt.h>
 #include <commons/process.h>
+#include <commons/memory.h>
 #include <readline/readline.h>
 #include <commons/temporal.h>
 #include <readline/readline.h>

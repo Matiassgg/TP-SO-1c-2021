@@ -3,6 +3,9 @@
 void iniciar_memoria() {
 	// Reservar el espacio de memoria
 	preparar_memoria();
+	path_dump = string_duplicate("/home/utnso/tp-2021-1c-LaMitad-1");
+	log_info(logger, "path_dump %s",path_dump);
+	signal(SIGUSR2, dump_memoria_principal);
 
 //	// FALTA
 	// Dibujar el mapa inicial vacío
@@ -62,7 +65,7 @@ void crear_tabla(uint32_t id_patota){
 		t_tabla_segmentos* tabla = malloc(sizeof(t_tabla_segmentos));
 		tabla->diccionario_segmentos = dictionary_create();
 		tabla->id_patota_asociada = id_patota;
-		tabla->cant_tripulantes = 0;
+		tabla->tripulantes_activos = list_create();
 
 		pthread_mutex_lock(&mutex_tablas);
 		list_add(lista_tablas_segmentos, tabla);
@@ -207,6 +210,7 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 	else{
 		escribir_en_memoria_paginacion(buffer,patota_asociada,tipo_dato);
 	}
+
 }
 
 void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_dato){
@@ -429,13 +433,24 @@ int indice_elemento(t_list* lista, void* elemento){
 	return indice;
 }
 
-uint32_t crear_archivo_dump(char* temp){
-	int fd = open("/home/utnso/tp-2021-1c-LaMitad-1/Dump_<"+temp+">.dmp", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // SI EXISTE ABRE EL ARCHIVO PARA LECTURA, SINO LO CREA
-	struct stat statfile;
-	if(fstat(fd,&statfile)==-1)
-		return -1;
-	close(fd);
-	return 0;
+FILE* crear_archivo_dump(){
+	char* path_dump_actual = string_duplicate(path_dump);
+	char* timestamp = temporal_get_string_time("%d%m%y%H%M%S");
+	char* timestamp_2 = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+	string_append_with_format(&path_dump_actual, "/Dump_%s.dmp",timestamp);
+	log_info(logger, "path_dump_actual %s",path_dump_actual);
+	FILE* dump = fopen(path_dump_actual, "w+");
+
+	char* stream_dump = string_duplicate("--------------------------------------------------------------------------\n");
+	string_append_with_format(&stream_dump, "Dump: %s\n",timestamp_2);
+
+	txt_write_in_file(dump, stream_dump);
+	free(timestamp);
+	free(timestamp_2);
+	free(stream_dump);
+//	string_append(&stream_dump, "--------------------------------------------------------------------------");
+//	fclose(dump);
+	return dump;
 }
 
 /* SUPONGO QUE EL DUMP DE ALGUNA MANERA VA A TENER QUE RECIBIR PATOTAS PARA MOSTRAR. SI EL
@@ -446,114 +461,81 @@ uint32_t crear_archivo_dump(char* temp){
  *
  */
 
+
+void agregar_a_dump(char* stream){
+	FILE* dump = fopen(path_dump, "r+");
+
+	fseek(dump,TAM_GUIONES,SEEK_END);
+	fwrite(stream,string_length(stream)+1,1,dump);
+
+	fclose(dump);
+}
+
+char* agregar_segmento_dump(uint32_t pid, t_segmento* segmento){
+	char* stream_aux = string_duplicate("Proceso:");
+	string_append_with_format(&stream_aux, " %-3i Segmento: %-3i Inicio: 0x%04X	Tam: %ib\n", pid, segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+
+	return stream_aux;
+}
+
+char* dar_string_estado(bool estado){
+	if(estado)
+		return "Ocupado";
+	return "Libre";
+}
+
+char* agregar_pagina_dump(uint32_t pid, t_pagina* pagina){
+	char* stream_aux = string_duplicate("Marco:");
+	if(pagina->marco->bitUso)
+		string_append_with_format(&stream_aux, " %-3i Estado: %-3i Proceso: %-3i	Pagina: %-3i\n", pagina->marco->numeroMarco,dar_string_estado(pagina->marco->bitUso), pid, pagina->numeroPagina);
+	else
+		string_append_with_format(&stream_aux, " %-3i Estado: %-3i Proceso: %-3s	Pagina: %-3s\n", pagina->marco->numeroMarco,dar_string_estado(pagina->marco->bitUso), "-", "-");
+
+	return stream_aux;
+}
+
 void dump_memoria_principal(){
-	log_debug(logger, "Se realiza un DUMP de la memoria principal");
-	char* temp = temporal_get_string_time();
-	crear_archivo_dump(temp);
-	FILE* archivo_dump = "/home/utnso/tp-2021-1c-LaMitad-1/Dump_<%s"+temp+">.dmp";
+	log_info(logger, "Se realiza un DUMP de la memoria principal");
+	FILE* dump = crear_archivo_dump();
+	if(dump == NULL){
+		log_error(logger, "No se pudo inicializar el dump de forma correcta");
+		return;
+	}
 
+	log_info(logger, "Se inicializo el dump de forma correcta");
+	char* stream_dump = string_new();
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-//		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
-
-//			log_debug(logger_dump,"------------------------------------------------------------------");
-//					log_debug(logger_dump,"Dump: %s", temporal_get_string_time());
-		txt_write_in_file(archivo_dump, "------------------------------------------------------------------\n");
-		txt_write_in_file(archivo_dump, "Dump: %s"+temp+"\n");
-
 		for(int i=0;i<list_size(lista_tablas_segmentos);i++){
+			//TODO HAY QUE ORDENAR LA LISTA DE TABLAS DE SEGMENTOS POR NRO DE PID
+			t_tabla_segmentos* tabla_segmentos = list_get(lista_tablas_segmentos,i);
+			uint32_t id_patota_asociada = tabla_segmentos->id_patota_asociada;
+			t_dictionary* diccionario_tabla = tabla_segmentos->diccionario_segmentos;
 
-						//TODO HAY QUE ORDENAR LA LISTA DE TABLAS DE SEGMENTOS POR NRO DE PID
-						t_tabla_segmentos* tabla_segmentos = list_get(lista_tablas_segmentos,i);
-						uint32_t id_patota_asociada = tabla_segmentos->id_patota_asociada;
-						t_dictionary* diccionario_tabla = tabla_segmentos->diccionario_segmentos;
+			t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
+			t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
 
-						t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
-						t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
+			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas));
+			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb));
 
-						txt_write_in_file(archivo_dump, "Proceso: %i" + id_patota_asociada
-													   +"Segmento: %i"+ segmento_pcb->nro_segmento
-													   +"Inicio: %i"+segmento_pcb->inicio
-													   +"Tam: %i"+segmento_pcb->tamanio+"\n");
-
-//						log_debug(logger_dump,"Proceso:  Segmento:   Inicio:    Tam:",
-//								id_patota_asociada,
-//								segmento_pcb->nro_segmento,
-//								segmento_pcb->inicio,
-//								segmento_pcb->tamanio);
-
-						txt_write_in_file(archivo_dump, "Proceso: %i" + id_patota_asociada
-														+"Segmento: %i"+ segmento_tareas->nro_segmento
-													    +"Inicio: %i"+segmento_tareas->inicio
-													    +"Tam: %i"+segmento_tareas->tamanio+"\n");
-
-//						log_debug(logger_dump,"Proceso:  Segmento:   Inicio:    Tam:",
-//								id_patota_asociada,
-//								segmento_tareas->nro_segmento,
-//								segmento_tareas->inicio,
-//								segmento_tareas->tamanio);
-
-
-						for(int j=1; j<=tabla_segmentos->cant_tripulantes; j++){
-									if(dictionary_has_key(diccionario_tabla, dar_key_tripulante(j))){
-										t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(j));
-
-										txt_write_in_file(archivo_dump, "Proceso: %i" + id_patota_asociada
-																	   +"Segmento: %i"+ segmento_tripulante->nro_segmento
-															           +"Inicio: %i"+segmento_tripulante->inicio
-																       +"Tam: %i"+segmento_tripulante->tamanio+"\n");
-
-//										log_debug(logger_dump,"Proceso:  Segmento:   Inicio:    Tam:",
-//												id_patota_asociada,
-//												segmento_tripulante->nro_segmento,
-//												segmento_tripulante->inicio,
-//												segmento_tripulante->tamanio);
-									}
-								}
-					}
-
-
+			for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
+				t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
+				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante));
+			}
 		}
+	}
 	else if(son_iguales(esquema_memoria,"PAGINACION")){
-//		t_log* logger_dump = log_create("../mem_dump.log", "log", true, LOG_LEVEL_DEBUG);
+		for(int i=0;i<list_size(tablaDeMarcos);i++){
+			t_marco* marco = list_get(tablaDeMarcos,i);
+			t_pagina* pagina_asociada = obtenerPaginaAsociada(marco);
 
-//			log_debug(logger_dump,"------------------------------------------------------------------");
-//			log_debug(logger_dump,"Dump: %s", temporal_get_string_time());
-			txt_write_in_file(archivo_dump, "------------------------------------------------------------------\n");
-			txt_write_in_file(archivo_dump, "Dump: %s"+temp+"\n");
-
-			for(int i=0;i<list_size(tablaDeMarcos);i++){
-					t_marco* marco = list_get(tablaDeMarcos,i);
-					t_pagina* pagina_asociada = obtenerPaginaAsociada(marco);
-
-					if(bit_uso_apagado(marco)){
-
-						txt_write_in_file(archivo_dump, "Marco: %i" + marco->numeroMarco
-													   +"Estado: Libre"
-													   +"Proceso: -"
-												       +"Pagina: - \n");
-
-//						log_debug(logger_dump,"Marco:  Estado:   Proceso:   Pagina: ",
-//								marco->numeroMarco,
-//								"Libre",
-//								"-",
-//								"-");
-					}
-					else{
-						txt_write_in_file(archivo_dump, "Marco: %i" + marco->numeroMarco
-													   +"Estado: Ocupado"
-													   +"Proceso: %i"+marco->idPatota
-													   +"Pagina: %i"+pagina_asociada->numeroPagina+"\n");
-//						log_debug(logger_dump,"Marco:  Estado:   Proceso:   Pagina:",
-//								marco->numeroMarco,
-//								"Ocupado",
-//								marco->idPatota,
-//								pagina_asociada->numeroPagina);
-					}
-
-				}
-
+			string_append(&stream_dump,agregar_pagina_dump(marco->idPatota, pagina_asociada));
 		}
+	}
+	string_append(&stream_dump, "--------------------------------------------------------------------------");
+	txt_write_in_file(dump, stream_dump);
+	fclose(dump);
 
+	free(stream_dump);
 
 }
 
@@ -576,9 +558,9 @@ t_pagina* obtenerPaginaAsociada(t_marco* marco){
  * TRIPULANTE A MEMORIA, TRAERLO, Y COPIARLE EL ESTADO DEL QUE NOS PASARON AL QUE ESTABA EN MEMORIA
  */
 
-modificar_memoria_estado_tripulante(t_tripulante* tripulante){
-
-}
+//modificar_memoria_estado_tripulante(t_tripulante* tripulante){
+//
+//}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////SEGMENTACIÓN/////////////////////////////////////////////////////////////////
@@ -598,12 +580,11 @@ void ordenar_segmentos(){
 		segmento_tareas->inicio = inicio_nuevo;
 		inicio_nuevo += segmento_tareas->tamanio;
 
-		for(int j=1; j<=tabla->cant_tripulantes; j++){
-			if(dictionary_has_key(tabla->diccionario_segmentos, dar_key_tripulante(j))){
-				t_segmento* segmento_tripulante = dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(j));
-				segmento_tripulante->inicio = inicio_nuevo;
-				inicio_nuevo += segmento_tripulante->tamanio;
-			}
+		for(int j=0; j<list_size(tabla->tripulantes_activos); j++){
+			int id_tripulante = list_get(tabla->tripulantes_activos,j);
+			t_segmento* segmento_tripulante = dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(id_tripulante));
+			segmento_tripulante->inicio = inicio_nuevo;
+			inicio_nuevo += segmento_tripulante->tamanio;
 		}
 	}
 	log_info(logger, "COMPACTACION :: Ya se compactaron todos los segmentos y terminan en %i dando un tamaño libre de %i", inicio_nuevo, tamanio_memoria - inicio_nuevo);
@@ -789,7 +770,7 @@ void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_
 		break;
 		case TCB:
 			dictionary_put(tabla_segmentos->diccionario_segmentos, dar_key_tripulante(id_tripulante), segmento);
-			tabla_segmentos->cant_tripulantes++;
+			list_add(tabla_segmentos->tripulantes_activos, id_tripulante);
 		break;
 	}
 
@@ -839,6 +820,11 @@ t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e
 			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"PCB");
 		break;
 		case TCB:
+			;
+			bool es_tripulante(uint32_t id_tripulante){
+				return id_tripulante == id;
+			}
+			list_remove_by_condition(tabla->tripulantes_activos, es_tripulante);
 			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos, dar_key_tripulante(id));
 		break;
 	}
@@ -1441,6 +1427,8 @@ bool bit_uso_apagado(t_marco* marco){
 bool bit_uso(t_marco* marco){
 	return marco->bitUso;
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

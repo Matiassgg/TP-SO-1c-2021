@@ -7,6 +7,7 @@
 #include "signal.h"
 #include "unistd.h"
 
+#define TAM_GUIONES 74
 
 //---------FUNCIONES--------//
 void* seleccionar_victima;
@@ -57,7 +58,7 @@ typedef struct {
 typedef struct {
 	t_dictionary* diccionario_segmentos;
 	uint32_t id_patota_asociada;
-	uint32_t cant_tripulantes;
+	t_list* tripulantes_activos;
 } t_tabla_segmentos;
 
 //typedef struct {
@@ -129,6 +130,7 @@ t_marco* punteroMarcoClock;
 t_list* tablaDeMarcos;
 t_list* tareas;
 char* path_tareas;
+char* path_dump;
 //-------------------------//
 
 //Semaforos

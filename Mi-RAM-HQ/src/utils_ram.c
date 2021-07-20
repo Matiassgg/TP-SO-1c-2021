@@ -143,11 +143,11 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		case ACTUALIZAR_ESTADO_TRIPULANTE:
 			tripulante = deserializar_iniciar_tripulante(cliente_fd);
 
-					log_info(logger, "RAM :: Nos llego ACTUALIZAR_ESTADO_TRIPULANTE del tripulante %i",tripulante->id);
+			log_info(logger, "RAM :: Nos llego ACTUALIZAR_ESTADO_TRIPULANTE del tripulante %i",tripulante->id);
 
-					modificar_memoria_estado_tripulante(tripulante);
+//			modificar_memoria_estado_tripulante(tripulante);
 
-					log_info(logger, "RAM :: Se actualizo el estado del tripulante.");
+			log_info(logger, "RAM :: Se actualizo el estado del tripulante.");
 
 			free(tripulante);
 		break;
@@ -292,11 +292,9 @@ t_list* obtener_listado_tripulantes() {
 		for(int i=0; i<list_size(lista_tablas_segmentos); i++){
 			t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
 
-			for(int j=1; j<=tabla->cant_tripulantes; j++){
-				if(dictionary_has_key(tabla->diccionario_segmentos, dar_key_tripulante(j))){
-					t_tcb* tcb = (t_tcb*) obtener_tripulante_memoria(j,tabla->id_patota_asociada);
-					list_add(listado_de_tripulantes, de_tcb_a_listar(tcb,tabla->id_patota_asociada));
-				}
+			for(int j=0; j<list_size(tabla->tripulantes_activos); j++){
+				t_tcb* tcb = (t_tcb*) obtener_tripulante_memoria(list_get(tabla->tripulantes_activos,j),tabla->id_patota_asociada);
+				list_add(listado_de_tripulantes, de_tcb_a_listar(tcb,tabla->id_patota_asociada));
 			}
 		}
 
