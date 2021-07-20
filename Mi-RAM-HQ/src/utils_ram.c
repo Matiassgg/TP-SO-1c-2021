@@ -140,6 +140,17 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			free(mover_hacia);
 
 		break;
+		case ACTUALIZAR_ESTADO_TRIPULANTE:
+			tripulante = deserializar_iniciar_tripulante(cliente_fd);
+
+					log_info(logger, "RAM :: Nos llego ACTUALIZAR_ESTADO_TRIPULANTE del tripulante %i",tripulante->id);
+
+					modificar_memoria_estado_tripulante(tripulante);
+
+					log_info(logger, "RAM :: Se actualizo el estado del tripulante.");
+
+			free(tripulante);
+		break;
 	}
 }
 

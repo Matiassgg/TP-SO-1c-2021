@@ -26,6 +26,9 @@ t_pcb* crear_pcb(t_patota* patota);
 t_tcb* crear_tcb(t_tripulante* tripulante);
 void preparar_memoria_para_esquema_de_segmentacion(void);
 void preparar_memoria_para_esquema_de_paginacion(void);
+uint32_t crear_archivo_dump(char* temp);
+void dump_memoria_principal();
+modificar_memoria_estado_tripulante(t_tripulante* tripulante);
 
 void cargar_memoria_patota(t_patota* patota);
 

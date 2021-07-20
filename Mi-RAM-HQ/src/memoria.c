@@ -572,10 +572,13 @@ t_pagina* obtenerPaginaAsociada(t_marco* marco){
 	}
 }
 
-void actualizar_estado_tripulante(t_tripulante* tripulante, t_estado estado){
-	tripulante->estado = estado;
-}
+/*SUPONGO QUE ACÁ RECIBE EL TRIPULANTE CON EL ESTADO YA CAMBIADO, Y SE DEBE IR A BUSCAR ESE MISMO
+ * TRIPULANTE A MEMORIA, TRAERLO, Y COPIARLE EL ESTADO DEL QUE NOS PASARON AL QUE ESTABA EN MEMORIA
+ */
 
+modificar_memoria_estado_tripulante(t_tripulante* tripulante){
+
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////SEGMENTACIÓN/////////////////////////////////////////////////////////////////
