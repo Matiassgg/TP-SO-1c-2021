@@ -12,12 +12,13 @@ int main(int argc, char* argv[]) {
 }
 
 void iniciar_mongo(void) {
-	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
 	leer_config();
+	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
     log_info(logger, "Ya obtuvimos la config del mongo");
 //    FS_RESET();
 
     inicializar_filesystem();
+	signal(SIGINT, finalizar_i_mongo);
 
 //    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
 //    	log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
@@ -94,9 +95,9 @@ void obtener_posiciones_sabotaje() {
 	}
 }
 
-void terminar_programa() {
-	liberar_conexion(&socket_Mi_RAM_HQ);
-	log_info(logger,"\t\t\t~. MONGO STORE FINALIZADO .~\n");
+void finalizar_i_mongo(int signum) {
+//	liberar_conexion(&socket_Mi_RAM_HQ);
+	log_info(logger,"\n\t\t\t~. MONGO STORE FINALIZADO .~\n");
 	log_destroy(logger);
 
 	config_destroy(config);
@@ -109,4 +110,5 @@ void terminar_programa() {
 	free(path_files);
 	free(path_bitacoras);
 	//TODO Terminar conexiones...
+	exit(0);
 }

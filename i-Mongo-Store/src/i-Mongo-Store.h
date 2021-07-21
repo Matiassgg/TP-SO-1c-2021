@@ -11,6 +11,7 @@ void leer_config(void);
 void FS_RESET(void);
 //void crear_punto_de_montaje(void);
 void obtener_posiciones_sabotaje(void);
+void finalizar_i_mongo(int signum);
 
 
 
