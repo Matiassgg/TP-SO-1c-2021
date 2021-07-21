@@ -142,13 +142,13 @@ void crear_blocks(){
 		struct stat file_st;
 		fstat(fd, &file_st);
 		contenido_blocks = mmap(NULL,file_st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		contenido_blocks_aux = calloc(1,block_size * blocks);
-		memcpy(contenido_blocks_aux,contenido_blocks,block_size * blocks);
-//		log_info(logger, "%s",contenido_blocks);
 		if(contenido_blocks == MAP_FAILED) {
 			log_error(logger,"Error  mapping - file_st.st_size %i", file_st.st_size);
 			exit(1);
 		}
+		contenido_blocks_aux = calloc(1,block_size * blocks);
+		memcpy(contenido_blocks_aux,contenido_blocks,block_size * blocks);
+//		log_info(logger, "%s",contenido_blocks);
 
 //		close(fd);
 	}
@@ -161,29 +161,28 @@ char* path_bitacora_tripulante(uint32_t id_tripulante){
 	return pathArchivoBitacora;
 }
 
-void inicializar_bitmap(){
-	path_superbloque = string_new();
-
-	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
-
-	if (!directorio_existe(path_superbloque)) {
-		log_error(logger, "NO EXISTE EL SUPERBLOQUE");
-		exit(0);
-	}
-
-	t_bitarray* bitarray = crear_bitmap();
-	FILE* superbloque = fopen(path_superbloque,"rb+");
-
-	if(superbloque){
-		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
-		fwrite(bitarray->bitarray, bitarray->size, 1, superbloque);
-		free(bitarray);
-
-		fclose(superbloque);
-	}
-
-
-}
+//void inicializar_bitmap(){
+//	path_superbloque = string_new();
+//
+//	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
+//
+//	if (!directorio_existe(path_superbloque)) {
+//		log_error(logger, "NO EXISTE EL SUPERBLOQUE");
+//		exit(0);
+//	}
+//
+//	t_bitarray* bitarray = crear_bitmap();
+//	FILE* superbloque = fopen(path_superbloque,"rb+");
+//
+//	if(superbloque){
+//		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
+//		fwrite(bitarray->bitarray, bitarray->size, 1, superbloque);
+//		free(bitarray);
+//
+//		fclose(superbloque);
+//	}
+//
+//}
 
 t_bitarray* crear_bitmap() {
 	bitarray_string = malloc(blocks / 8);
@@ -281,10 +280,11 @@ int crear_archivo_recursos(char* nombreArchivo, char caracter_llenado){
 	if(archivo){
 		char* file_generico = string_duplicate("SIZE=0\nBLOCK_COUNT=0\nBLOCKS=[]\nCARACTER_LLENADO=");
 		string_append_with_format(&file_generico,"%c\nMD5_ARCHIVO=", caracter_llenado);
+		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
 		fwrite(file_generico,string_length(file_generico),1,archivo);
 
 		fclose(archivo);
-		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
+//		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
 
 		return 1;
 	}
