@@ -174,22 +174,6 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 }
 
-t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota){
-	bool el_que_quiero(t_tabla_paginas* tabla){
-		return tabla->id_patota_asociada == id_patota;
-	}
-
-	return (t_tabla_paginas*) list_find(lista_tablas_paginas, el_que_quiero);
-}
-
-t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla){
-	bool el_que_quiero(t_pagina* pagina){
-		return (pagina->espacio_libre > 0);
-	}
-
-	return (t_pagina*) list_find(tabla->paginas, el_que_quiero);
-}
-
 void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 	t_buffer* buffer;
 	switch(tipo_dato){
@@ -851,10 +835,13 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	marcos_swap = list_create();
 	lista_tablas_paginas = list_create();
 
-	if((espacio_swap = fopen(path_swap,"wb+")) == NULL){
-		log_error(logger, "No se pudo crear el espacio de SWAP");
-//		return; taria bien?
-	}
+	crear_archivo_swap();
+
+//	if((espacio_swap = fopen(path_swap,"wb+")) == NULL){
+//		log_error(logger, "No se pudo crear el espacio de SWAP");
+////		return; taria bien?
+//	}
+
 
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
 		// Cargar estructuras administrativass
@@ -872,17 +859,14 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		cantidad_de_marcos++;
 	}
 
-	int indice=0;
-
 	// Aca viene la parte de swap
 	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
 
 		t_marco_en_swap* nuevoMarco = malloc(sizeof(t_marco_en_swap));
-		nuevoMarco->numeroMarcoSwap = indice;
+		nuevoMarco->numeroMarcoSwap = cantidad_de_marcos_swap;
 		nuevoMarco->idPatota = -1;
 		nuevoMarco->bitUso = false;
 		nuevoMarco->inicioSwap = offset;
-		indice ++;
 
 		list_add(marcos_swap, nuevoMarco);
 		cantidad_de_marcos_swap++;
@@ -947,12 +931,12 @@ void asignar_marco(t_pagina* pagina) {
 	pthread_mutex_lock(&mutex_marcos);
 	t_marco *marco = buscar_marco_libre();
 	if(!marco){
-		log_error(logger,"Hasta implementar swap, no quedan marcos libres.");
-		//asignar_marco_en_swap(pagina);
+		log_error(logger,"No se puede asignar un marco, tanto memoria como SWAP está completa.");
 	} else {
 		pagina->marco = marco;
 		pagina->marco->bitUso = true;
-		pagina->bit_presencia = true; //TODO seria true?
+		pagina->bit_presencia = true; //TODO seria true? --> Si el marco asignado es de SWAP se supone que no,
+									  // 					 si es de memoria si.
 		pagina->bit_modificado = false;
 	}
 
@@ -965,15 +949,18 @@ t_marco* buscar_marco_libre(){
 			return !marco->bitUso;
 	}
 
+	//TODO acá no hay que corroborar que si no hay marcos libres en MEMORIA, SI HAYA en SWAP? Porque
+	//si se quiere escribir en una página, y no tengo marcos libres ni en swap ni en memoria, tengo que
+	//denegar la solicitud
 	if (!list_any_satisfy(tablaDeMarcos,marco_esta_libre)) {
-//		log_info(logger, "No hay marcos libres. Seleccionando victima.");
-//
-//		pthread_t hilo;
-//
-//		pthread_mutex_lock(&mutexVictima);
-//		pthread_create(&hilo, NULL, (void*) seleccionar_victima, NULL);
-//		pthread_join(hilo, 0);
-//		pthread_mutex_unlock(&mutexVictima);
+		log_info(logger, "No hay marcos libres. Seleccionando victima.");
+
+		pthread_t hilo;
+
+		pthread_mutex_lock(&mutexVictima);
+		pthread_create(&hilo, NULL, (void*) seleccionar_victima, NULL);
+		pthread_join(hilo, 0);
+		pthread_mutex_unlock(&mutexVictima);
 	}
 
 	return  list_find(tablaDeMarcos, marco_esta_libre);
@@ -1112,6 +1099,22 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 	log_info(logger, "Se subio todo");
 }
 
+t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota){
+	bool el_que_quiero(t_tabla_paginas* tabla){
+		return tabla->id_patota_asociada == id_patota;
+	}
+
+	return (t_tabla_paginas*) list_find(lista_tablas_paginas, el_que_quiero);
+}
+
+t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla){
+	bool el_que_quiero(t_pagina* pagina){
+		return (pagina->espacio_libre > 0);
+	}
+
+	return (t_pagina*) list_find(tabla->paginas, el_que_quiero);
+}
+
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato){
 	char* key = string_new();
 	switch(tipo_dato){
@@ -1240,7 +1243,7 @@ t_list* entradas_segun_patota(uint32_t idPatota){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint32_t crear_archivo_swap(){
-	int fd = open("/home/utnso/tp-2021-1c-LaMitad-1/swapFile.bin", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // SI EXISTE ABRE EL ARCHIVO PARA LECTURA, SINO LO CREA
+	int fd = open(path_swap, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // SI EXISTE ABRE EL ARCHIVO PARA LECTURA, SINO LO CREA
 	struct stat statfile;
 	if(fstat(fd,&statfile)==-1)
 		return -1;
@@ -1372,7 +1375,9 @@ void seleccionar_victima_LRU(void){
 
 	log_info(logger, "Victima seleccionada: %d", marco_mas_viejo->numeroMarco);
 
-	//todo FALTA VER QUE PASA CON SWAP ACA
+	//todo FALTA VER QUE PASA CON SWAP ACA --> JUJU ME HABIA OLVIDADO DE ESTE COMENTARIO, LO QUE PASA CON
+	//SWAP ES QUE VAMOS A TENER QUE ASIGNARLE UN FRAME A LA PÁGINA QUE ESTABA EN EL MARCO EN SWAP, CALCULO
+	//QUE VAMOS A USAR LA FUNCIONCITA DE ARRIBA t_pagina* obtenerPaginaAsociada(t_marco* marco)
 
 	marco_mas_viejo->bitUso = false;
 
@@ -1414,7 +1419,7 @@ void seleccionar_victima_CLOCK(void){
 
 	log_info(logger, "Victima seleccionada: %d", punteroMarcoClock->numeroMarco);
 
-	// todo Escribo en SWAP
+	// todo Escribo en SWAP --> LO MISMO QUE ARRIBA EN LRU
 
 	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->bitUso = false;
 

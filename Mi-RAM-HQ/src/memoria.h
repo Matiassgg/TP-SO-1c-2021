@@ -71,6 +71,8 @@ uint32_t buscar_lugar_en_swap();
 void inicializar_bitmap_swap();
 int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos);
 void asignar_marco_en_swap(t_pagina* pagina);
+t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota);
+t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla);
 
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);

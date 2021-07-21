@@ -99,10 +99,9 @@ typedef struct {
 
 typedef struct {
 	uint32_t inicioSwap;
-	t_marco* marco;
-	t_pagina* pagina;
 	int numeroMarcoSwap;
 	uint32_t bitUso;
+	t_pagina* pagina;
 	int idPatota;
 } t_marco_en_swap;
 
