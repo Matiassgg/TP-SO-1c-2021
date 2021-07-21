@@ -92,20 +92,15 @@ typedef struct {
 } t_asociador_pagina;
 
 typedef struct {
-	t_pagina* pagina;
-	t_marco* marco;
-} t_pagina_en_marco;
-
-typedef struct {
 	t_list* paginas;
 	uint32_t id_patota_asociada;
 	t_list* tripulantes_activos;
 } t_tabla_paginas;
 
-
-
 typedef struct {
-	uint32_t inicioMemoriaSwap;
+	uint32_t inicioSwap;
+	t_marco* marco;
+	t_pagina* pagina;
 	int numeroMarcoSwap;
 	uint32_t bitUso;
 	int idPatota;
@@ -117,9 +112,7 @@ t_log* logger; //1
 uint32_t socketConexionApp;//1
 void* memoria;
 void* memoria_virtual;
-//t_bitarray *BIT_ARRAY_SWAP;
 FILE* espacio_swap;
-t_list* marcos_swap;
 uint32_t tamanio_pagina;
 t_list* lista_segmentos_libres;
 t_list* lista_tablas_segmentos;
@@ -128,6 +121,7 @@ t_list* lista_tablas_paginas;
 t_list* patotas_creadas;
 t_marco* punteroMarcoClock;
 t_list* tablaDeMarcos;
+t_list* marcos_swap;
 t_list* tareas;
 char* path_tareas;
 char* path_dump;

@@ -881,7 +881,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		nuevoMarco->numeroMarcoSwap = indice;
 		nuevoMarco->idPatota = -1;
 		nuevoMarco->bitUso = false;
-		nuevoMarco->inicioMemoriaSwap = offset;
+		nuevoMarco->inicioSwap = offset;
 		indice ++;
 
 		list_add(marcos_swap, nuevoMarco);
@@ -1368,13 +1368,13 @@ void seleccionar_victima_LRU(void){
 	pthread_mutex_lock(&mutexFree);
 
 	list_sort(tablaDeMarcos, mas_viejo);
-	t_marco* marco_mas_vieja = list_get(tablaDeMarcos, 0);
+	t_marco* marco_mas_viejo = list_get(tablaDeMarcos, 0);
 
-	log_info(logger, "Victima seleccionada: %d", marco_mas_vieja->numeroMarco);
+	log_info(logger, "Victima seleccionada: %d", marco_mas_viejo->numeroMarco);
 
 	//todo FALTA VER QUE PASA CON SWAP ACA
 
-	marco_mas_vieja->bitUso = false;
+	marco_mas_viejo->bitUso = false;
 
 	pthread_mutex_unlock(&mutexFree);
 }
