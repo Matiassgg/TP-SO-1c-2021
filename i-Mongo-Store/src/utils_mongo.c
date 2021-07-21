@@ -104,7 +104,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
 		case RESOLVER_SABOTAJE:
-
+			//TODO COMO RESOLVER SABOTAJES
 			string_append(&string_bitacora, "Se corre en pánico hacia la ubicación del sabotaje\n");
 			subir_a_bitacora(string_bitacora, tarea_bitacora->id);
 		break;
@@ -180,15 +180,17 @@ void agregar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantida
 }
 
 char obtener_caracter_llenado(char* nombre_tarea){
+	char caracter;
 	if(string_contains(nombre_tarea,"OXIGENO")){
-		return 'O';
+		caracter = 'O';
 	}
 	else if(string_contains(nombre_tarea,"COMIDA")){
-		return 'C';
+		caracter = 'C';
 	}
 	else if(string_contains(nombre_tarea,"BASURA")){
-		return 'B';
+		caracter = 'B';
 	}
+	return caracter;
 }
 
 void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){

@@ -55,5 +55,7 @@ void eliminar_caracteres_llenado_segun_tarea(char*, uint32_t );
 void agregar_caracteres_llenado_a_archivo(char, uint32_t, char*);
 void agregar_caracteres_llenado_segun_tarea(char*, uint32_t);
 int quitar_caracteres_a_archivo(char, uint32_t, uint32_t,char*);
+char obtener_caracter_llenado(char*);
+void subir_a_bitacora(char*,uint32_t);
 
 #endif /* I_MONGO_STORE_SRC_UTILS_MONGO_H_ */

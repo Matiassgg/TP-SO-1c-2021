@@ -9,19 +9,22 @@
 
 void sincronizar_blocks();
 void inicializar_paths_aux();
-void leer_superbloque(FILE* archivo);
+void leer_superbloque(FILE*);
 void crear_superbloque();
 void obtener_superbloque();
 void inicializar_bloques();
-bool directorio_existe(char* path);
-bool archivo_existe(char* nombreArchivo);
-bool archivo_recursos_existe(char* nombreArchivo);
+bool directorio_existe(char*);
+bool archivo_existe(char*);
+bool archivo_recursos_existe(char*);
 char* obtener_path_files(char*);
 int crear_archivo(char*);
-int crear_archivo_recursos(char*, char caracter_llenado);
+int crear_archivo_recursos(char*, char);
 int eliminar_archivo(char*);
-void vaciar_archivo(char* archivo);
+void vaciar_archivo(char*);
 void crear_blocks();
+char* path_bitacora_tripulante(uint32_t);
+void subir_FS(char*, char*, bool);
+int crear_archivo_bitacora(uint32_t);
 
 t_bitarray* crear_bitmap(void);
 #endif /* I_MONGO_STORE_SRC_FILESYSTEM_H_ */
