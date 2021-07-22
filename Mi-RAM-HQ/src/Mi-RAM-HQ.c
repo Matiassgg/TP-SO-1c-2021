@@ -6,8 +6,6 @@ int main(int argc, char* argv[]) {
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
 	pthread_join(hiloReceive, NULL);
 
-	finalizar_mi_ram();
-
     return EXIT_SUCCESS;
 }
 
@@ -17,13 +15,13 @@ void iniciar_Mi_RAM_HQ() {
     log_info(logger, "Ya obtuvimos la config de Mi RAM HQ\n");
     log_info(logger, "El pid de Mi-RAM-HQ es %i\n",process_getpid());
 
-	//dic_discordiador_tabla_segmentos = dictionary_create();// REVISAR ESTO
 	tablaDeMarcos = list_create();
 	marcos_swap = list_create();
-	patotas_creadas = list_create();
-	tareas = list_create();
 
     iniciar_memoria();
+
+
+	signal(SIGINT, finalizar_mi_ram);
 
 }
 
@@ -64,12 +62,35 @@ void leer_config() {
 	}
 }
 
-void finalizar_mi_ram() {
+void finalizar_mi_ram(int signum){
+	log_info(logger,"\n\t\t\t~. Mi-RAM-HQ FINALIZADO .~\n");
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		list_destroy(lista_segmentos_libres);
+		list_destroy(lista_tablas_segmentos);
+		list_destroy(tabla_asociadores_segmentos);
+	}
+	else if(son_iguales(esquema_memoria, "PAGINACION")) {
+		free(path_swap);
+		free(seleccionar_victima);
+		free(algoritmo_reemplazo);
+		free(criterio_seleccion);
+		free(memoria_virtual);
+
+		list_destroy(lista_tablas_paginas);
+		list_destroy(tablaDeMarcos);
+		list_destroy(marcos_swap);
+	}
 
 	log_destroy(logger);
-
-	//	free(punto_montaje);
-	free(memoria);
 	config_destroy(config);
+	free(memoria);
+	free(esquema_memoria);
+	free(ip_discordiador);
+	free(puerto_discordiador);
+	free(esquema_memoria);
+	free(ip_Mi_RAM_HQ);
+	free(puerto_escucha);
 
+	exit(0);
 }

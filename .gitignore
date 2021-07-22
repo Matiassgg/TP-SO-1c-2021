@@ -62,4 +62,6 @@ dkms.conf
 */obj/
 *.log
 polus/*
+*/polus/
 *.dmp
+swapFile.bin

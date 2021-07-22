@@ -33,7 +33,6 @@ char* path_swap;
 char* algoritmo_reemplazo;
 char* esquema_memoria;
 char* criterio_seleccion;
-char* criterio_seleccion;
 
 typedef enum {
 	TAREAS,
@@ -116,12 +115,10 @@ t_list* lista_segmentos_libres;
 t_list* lista_tablas_segmentos;
 t_list* tabla_asociadores_segmentos;
 t_list* lista_tablas_paginas;
-t_list* patotas_creadas;
 t_marco* punteroMarcoClock;
 t_list* tablaDeMarcos;
 t_list* marcos_swap;
-t_list* tareas;
-char* path_tareas;
+//char* path_tareas;
 char* path_dump;
 //-------------------------//
 

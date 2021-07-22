@@ -7,7 +7,7 @@ void sincronizar_blocks(){
 		if(msync(contenido_blocks,block_size * blocks,MS_SYNC)==-1)
 			log_error(logger, "Error con la sincronizacion de blocks");
 		else
-			log_info(logger, "Se sincronizo correctamente blocks");
+			log_info(logger, "Se sincronizo correctamente blocks a %s", contenido_blocks);
 	}
 }
 
@@ -379,8 +379,9 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 	uint32_t offset = 0;
 	t_list* bloques = list_create();
 	int bloque_libre;
+	int offset_bloque = 0;
 
-	uint32_t cant_caracteres = string_length(stream);
+	uint32_t cant_caracteres = string_length(stream)+1;
 	log_info(logger, "ultimo_bloque %i - tamanio_restante %i",ultimo_bloque,tamanio_restante);
 	while(offset < cant_caracteres){
 		log_info(logger, "Se entra al while");
@@ -389,8 +390,10 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 			log_info(logger, "Se entra al ultimo_bloque != -1");
 			bloque_libre = ultimo_bloque;
 			ultimo_bloque = -1;
-			if(tamanio_restante != -1)
+			if(tamanio_restante != -1){
+				offset_bloque = block_size - tamanio_restante;
 				tamanio_subida = minimo((cant_caracteres - offset),tamanio_restante);
+			}
 			else
 				log_info(logger, "No se entra al tamanio_restante != -1");
 		}
@@ -398,16 +401,19 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 			log_info(logger, "No se entra al ultimo_bloque != -1");
 			bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
 			list_add(bloques, bloque_libre);
+			offset_bloque = 0;
 			tamanio_subida = minimo((cant_caracteres - offset),block_size);
 			log_info(logger, "tamanio_subida = min(%i,%i)",(cant_caracteres - offset),block_size);
 		}
 
 		log_info(logger, "bloque_libre %i - stream %s - tamanio_subida %i\ncontenido_blocks_aux + (bloque_libre*block_size) %s", bloque_libre, stream + offset, tamanio_subida, (char*)contenido_blocks_aux);
-
-		memcpy(contenido_blocks_aux + (bloque_libre*block_size), stream + offset, tamanio_subida);
+		offset_bloque += (bloque_libre*block_size);
+		memcpy(contenido_blocks_aux + offset_bloque, stream + offset, tamanio_subida);
 
 		offset += tamanio_subida;
 	}
+
+	free(stream);
 
 	return bloques;
 }
