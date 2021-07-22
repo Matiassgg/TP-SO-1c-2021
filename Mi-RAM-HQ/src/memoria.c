@@ -1246,14 +1246,16 @@ t_pagina* obtener_pagina_con_marco(t_marco* marco){
 t_pagina* obtenerPaginaAsociada(t_marco* marco){
 	t_pagina* paginaAsociada = NULL;
 
-	for(int i=0; i<=list_size(lista_tablas_paginas);i++){
+	for(int i=0; i<list_size(lista_tablas_paginas);i++){
 		t_tabla_paginas* tabla = list_get(lista_tablas_paginas,i);
 
-		for(int j=0;j<=list_size(tabla->paginas);j++){
+		for(int j=0;j<list_size(tabla->paginas);j++){
 			t_pagina* pagina = list_get(tabla->paginas,j);
 
-			if(pagina->marco->numeroMarco==marco->numeroMarco){
-				paginaAsociada = pagina;
+			if(pagina->marco){
+				if(pagina->marco->numeroMarco==marco->numeroMarco){
+					paginaAsociada = pagina;
+				}
 			}
 		}
 
@@ -1310,7 +1312,7 @@ t_marco_en_swap* buscar_marco_libre_en_swap(){
 }
 
 void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_patota_asociada){
-	pthread_mutex_lock(&mutex_marcos);
+//	pthread_mutex_lock(&mutex_marcos);
 	t_marco_en_swap* marco = buscar_marco_libre_en_swap();
 
 	if(!marco){
@@ -1325,7 +1327,7 @@ void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_pato
 		marco->idPatota = id_patota_asociada;
 		marco->nroPagina = pagina->numeroPagina;
 	}
-	pthread_mutex_unlock(&mutex_marcos);
+//	pthread_mutex_unlock(&mutex_marcos);
 }
 
 t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
