@@ -80,7 +80,6 @@ typedef struct {
 	t_marco* marco;
 	t_dictionary* diccionario_pagina;
 	bool bit_presencia;
-	bool bit_modificado;
 	uint32_t espacio_libre;
 } t_pagina;
 
@@ -99,7 +98,7 @@ typedef struct {
 	uint32_t inicioSwap;
 	int numeroMarcoSwap;
 	uint32_t bitUso;
-	t_pagina* pagina;
+	uint32_t nroPagina;
 	int idPatota;
 } t_marco_en_swap;
 

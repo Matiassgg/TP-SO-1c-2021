@@ -64,7 +64,7 @@ t_list* entradas_segun_patota(uint32_t idPatota);
 t_marco* buscar_marco_libre();
 void agregar_a_lista_de_marcos_en_paginas(t_pagina* pagina);
 void asignar_marco(t_pagina* pagina);
-void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice );
+void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad);
 uint32_t crear_archivo_swap();
 void llenar_archivo(int fd, uint32_t tamanio);
 uint32_t buscar_lugar_en_swap();
@@ -73,6 +73,7 @@ int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos);
 void asignar_marco_en_swap(t_pagina* pagina);
 t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota);
 t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla);
+void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar);
 
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);

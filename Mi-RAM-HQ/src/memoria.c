@@ -140,19 +140,11 @@ void cargar_memoria_patota(t_patota* patota){
 			pthread_mutex_unlock(&mutex_tocar_memoria);
 			log_info(logger, "Se subio a memoria la tarea");
 
-//			t_pagina* pagina_tareas = buscar_pagina_id(nro_pagina_tareas,TAREAS);
-//			pcb_nuevo->tareas = pagina_tareas->inicio; TODO ??
-
 			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(pcb_nuevo, pcb_nuevo->pid, PCB);
 			pthread_mutex_unlock(&mutex_tocar_memoria);
 			log_info(logger, "Se subio a memoria la patota");
 
-//			t_pagina* pagina_pcb = buscar_pagina_id(nro_pagina_patota, PCB);
-
-//			list_add(tabla_pagina_patota->paginas, pagina_tareas);
-//			list_add(tabla_pagina_patota->paginas, pagina_pcb);
-//			list_add(lista_tablas_paginas, tabla_pagina_patota);
 	}
 
 	pthread_mutex_unlock(&mutex_subir_patota);
@@ -191,7 +183,7 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		escribir_en_memoria_segmentacion(buffer, patota_asociada, tipo_dato);
 	}
-	else{
+	else if(son_iguales(esquema_memoria, "PAGINACION")){
 		escribir_en_memoria_paginacion(buffer,patota_asociada,tipo_dato);
 	}
 
@@ -535,26 +527,11 @@ void dump_memoria_principal(){
 
 }
 
-t_pagina* obtenerPaginaAsociada(t_marco* marco){
-
-	for(int i=0; i<=list_size(lista_tablas_paginas);i++){
-		t_tabla_paginas* tabla = list_get(lista_tablas_paginas,i);
-
-		for(int j=0;j<=list_size(tabla->paginas);j++){
-			t_pagina* pagina = list_get(tabla->paginas,j);
-
-			if(pagina->marco==marco){
-				return pagina;
-			}
-		}
-	}
-}
-
 /*SUPONGO QUE ACÁ RECIBE EL TRIPULANTE CON EL ESTADO YA CAMBIADO, Y SE DEBE IR A BUSCAR ESE MISMO
  * TRIPULANTE A MEMORIA, TRAERLO, Y COPIARLE EL ESTADO DEL QUE NOS PASARON AL QUE ESTABA EN MEMORIA
  */
 
-//modificar_memoria_estado_tripulante(t_tripulante* tripulante){
+//void modificar_memoria_estado_tripulante(t_tripulante* tripulante){
 //
 //}
 
@@ -858,9 +835,9 @@ void preparar_memoria_para_esquema_de_paginacion() {
 //		log_info(logger, "Desplazamiento: %d", offset);
 
 		t_marco* nuevoMarco = malloc(sizeof(t_marco));
+		nuevoMarco->inicioMemoria = offset;
 		nuevoMarco->numeroMarco = cantidad_de_marcos;
 		nuevoMarco->bitUso = false;
-		nuevoMarco->inicioMemoria = offset;
 		nuevoMarco->timeStamp = NULL;
 
 		list_add(tablaDeMarcos, nuevoMarco);
@@ -872,10 +849,11 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
 
 		t_marco_en_swap* nuevoMarco = malloc(sizeof(t_marco_en_swap));
+		nuevoMarco->inicioSwap = offset;
 		nuevoMarco->numeroMarcoSwap = cantidad_de_marcos_swap;
 		nuevoMarco->idPatota = -1;
 		nuevoMarco->bitUso = false;
-		nuevoMarco->inicioSwap = offset;
+		nuevoMarco->nroPagina = -1;
 
 		list_add(marcos_swap, nuevoMarco);
 		cantidad_de_marcos_swap++;
@@ -898,7 +876,6 @@ uint32_t cantidad_paginas_pedidas() {
 t_pagina* crear_pagina() {
 	t_pagina* pagina = malloc(sizeof(t_pagina));
 	pagina->bit_presencia = 0;
-	pagina->bit_modificado=0;
 	pagina->marco = NULL;
 	pagina->diccionario_pagina = dictionary_create();
 	return pagina;
@@ -923,19 +900,6 @@ t_tabla_paginas* crear_tabla_paginacion(uint32_t id_patota) {
 	return tabla;
 }
 
-void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad,uint32_t indice ){
-	t_pagina *pagina;
-	int indicePagina=indice;
-		for (int i = 0; i < cantidad; i++) {
-			pagina = crear_pagina();
-			pagina->numeroPagina=indicePagina;
-			pagina->espacio_libre=tamanio_pagina;
-			asignar_marco(pagina);
-			indicePagina++;
-			list_add(tabla->paginas, pagina);
-		}
-}
-
 void asignar_marco(t_pagina* pagina) {
 	pthread_mutex_lock(&mutex_marcos);
 	t_marco *marco = buscar_marco_libre();
@@ -946,7 +910,6 @@ void asignar_marco(t_pagina* pagina) {
 		pagina->marco->bitUso = true;
 		pagina->bit_presencia = true; //TODO seria true? --> Si el marco asignado es de SWAP se supone que no,
 									  // 					 si es de memoria si.
-		pagina->bit_modificado = false;
 	}
 
 	pthread_mutex_unlock(&mutex_marcos);
@@ -975,28 +938,28 @@ t_marco* buscar_marco_libre(){
 	return  list_find(tablaDeMarcos, marco_esta_libre);
 }
 
-bool hay_marcos_libres(void){
-	bool marco_esta_libre(t_marco* marco){
-		return !marco->bitUso;
-	}
+//bool hay_marcos_libres(void){
+//	bool marco_esta_libre(t_marco* marco){
+//		return !marco->bitUso;
+//	}
+//
+//	t_list* marcos_libres = list_filter(tablaDeMarcos, marco_esta_libre);
+//
+//	int tamanio = list_size(marcos_libres);
+//
+//	list_destroy(marcos_libres);
+//
+//	return list_any_satisfy(tablaDeMarcos,marco_esta_libre);
+//}
 
-	t_list* marcos_libres = list_filter(tablaDeMarcos, marco_esta_libre);
 
-	int tamanio = list_size(marcos_libres);
-
-	list_destroy(marcos_libres);
-
-	return list_any_satisfy(tablaDeMarcos,marco_esta_libre);
-}
-
-
-t_marco* buscar_marco(uint32_t marco){
-	bool el_que_quiero(void* parametro){
-		return ((t_marco*)parametro)->numeroMarco == marco;
-	}
-
-	return list_find(tablaDeMarcos, el_que_quiero);
-}
+//t_marco* buscar_marco(uint32_t marco){
+//	bool el_que_quiero(void* parametro){
+//		return ((t_marco*)parametro)->numeroMarco == marco;
+//	}
+//
+//	return list_find(tablaDeMarcos, el_que_quiero);
+//}
 
 void asignar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, t_asociador_pagina* asociador,  e_tipo_dato tipo_dato){
 	switch(tipo_dato){
@@ -1024,6 +987,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 	while(tamanio_restante > 0){
 		t_pagina* pagina_libre = obtener_pagina_libre_tabla(tabla);
 		//	TODO si la tabla esta vacia pedir marco sino ver si entra en alguna pagina
+		//--> SI LA TABLA NO TIENE PAGINAS LIBRES, AHORA HICE QUE SE LE AGREGUEN MÁS
 		t_marco* marco = pagina_libre->marco;
 
 		uint32_t tamanio_subir = minimo(pagina_libre->espacio_libre, tamanio_restante);
@@ -1120,7 +1084,23 @@ t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla){
 		return (pagina->espacio_libre > 0);
 	}
 
+	if(!list_any_satisfy(tabla->paginas,el_que_quiero)){
+		agregar_paginas(tabla,1);
+	}
+
 	return (t_pagina*) list_find(tabla->paginas, el_que_quiero);
+}
+
+void agregar_paginas(t_tabla_paginas* tabla, uint32_t cantidad){
+	t_pagina *pagina;
+	int indicePagina= list_size(tabla->paginas);
+		for (int i = 0; i < cantidad; i++) {
+			pagina = crear_pagina();
+			pagina->numeroPagina=indicePagina;
+			pagina->espacio_libre=tamanio_pagina;
+			asignar_marco(pagina);
+			list_add(tabla->paginas, pagina);
+		}
 }
 
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato){
@@ -1237,6 +1217,52 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	return dato_requerido;
 }
 
+t_tabla_paginas* obtenerTablaDePaginasAsociada(t_pagina* paginaEnCuestion){
+	t_tabla_paginas* tablaEncontrada = NULL;
+
+	for(int i = 0; i<list_size(lista_tablas_paginas);i++){
+		t_tabla_paginas* tabla = list_get(lista_tablas_paginas,i);
+
+		for(int j=0; j<list_size(tabla->paginas);j++){
+			t_pagina* pagina = list_get(tabla->paginas,j);
+
+			if(pagina == paginaEnCuestion){
+				tablaEncontrada = tabla;
+			}else
+				j++;
+		}
+		if(tablaEncontrada==NULL)
+			i++;
+		else
+			break;
+	}
+
+	return tablaEncontrada;
+}
+
+t_pagina* obtenerPaginaAsociada(t_marco* marco){
+	t_pagina* paginaAsociada = NULL;
+
+	for(int i=0; i<=list_size(lista_tablas_paginas);i++){
+		t_tabla_paginas* tabla = list_get(lista_tablas_paginas,i);
+
+		for(int j=0;j<=list_size(tabla->paginas);j++){
+			t_pagina* pagina = list_get(tabla->paginas,j);
+
+			if(pagina->marco==marco){
+				paginaAsociada = pagina;
+			}else
+				j++;
+		}
+
+		if(paginaAsociada==NULL)
+			i++;
+		else
+			break;
+	}
+	return paginaAsociada;
+}
+
 //////////////////////////////////////////SWAP/////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1259,33 +1285,6 @@ void llenar_archivo(int fd, uint32_t tamanio){
 	free(buffer);
 }
 
-//uint32_t buscar_lugar_en_swap(){
-//	int lugar = -1;
-//	int i=0;
-//	bool encontrado = false;
-//	while(!encontrado && i<=(bitarray_get_max_bit(BIT_ARRAY_SWAP)-1)){
-//		if(!bitarray_test_bit(BIT_ARRAY_SWAP, i)){
-//			lugar = i;
-//			encontrado=true;
-//		}
-//		i++;
-//	}
-//	return lugar;
-//}
-//
-//void inicializar_bitmap_swap(){
-//	int cantidadDeMarcos = tamanio_swap/tamanio_pagina;
-//	int bytes = cantidad_de_marcos_pedidos_swap(cantidadDeMarcos);
-//
-//	char *punteroABits = (char*) malloc(bytes);
-//
-//	BIT_ARRAY_SWAP = bitarray_create_with_mode(punteroABits, (size_t) bytes,LSB_FIRST);
-//
-//	for(int i=0;i<cantidadDeMarcos;i++){
-//		bitarray_clean_bit(BIT_ARRAY_SWAP,i);
-//	}
-//
-//}
 //
 //int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos) {
 //	div_t aux = div(cantidadDeMarcos, 8);
@@ -1309,36 +1308,24 @@ t_marco_en_swap* buscar_marco_libre_en_swap(){
 		return NULL;
 	}
 }
-//
-//void asignar_marco_en_swap(t_pagina* pagina){
-//	pthread_mutex_lock(&mutex_marcos);
-//	t_marco_en_swap* marco = buscar_marco_libre_en_swap();_
-//
-//	if(!marco){
-//		log_error(logger,"No hay marcos libres en SWAP. Se deniega la solicitud.");
-//	}
-//
-//	uint32_t lugar = buscar_lugar_en_swap();
-//	bitarray_set_bit(BIT_ARRAY_SWAP, (off_t) lugar);
-//	pagina->marco->bitUso = false;
-//	pagina->marco = NULL;
-//	pagina->bit_presencia = false;
-//}
-//
 
-void asignar_marcovcxd(t_pagina* pagina) {
+void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina){
 	pthread_mutex_lock(&mutex_marcos);
-	t_marco *marco = buscar_marco_libre();
-	if(!marco){
-		log_error(logger,"No se puede asignar un marco, tanto memoria como SWAP está completa.");
-	} else {
-		pagina->marco = marco;
-		pagina->marco->bitUso = true;
-		pagina->bit_presencia = true; //TODO seria true? --> Si el marco asignado es de SWAP se supone que no,
-									  // 					 si es de memoria si.
-		pagina->bit_modificado = false;
-	}
+	t_marco_en_swap* marco = buscar_marco_libre_en_swap();
 
+	if(!marco){
+		log_error(logger,"No hay marcos libres en SWAP. Se deniega la solicitud.");
+	}else{
+		t_tabla_paginas* tabla = obtenerTablaDePaginasAsociada(pagina);
+		pagina->marco->bitUso = false;
+		pagina->marco->timeStamp = NULL;
+		pagina->marco = NULL;
+		pagina->bit_presencia = false;
+
+		marco->bitUso = true;
+		marco->idPatota = tabla->id_patota_asociada;
+		marco->nroPagina = pagina->numeroPagina;
+	}
 	pthread_mutex_unlock(&mutex_marcos);
 }
 
@@ -1413,7 +1400,9 @@ void seleccionar_victima_LRU(void){
 	//SWAP ES QUE VAMOS A TENER QUE ASIGNARLE UN FRAME A LA PÁGINA QUE ESTABA EN EL MARCO EN SWAP, CALCULO
 	//QUE VAMOS A USAR LA FUNCIONCITA DE ARRIBA t_pagina* obtenerPaginaAsociada(t_marco* marco)
 
-	marco_mas_viejo->bitUso = false;
+	generar_proceso_de_pase_a_swap(marco_mas_viejo);
+
+	// marco_mas_viejo->bitUso = false;
 
 	pthread_mutex_unlock(&mutexFree);
 }
@@ -1455,9 +1444,19 @@ void seleccionar_victima_CLOCK(void){
 
 	// todo Escribo en SWAP --> LO MISMO QUE ARRIBA EN LRU
 
-	((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->bitUso = false;
+	generar_proceso_de_pase_a_swap(((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual)));
+
+	// ((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual))->bitUso = false;
 
 	pthread_mutex_unlock(&mutexFree);
+}
+
+void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
+	t_pagina* paginaACopiar = obtenerPaginaAsociada(marcoALimpiar);
+
+	//ACÁ YA LIMPIO EL MARCO, Y LA PÁGINA ES LLEVADA SWAP
+	asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar);
+
 }
 
 
