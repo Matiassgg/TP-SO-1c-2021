@@ -74,7 +74,6 @@ typedef struct {
 	uint32_t numeroMarco;
 	bool bitUso;
 	char* timeStamp;
-	int idPatota;
 } t_marco;
 
 typedef struct {

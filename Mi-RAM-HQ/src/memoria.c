@@ -514,7 +514,17 @@ void dump_memoria_principal(){
 			t_marco* marco = list_get(tablaDeMarcos,i);
 			t_pagina* pagina_asociada = obtenerPaginaAsociada(marco);
 
-			string_append(&stream_dump,agregar_pagina_dump(marco->idPatota, pagina_asociada));
+			bool es_tabla(t_tabla_paginas* tabla){
+				bool esta_marco(t_pagina* pagina){
+					if(pagina->marco)
+						return pagina->marco->numeroMarco == marco->numeroMarco;
+					return false;
+				}
+				return list_any_satisfy(tabla->paginas, esta_marco);
+			}
+			t_tabla_paginas* tabla_paginas = list_find(lista_tablas_paginas, es_tabla);
+
+			string_append(&stream_dump,agregar_pagina_dump(tabla_paginas->id_patota_asociada, pagina_asociada));
 		}
 	}
 	string_append(&stream_dump, "--------------------------------------------------------------------------");
@@ -850,7 +860,6 @@ void preparar_memoria_para_esquema_de_paginacion() {
 		t_marco* nuevoMarco = malloc(sizeof(t_marco));
 		nuevoMarco->numeroMarco = cantidad_de_marcos;
 		nuevoMarco->bitUso = false;
-		nuevoMarco->idPatota = -1;
 		nuevoMarco->inicioMemoria = offset;
 		nuevoMarco->timeStamp = NULL;
 
@@ -949,7 +958,7 @@ t_marco* buscar_marco_libre(){
 			return !marco->bitUso;
 	}
 
-	//TODO acá no hay que corroborar que si no hay marcos libres en MEMORIA, SI HAYA en SWAP? Porque
+	//TODO acá hay que corroborar que si no hay marcos libres en MEMORIA, SI HAYA en SWAP? Porque
 	//si se quiere escribir en una página, y no tengo marcos libres ni en swap ni en memoria, tengo que
 	//denegar la solicitud
 	if (!list_any_satisfy(tablaDeMarcos,marco_esta_libre)) {
@@ -1022,7 +1031,6 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 		if (marco == NULL) {
 			marco = buscar_marco_libre();
 			marco->bitUso = true;
-			marco->idPatota = id_patota_asociada; // ???
 
 			log_info(logger, "Marco seleccionado: %d", marco->numeroMarco);
 
@@ -1229,16 +1237,6 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	return dato_requerido;
 }
 
-t_list* entradas_segun_patota(uint32_t idPatota){
-	bool buscar_entradas_patota(t_marco* marco){
-		return idPatota == marco->idPatota;
-	}
-
-	t_list* entradas = list_filter(tablaDeMarcos, buscar_entradas_patota);
-
-	return entradas;
-}
-
 //////////////////////////////////////////SWAP/////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1261,14 +1259,6 @@ void llenar_archivo(int fd, uint32_t tamanio){
 	free(buffer);
 }
 
-//void asignar_marco_en_swap(t_pagina* pagina){
-//	uint32_t lugar = buscar_lugar_en_swap();
-//	bitarray_set_bit(BIT_ARRAY_SWAP, (off_t) lugar);
-//	pagina->marco->bitUso = false;
-//	pagina->marco = NULL;
-//	pagina->bit_presencia = false;
-//}
-//
 //uint32_t buscar_lugar_en_swap(){
 //	int lugar = -1;
 //	int i=0;
@@ -1307,6 +1297,50 @@ void llenar_archivo(int fd, uint32_t tamanio){
 //	}
 //}
 
+t_marco_en_swap* buscar_marco_libre_en_swap(){
+
+	bool marco_esta_libre(t_marco_en_swap* marco){
+			return !marco->bitUso;
+	}
+
+	if(list_any_satisfy(marcos_swap,marco_esta_libre)){
+		return  list_find(marcos_swap, marco_esta_libre);
+	}else{
+		return NULL;
+	}
+}
+//
+//void asignar_marco_en_swap(t_pagina* pagina){
+//	pthread_mutex_lock(&mutex_marcos);
+//	t_marco_en_swap* marco = buscar_marco_libre_en_swap();_
+//
+//	if(!marco){
+//		log_error(logger,"No hay marcos libres en SWAP. Se deniega la solicitud.");
+//	}
+//
+//	uint32_t lugar = buscar_lugar_en_swap();
+//	bitarray_set_bit(BIT_ARRAY_SWAP, (off_t) lugar);
+//	pagina->marco->bitUso = false;
+//	pagina->marco = NULL;
+//	pagina->bit_presencia = false;
+//}
+//
+
+void asignar_marcovcxd(t_pagina* pagina) {
+	pthread_mutex_lock(&mutex_marcos);
+	t_marco *marco = buscar_marco_libre();
+	if(!marco){
+		log_error(logger,"No se puede asignar un marco, tanto memoria como SWAP está completa.");
+	} else {
+		pagina->marco = marco;
+		pagina->marco->bitUso = true;
+		pagina->bit_presencia = true; //TODO seria true? --> Si el marco asignado es de SWAP se supone que no,
+									  // 					 si es de memoria si.
+		pagina->bit_modificado = false;
+	}
+
+	pthread_mutex_unlock(&mutex_marcos);
+}
 
 //////////////////////////////////////////ALGORITMOS/////////////////////////////////////////////////////////////////
 //////////////////////////////////////////LRU Y CLOCK/////////////////////////////////////////////////////////////////
