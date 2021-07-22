@@ -140,6 +140,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 	}
 	else{
 		hacer_ciclos_tarea(tripulante_plani->tripulante);
+
 		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
 	}
 
@@ -182,6 +183,7 @@ void hacer_ciclos_tarea(t_tripulante* tripulante){
 
 	if(son_iguales(algoritmo,"FIFO")){
 		rafaga_cpu(tripulante->tarea_act->tiempo);
+		tripulante->tarea_act->tiempo = 0;
 	}
 	else{
 		int cuantum = minimo(tripulante->tarea_act->tiempo, quantum);

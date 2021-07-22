@@ -83,6 +83,10 @@ Finalizar todos los tripulantes de la patota persa y verificar el estado de la m
 
 
 
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaA.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaB.txt 3|3
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaC.txt 5|5
+INICIAR_PLANIFICACION
 
 
 

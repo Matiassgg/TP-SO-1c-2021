@@ -70,12 +70,12 @@ void llenar_archivo(int fd, uint32_t tamanio);
 uint32_t buscar_lugar_en_swap();
 void inicializar_bitmap_swap();
 int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos);
-void asignar_marco_en_swap(t_pagina* pagina);
 t_tabla_paginas* dar_tabla_paginas(uint32_t id_patota);
 t_pagina* obtener_pagina_libre_tabla(t_tabla_paginas* tabla);
 void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar);
-t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina);
-t_marco_en_swap* buscar_marco_en_swap(t_pagina* pagina);
+t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota);
+t_marco_en_swap* buscar_marco_en_swap(t_pagina* pagina, uint32_t id_patota);
+void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_patota_asociada);
 
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);

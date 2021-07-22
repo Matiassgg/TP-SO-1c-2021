@@ -865,6 +865,8 @@ void preparar_memoria_para_esquema_de_paginacion() {
 }
 
 uint32_t cantidad_paginas_pedidas() {
+	if(cantidad_de_marcos < 8)
+		return 1;
 	div_t aux = div(TAMANIO_INICIAL_TABLA_PAGINACION, tamanio_pagina);
 		if (aux.rem == 0) {
 			return aux.quot;
@@ -1000,7 +1002,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 			// Agrego a lista de timestamp por marco
 			if (son_iguales(algoritmo_reemplazo, "LRU")) {
-				marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+				marco->timeStamp = temporal_get_string_time("%H:%M:%S:%MS");
 				log_info(logger, "El timestamp del marco numero %d se ha inicializado: %s", marco->numeroMarco, marco->timeStamp);
 			}
 
@@ -1056,7 +1058,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 		asignar_asociador_pagina(pagina_libre, id_tripulante, asociador, tipo_dato);
 
 		if (son_iguales(algoritmo_reemplazo, "LRU")) {
-			marco->timeStamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+			marco->timeStamp = temporal_get_string_time("%H:%M:%S:%MS");
 		}
 		if (son_iguales(algoritmo_reemplazo, "CLOCK_ME")) {
 			marco->bitUso = true;
@@ -1217,27 +1219,28 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	return dato_requerido;
 }
 
-t_tabla_paginas* obtenerTablaDePaginasAsociada(t_pagina* paginaEnCuestion){
-	t_tabla_paginas* tablaEncontrada = NULL;
+t_tabla_paginas* obtener_tabla_paginas_con_marco(t_marco* marco){
+    bool es_tabla(t_tabla_paginas* tabla){
+        bool esta_marco(t_pagina* pagina){
+            if(pagina->marco)
+                return pagina->marco->numeroMarco == marco->numeroMarco;
+            return false;
+        }
+        return list_any_satisfy(tabla->paginas, esta_marco);
+    }
 
-	for(int i = 0; i<list_size(lista_tablas_paginas);i++){
-		t_tabla_paginas* tabla = list_get(lista_tablas_paginas,i);
+    return list_find(lista_tablas_paginas, es_tabla);
+}
 
-		for(int j=0; j<list_size(tabla->paginas);j++){
-			t_pagina* pagina = list_get(tabla->paginas,j);
+t_pagina* obtener_pagina_con_marco(t_marco* marco){
+    t_tabla_paginas* tabla = obtener_tabla_paginas_con_marco(marco);
 
-			if(pagina == paginaEnCuestion){
-				tablaEncontrada = tabla;
-			}else
-				j++;
-		}
-		if(tablaEncontrada==NULL)
-			i++;
-		else
-			break;
-	}
-
-	return tablaEncontrada;
+    bool esta_marco(t_pagina* pagina){
+        if(pagina->marco)
+            return pagina->marco->numeroMarco == marco->numeroMarco;
+        return false;
+    }
+    return list_find(tabla->paginas, esta_marco);
 }
 
 t_pagina* obtenerPaginaAsociada(t_marco* marco){
@@ -1249,15 +1252,12 @@ t_pagina* obtenerPaginaAsociada(t_marco* marco){
 		for(int j=0;j<=list_size(tabla->paginas);j++){
 			t_pagina* pagina = list_get(tabla->paginas,j);
 
-			if(pagina->marco==marco){
+			if(pagina->marco->numeroMarco==marco->numeroMarco){
 				paginaAsociada = pagina;
-			}else
-				j++;
+			}
 		}
 
-		if(paginaAsociada==NULL)
-			i++;
-		else
+		if(paginaAsociada!=NULL)
 			break;
 	}
 	return paginaAsociada;
@@ -1309,30 +1309,28 @@ t_marco_en_swap* buscar_marco_libre_en_swap(){
 	}
 }
 
-void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina){
+void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_patota_asociada){
 	pthread_mutex_lock(&mutex_marcos);
 	t_marco_en_swap* marco = buscar_marco_libre_en_swap();
 
 	if(!marco){
 		log_error(logger,"No hay marcos libres en SWAP. Se deniega la solicitud.");
 	}else{
-		t_tabla_paginas* tabla = obtenerTablaDePaginasAsociada(pagina);
 		pagina->marco->bitUso = false;
 		pagina->marco->timeStamp = NULL;
 		pagina->marco = NULL;
 		pagina->bit_presencia = false;
 
 		marco->bitUso = true;
-		marco->idPatota = tabla->id_patota_asociada;
+		marco->idPatota = id_patota_asociada;
 		marco->nroPagina = pagina->numeroPagina;
 	}
 	pthread_mutex_unlock(&mutex_marcos);
 }
 
-t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina){
+t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
 	log_trace(logger,"Se produce un page fault de la pagina nro: %d)",pagina->numeroPagina);
-	t_marco_en_swap* marco_en_swap = buscar_marco_en_swap(pagina);
-
+	t_marco_en_swap* marco_en_swap = buscar_marco_en_swap(pagina, id_patota);
 	pthread_mutex_lock(&mutex_marcos);
 	t_marco* marcoLibre = buscar_marco_libre();
 	if(marcoLibre){
@@ -1358,10 +1356,10 @@ t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina){
 	return marcoLibre;
 }
 
-t_marco_en_swap* buscar_marco_en_swap(t_pagina* pagina){
+t_marco_en_swap* buscar_marco_en_swap(t_pagina* pagina, uint32_t id_patota){
 	bool el_que_quiero(void* parametro){
 			return ((t_marco_en_swap*)parametro)->nroPagina == pagina->numeroPagina
-					&& ((t_marco_en_swap*)parametro)->idPatota == obtenerTablaDePaginasAsociada(pagina)->id_patota_asociada;
+					&& ((t_marco_en_swap*)parametro)->idPatota == id_patota;
 		}
 
 	return list_find(marcos_swap,el_que_quiero);
@@ -1491,11 +1489,12 @@ void seleccionar_victima_CLOCK(void){
 
 void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 	t_pagina* paginaACopiar = obtenerPaginaAsociada(marcoALimpiar);
+	t_tabla_paginas* tabla = obtener_tabla_paginas_con_marco(marcoALimpiar);
 
 	//FALTA COPIAR EN MEMORIA_VIRTUAL
 
 	//ACÁ YA LIMPIO EL MARCO, Y LA PÁGINA ES LLEVADA SWAP
-	asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar);
+	asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar,tabla->id_patota_asociada);
 
 }
 
