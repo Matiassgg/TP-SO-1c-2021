@@ -40,6 +40,8 @@ void inicializar_filesystem() {
 	else
 		obtener_blocks();
 
+	pthread_mutex_init(&mutex_FS, NULL);
+
 	pthread_t hilo_sincronizador;
 	pthread_create(&hilo_sincronizador, NULL, (void*) sincronizar_blocks, NULL);
 	pthread_detach(hilo_sincronizador);

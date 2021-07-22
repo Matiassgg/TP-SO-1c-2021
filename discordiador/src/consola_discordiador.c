@@ -146,10 +146,17 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"OBTENER_BITACORA")) {
-		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %s", palabras_del_mensaje[1]);
+		uint32_t id_tripulante = atoi(palabras_del_mensaje[1]);
+		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %i", id_tripulante);
 
 		// Consulta a i-Mongo-Store para obtener la bitacora
+		enviar_Mongo_obtener_bitacora(id_tripulante, socket_Mongo_Store);
 
+		char* bitacora = recibir_obtener_bitacora_respuesta(socket_Mongo_Store);
+
+		log_info(logger, "\nBITACORA DEL TRIPULANTE %i:\n%s\n", id_tripulante, bitacora);
+
+		free(bitacora);
 		return;
 	}
 }

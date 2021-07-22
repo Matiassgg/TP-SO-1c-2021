@@ -6,6 +6,29 @@ void enviar_discordiador_sabotaje(t_posicion* posicion_sabotaje, uint32_t socket
 	enviar_paquete(paquete_a_enviar, socket_discordiador);
 }
 
+void enviar_respuesta_obtener_bitacora(char* bitacora, uint32_t socket_discordiador) {
+	t_paquete* paquete_a_enviar = crear_paquete(OBTENER_BITACORA_RESPUESTA);
+	serializar_obtener_bitacora(bitacora, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_discordiador);
+}
+
+void serializar_obtener_bitacora(char* bitacora, t_buffer* buffer) {
+	//------------ORDEN------------
+	//1. Tam bitacora
+	//2. Bitacora
+	//-----------------------------
+	uint32_t offset = 0;
+	uint32_t tamanio_bitacora = string_length(bitacora)+1;
+	buffer->size = tamanio_bitacora + sizeof(uint32_t);
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(tamanio_bitacora), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, bitacora, tamanio_bitacora);
+}
+
+
 t_mover_hacia* deserializar_mover_hacia_posicion(uint32_t socket_cliente){
 	//------------ORDEN------------
 	//1. ID

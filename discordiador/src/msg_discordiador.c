@@ -29,6 +29,39 @@ void enviar_RAM_expulsar_tripulante(t_tripulante* tripulante, uint32_t socket_co
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
+void enviar_Mongo_obtener_bitacora(uint32_t id_tripulante, uint32_t socket_conexion) {
+	t_paquete* paquete_a_enviar = crear_paquete(OBTENER_BITACORA);
+
+	paquete_a_enviar->buffer->size = sizeof(uint32_t);
+	paquete_a_enviar->buffer->stream = malloc(paquete_a_enviar->buffer->size);
+	memcpy(paquete_a_enviar->buffer->stream , &(id_tripulante), sizeof(uint32_t));
+
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
+char* deserializar_respuesta_obtener_bitacora_respuesta(uint32_t socket_cliente) {
+	//------------ORDEN------------
+	//1. Tam bitacora
+	//2. Bitacora
+	//-----------------------------
+
+	uint32_t tamanio_bitacora;
+
+	recv(socket_cliente, &(tamanio_bitacora), sizeof(uint32_t), 0);
+	char* bitacora = malloc(tamanio_bitacora);
+	recv(socket_cliente, bitacora, tamanio_bitacora, 0);
+
+	return bitacora;
+}
+
+char* recibir_obtener_bitacora_respuesta(int socket_cliente){
+	int aux;
+	recv(socket_cliente, &aux, sizeof(op_code), MSG_WAITALL);
+	recv(socket_cliente, &aux, sizeof(uint32_t), MSG_WAITALL);
+
+	return deserializar_respuesta_obtener_bitacora_respuesta(socket_cliente);
+}
+
 void enviar_Mongo_bitacora_tarea(t_tripulante* tripulante, uint32_t socket_conexion) {
 	t_paquete* paquete_a_enviar = crear_paquete(EJECUTAR_TAREA);
 	serializar_bitacora_tarea(tripulante, paquete_a_enviar->buffer);

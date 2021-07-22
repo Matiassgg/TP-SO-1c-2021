@@ -76,6 +76,23 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			free(tripulante);
 		break;
+		break;
+		case OBTENER_BITACORA:
+			;
+			uint32_t id_tripulante;
+			recv(cliente_fd, &(id_tripulante), sizeof(uint32_t), 0);
+
+			log_info(logger, "Nos llego OBTENER_BITACORA del tripulante %i", id_tripulante);
+
+			char* bitacora = leer_bitacora(id_tripulante);
+
+			enviar_respuesta_obtener_bitacora(bitacora, cliente_fd);
+
+			log_info(logger, "Se enviaro la bitacora del tripulante %i", id_tripulante);
+
+			free(bitacora);
+
+		break;
 		case TAREA_E_S:
 			tarea = deserializar_tarea(cliente_fd);
 

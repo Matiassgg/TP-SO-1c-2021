@@ -137,6 +137,8 @@ void crear_blocks(){
 	else {
 		log_info(logger, "MONGO-STORE :: SE CREO EL ARCHIVO BLOCKS CORRECTAMENTE");
 		contenido_blocks = calloc(1,block_size * blocks);
+		char a = '\0';
+		memset(contenido_blocks,a,block_size * blocks);
 		write(fd,contenido_blocks,block_size * blocks);
 //		log_info(logger, "%s\nHASH de %s:\n%s\n",contenido_blocks, path_blocks, dar_hash_md5(path_blocks));
 		struct stat file_st;
@@ -573,6 +575,7 @@ int tamanio_restante_config(t_config* config){
 }
 
 void subir_FS(char* a_subir, char* archivo, bool es_files){
+	pthread_mutex_lock(&mutex_FS);
 	t_config* config = config_create(archivo);
 	int ultimo_bloque = ultimo_bloque_config(config);
 	int tamanio_restante = tamanio_restante_config(config);
@@ -583,8 +586,86 @@ void subir_FS(char* a_subir, char* archivo, bool es_files){
 	else
 		actualizar_archivo_bitacora(a_subir[0], bloques, config, string_length(a_subir));
 
+	pthread_mutex_unlock(&mutex_FS);
 	list_destroy(bloques);
 	config_destroy(config);
+}
+
+t_list* obtener_bloques_totales(t_config* config){
+	t_list* bloques = list_create();
+	int size = config_get_int_value(config, "SIZE");
+	uint32_t cant_bloques;
+	div_t aux = div(size, block_size);
+	if (aux.rem == 0)
+		cant_bloques = aux.quot;
+	else
+		cant_bloques = aux.quot + 1;
+
+	if(cant_bloques != 0){
+		char** bloques_config = config_get_array_value(config, "BLOCKS");
+		for(int i=0; i<cant_bloques;i++){
+			list_add(bloques, atoi(bloques_config[i]));
+		}
+	}
+
+	return bloques;
+}
+
+char* leer_blocks(t_list* bloques, int size){
+	char* informacion = malloc(size+1);
+	uint32_t offset = 0;
+	int tamanio_total = size;
+	for(int i=0;i<list_size(bloques);i++){
+		uint32_t bloque = (uint32_t) list_get(bloques,i);
+		int tamanio_leer = minimo(tamanio_total, block_size);
+		memcpy(informacion + offset, contenido_blocks_aux + (bloque*block_size), tamanio_leer);
+		offset += tamanio_leer;
+		tamanio_total -= block_size;
+	}
+
+	return informacion;
+}
+
+char* leer_FS(char* archivo){
+
+	pthread_mutex_lock(&mutex_FS);
+
+	t_config* config = config_create(archivo);
+	t_list* bloques = obtener_bloques_totales(config);
+	char* informacion = leer_blocks(bloques, config_get_int_value(config,"SIZE"));
+
+	pthread_mutex_unlock(&mutex_FS);
+
+	list_destroy(bloques);
+	config_destroy(config);
+
+	return informacion;
+}
+
+char* leer_file(char* tipo){
+	char* path_file;
+	if(son_iguales(tipo,"GENERAR_OXIGENO") || son_iguales(tipo,"CONSUMIR_OXIGENO")){
+		path_file = obtener_path_files("Oxigeno.ims");
+	}
+	else if(son_iguales(tipo,"GENERAR_COMIDA") || son_iguales(tipo,"CONSUMIR_COMIDA")){
+		path_file = obtener_path_files("Comida.ims");
+	}
+	else if(son_iguales(tipo,"GENERAR_BASURA") || son_iguales(tipo,"DESCARTAR_BASURA")){
+		path_file = obtener_path_files("Basura.ims");
+	}
+
+	char* informacion = leer_FS(path_file);
+	free(path_file);
+
+	return informacion;
+}
+
+char* leer_bitacora(uint32_t id_tripulante){
+	char* path_file = path_bitacora_tripulante(id_tripulante);
+	char* informacion = leer_FS(path_file);
+	free(path_file);
+
+	return informacion;
 }
 
 
