@@ -1329,6 +1329,44 @@ void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina){
 	pthread_mutex_unlock(&mutex_marcos);
 }
 
+t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina){
+	log_trace(logger,"Se produce un page fault de la pagina nro: %d)",pagina->numeroPagina);
+	t_marco_en_swap* marco_en_swap = buscar_marco_en_swap(pagina);
+
+	pthread_mutex_lock(&mutex_marcos);
+	t_marco* marcoLibre = buscar_marco_libre();
+	if(marcoLibre){
+		log_trace(logger,"Se procede a asignar el marco nro %d a la pagina nro #%d",marcoLibre->numeroMarco,pagina->numeroPagina);
+		//PRIMERO TENGO QUE COPIAR EL CONTENIDO DEL MARCO EN SWAP, EN EL MARCO Y LUEGO ASIGNAR
+		pthread_mutex_lock(&mutexSwap);
+		memcpy(marcoLibre->inicioMemoria,memoria_virtual+pagina->marco->numeroMarco*tamanio_pagina,tamanio_pagina);
+		pthread_mutex_unlock(&mutexSwap);
+		//ASIGNO
+		pagina->marco=marcoLibre;
+		pagina->marco->bitUso = true;
+		pagina->bit_presencia = true;
+
+		marco_en_swap->bitUso = false;
+		marco_en_swap->idPatota = -1;
+		marco_en_swap->nroPagina = -1;
+	}
+	else{
+		log_error(logger,"No se puede asignar un marco, tanto memoria como SWAP está completa.");
+	}
+	pthread_mutex_unlock(&mutex_marcos);
+
+	return marcoLibre;
+}
+
+t_marco_en_swap* buscar_marco_en_swap(t_pagina* pagina){
+	bool el_que_quiero(void* parametro){
+			return ((t_marco_en_swap*)parametro)->nroPagina == pagina->numeroPagina
+					&& ((t_marco_en_swap*)parametro)->idPatota == obtenerTablaDePaginasAsociada(pagina)->id_patota_asociada;
+		}
+
+	return list_find(marcos_swap,el_que_quiero);
+}
+
 //////////////////////////////////////////ALGORITMOS/////////////////////////////////////////////////////////////////
 //////////////////////////////////////////LRU Y CLOCK/////////////////////////////////////////////////////////////////
 
@@ -1453,6 +1491,8 @@ void seleccionar_victima_CLOCK(void){
 
 void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 	t_pagina* paginaACopiar = obtenerPaginaAsociada(marcoALimpiar);
+
+	//FALTA COPIAR EN MEMORIA_VIRTUAL
 
 	//ACÁ YA LIMPIO EL MARCO, Y LA PÁGINA ES LLEVADA SWAP
 	asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar);
