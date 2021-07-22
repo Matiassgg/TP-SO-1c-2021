@@ -1311,11 +1311,11 @@ t_marco_en_swap* buscar_marco_libre_en_swap(){
 	}
 }
 
-void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_patota_asociada){
-//	pthread_mutex_lock(&mutex_marcos);
-	t_marco_en_swap* marco = buscar_marco_libre_en_swap();
+t_marco_en_swap* asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_patota_asociada){
 
-	if(!marco){
+	t_marco_en_swap* marcoDeSwap = buscar_marco_libre_en_swap();
+
+	if(!marcoDeSwap){
 		log_error(logger,"No hay marcos libres en SWAP. Se deniega la solicitud.");
 	}else{
 		pagina->marco->bitUso = false;
@@ -1323,25 +1323,29 @@ void asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint32_t id_pato
 		pagina->marco = NULL;
 		pagina->bit_presencia = false;
 
-		marco->bitUso = true;
-		marco->idPatota = id_patota_asociada;
-		marco->nroPagina = pagina->numeroPagina;
+		marcoDeSwap->bitUso = true;
+		marcoDeSwap->idPatota = id_patota_asociada;
+		marcoDeSwap->nroPagina = pagina->numeroPagina;
 	}
-//	pthread_mutex_unlock(&mutex_marcos);
+
+	return marcoDeSwap;
+
 }
 
 t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
-	log_trace(logger,"Se produce un page fault de la pagina nro: %d)",pagina->numeroPagina);
+	log_trace(logger,"Se produce un page fault de la pagina nro: %d",pagina->numeroPagina);
 	t_marco_en_swap* marco_en_swap = buscar_marco_en_swap(pagina, id_patota);
+	log_info(logger,"El marco en SWAP en el cual se aloja el contenido de la pagina buscada es el numero: %i",marco_en_swap->numeroMarcoSwap);
 	pthread_mutex_lock(&mutex_marcos);
 	t_marco* marcoLibre = buscar_marco_libre();
 	if(marcoLibre){
-		log_trace(logger,"Se procede a asignar el marco nro %d a la pagina nro #%d",marcoLibre->numeroMarco,pagina->numeroPagina);
-		//PRIMERO TENGO QUE COPIAR EL CONTENIDO DEL MARCO EN SWAP, EN EL MARCO Y LUEGO ASIGNAR
+		//PRIMERO TENGO QUE COPIAR EL CONTENIDO DEL MARCO EN SWAP, EN EL MARCO Y LUEGO ASIGNAMOS
 		pthread_mutex_lock(&mutexSwap);
-		memcpy(marcoLibre->inicioMemoria,memoria_virtual+pagina->marco->numeroMarco*tamanio_pagina,tamanio_pagina);
+		memcpy(memoria+marcoLibre->inicioMemoria,memoria_virtual+marco_en_swap->inicioSwap,tamanio_pagina);
 		pthread_mutex_unlock(&mutexSwap);
+		log_trace(logger,"Se copia el contenido de la pagina de memoria virtual a memoria en la locacion: %d",marcoLibre->inicioMemoria);
 		//ASIGNO
+		log_trace(logger,"Se asigna el marco nro %d a la pagina nro #%d que se encontraba alojada en el marco de swap #%d",marcoLibre->numeroMarco,pagina->numeroPagina,marco_en_swap->numeroMarcoSwap);
 		pagina->marco=marcoLibre;
 		pagina->marco->bitUso = true;
 		pagina->bit_presencia = true;
@@ -1493,10 +1497,19 @@ void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 	t_pagina* paginaACopiar = obtenerPaginaAsociada(marcoALimpiar);
 	t_tabla_paginas* tabla = obtener_tabla_paginas_con_marco(marcoALimpiar);
 
-	//FALTA COPIAR EN MEMORIA_VIRTUAL
+	log_info(logger,"Se procede a swapear la pagina #%i de la patota #%i que estaba asociada al marco #%i, elegido como victima",
+			paginaACopiar->numeroPagina,tabla->id_patota_asociada,marcoALimpiar->numeroMarco);
 
 	//ACÁ YA LIMPIO EL MARCO, Y LA PÁGINA ES LLEVADA SWAP
-	asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar,tabla->id_patota_asociada);
+	t_marco_en_swap* marcoAsignadoDeSwap = asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar,tabla->id_patota_asociada);
+
+	log_info(logger,"El marco elegido en swap para guardar el contenido de la pagina es el numero #%d",marcoAsignadoDeSwap->numeroMarcoSwap);
+
+	//SE COPIA EN MEMORIA_VIRTUAL
+
+	memcpy(memoria_virtual + marcoAsignadoDeSwap->inicioSwap, memoria+marcoALimpiar->inicioMemoria,tamanio_pagina);
+
+	log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %i",memoria_virtual+marcoAsignadoDeSwap->inicioSwap);
 
 }
 
