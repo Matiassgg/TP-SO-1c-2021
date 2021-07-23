@@ -69,6 +69,12 @@ INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno.txt 5|5
 -------------------------------------------------------RAM
 ---------------------------------------------------SEGMENTACION
 
+INICIAR_PATOTA 4 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaA.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaC.txt 3|3
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+
 
 INICIAR_PATOTA 10 /home/utnso/a-mongos-pruebas/Generales/espartana.txt
 INICIAR_PLANIFICACION

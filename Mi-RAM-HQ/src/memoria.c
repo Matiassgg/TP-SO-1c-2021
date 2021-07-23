@@ -493,8 +493,9 @@ void dump_memoria_principal(){
 			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas,0));
 			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb,1));
 
+			int k = 2;
+
 			for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
-				int k = 2;
 				t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
 				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
 				k++;
@@ -1265,6 +1266,37 @@ t_pagina* obtenerPaginaAsociada(t_marco* marco){
 	return paginaAsociada;
 }
 
+bool verificar_paginas_en_memoria(t_tabla_paginas* tabla){
+
+	bool esta_en_memoria(t_pagina* pagina){
+		return pagina->bit_presencia==1;
+	}
+
+	return list_any_satisfy(tabla->paginas,esta_en_memoria);
+}
+
+void traer_paginas_a_memoria(t_tabla_paginas* tabla){
+
+	for(int i=0;i<list_size(tabla->paginas);i++){
+		t_pagina* pagina = list_get(tabla->paginas,i);
+
+		if(pagina->bit_presencia==0){
+			traer_pagina_con_marco_asignado(pagina,tabla->id_patota_asociada);
+		}
+
+	}
+}
+
+void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tabla){
+
+	//ESTO LO TENGO QUE HACER PORQUE PUEDE QUE AL AGARRAR UN MARCO VICTIMA, NOS SAQUE UNO DEL PROCESO
+	//QUE QUEREMOS EJECUTAR, POR SER LA SUSTITUCION GLOBAL
+
+	while(verificar_paginas_en_memoria==false){
+		traer_paginas_a_memoria(tabla);
+	}
+}
+
 //////////////////////////////////////////SWAP/////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1286,17 +1318,6 @@ void llenar_archivo(int fd, uint32_t tamanio){
 	write(fd, buffer, tamanio);
 	free(buffer);
 }
-
-//
-//int cantidad_de_marcos_pedidos_swap(int cantidadDeMarcos) {
-//	div_t aux = div(cantidadDeMarcos, 8);
-//
-//	if (aux.rem == 0) {
-//		return aux.quot;
-//	} else {
-//		return aux.quot + 1;
-//	}
-//}
 
 t_marco_en_swap* buscar_marco_libre_en_swap(){
 
