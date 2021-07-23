@@ -29,7 +29,6 @@ void preparar_memoria_para_esquema_de_paginacion(void);
 FILE* crear_archivo_dump();
 void dump_memoria_principal();
 t_pagina* obtenerPaginaAsociada(t_marco* marco);
-modificar_memoria_estado_tripulante(t_tripulante* tripulante);
 
 void cargar_memoria_patota(t_patota* patota);
 
@@ -80,6 +79,8 @@ t_marco_en_swap* asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint
 bool verificar_paginas_en_memoria(t_tabla_paginas* tabla);
 void traer_paginas_a_memoria(t_tabla_paginas* tabla);
 void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tabla);
+void modificar_memoria_estado_tripulante(t_tripulante* tripulante,t_estado* nuevo_estado);
+t_tcb* obtener_tcb_de_tripulante(t_tripulante* tripulante);
 
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);

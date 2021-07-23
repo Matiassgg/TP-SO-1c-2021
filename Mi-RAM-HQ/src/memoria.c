@@ -532,9 +532,20 @@ void dump_memoria_principal(){
  * TRIPULANTE A MEMORIA, TRAERLO, Y COPIARLE EL ESTADO DEL QUE NOS PASARON AL QUE ESTABA EN MEMORIA
  */
 
-//void modificar_memoria_estado_tripulante(t_tripulante* tripulante){
-//
-//}
+void modificar_memoria_estado_tripulante(t_tripulante* tripulante,t_estado* nuevo_estado){
+
+	t_tcb* tcb = obtener_tcb_de_tripulante(tripulante);
+
+	if(nuevo_estado!=NULL)
+		tcb->estado = nuevo_estado;
+
+	modificar_memoria(tcb,tripulante->id_patota_asociado,TCB);
+}
+
+t_tcb* obtener_tcb_de_tripulante(t_tripulante* tripulante){
+	//COMO PINGO OBTENGO EL TCB
+	return 0;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////SEGMENTACIÓN/////////////////////////////////////////////////////////////////
