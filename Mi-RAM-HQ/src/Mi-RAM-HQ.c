@@ -20,9 +20,7 @@ void iniciar_Mi_RAM_HQ() {
 
     iniciar_memoria();
 
-
 	signal(SIGINT, finalizar_mi_ram);
-
 }
 
 t_log* iniciar_logger_RAM(char* archivo_log, char* archivo_c) {

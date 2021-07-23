@@ -54,6 +54,8 @@ dkms.conf
 # Eclipse files
 .cproject
 .settings/language.settings.xml
+*.settings/
+.settings/*
 *.xml
 *.cproject
 
