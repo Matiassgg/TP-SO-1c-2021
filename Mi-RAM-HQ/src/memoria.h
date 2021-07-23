@@ -80,7 +80,7 @@ bool verificar_paginas_en_memoria(t_tabla_paginas* tabla);
 void traer_paginas_a_memoria(t_tabla_paginas* tabla);
 void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tabla);
 void modificar_memoria_estado_tripulante(t_tripulante* tripulante,t_estado* nuevo_estado);
-t_tcb* obtener_tcb_de_tripulante(t_tripulante* tripulante);
+t_tabla_paginas* obtener_tabla_paginas_con_id_patota(uint32_t id_patota);
 
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);

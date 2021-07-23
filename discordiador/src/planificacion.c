@@ -77,6 +77,7 @@ void planificacion_segun_FIFO() {
 
 			// TODO :: AVISAR A RAM QUE AHORA ESTA EN EXEC
 
+
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
 				if(tripulante_plani->esta_activo)
