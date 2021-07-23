@@ -1,8 +1,9 @@
 #!/bin/bash
 
 RULE=""
-cd ..
+PROJECT="tp-2021-1c-LaMitad-1/"
 
+cd ..
 echo -e "\n\nInstalando so-commons-library...\n\n"
 git clone "https://github.com/sisoputnfrba/so-commons-library.git"
 cd so-commons-library
@@ -18,16 +19,26 @@ cd so-nivel-gui-library
 sudo make install
 cd ..
 
-PROJECTS=(utils Mi-RAM-HQ discordiador i-Mongo-Store)
+cd $PROJECT
 
 echo -e "\n\nCompilando modulos...\n\n"
+cd utils/
+make $RULE
+cd .. 
 
-for i in "${PROJECTS[@]}"
-do
-  echo -e "\n\nBuilding ${i}\n\n"
-  cd $i
-  make $RULE
-  cd $CWD
-done
+echo -e "\n\nBuilding discordiador\n\n"
+cd discordiador/
+make $RULE
+cd .. 
+
+echo -e "\n\nBuilding Mi-RAM-HQ\n\n"
+cd Mi-RAM-HQ/
+make $RULE
+cd .. 
+
+echo -e "\n\nBuilding i-Mongo-Store\n\n"
+cd i-Mongo-Store/
+make $RULE
+cd .. 
 
 echo -e "\n\nDeploy hecho\n\n"
