@@ -20,25 +20,6 @@ sudo make install
 cd ..
 
 cd $PROJECT
-
-echo -e "\n\nCompilando modulos...\n\n"
-cd utils/
-make $RULE
-cd .. 
-
-echo -e "\n\nBuilding discordiador\n\n"
-cd discordiador/
-make $RULE
-cd .. 
-
-echo -e "\n\nBuilding Mi-RAM-HQ\n\n"
-cd Mi-RAM-HQ/
-make $RULE
-cd .. 
-
-echo -e "\n\nBuilding i-Mongo-Store\n\n"
-cd i-Mongo-Store/
-make $RULE
-cd .. 
+make 
 
 echo -e "\n\nDeploy hecho\n\n"
