@@ -1,20 +1,22 @@
 #!/bin/bash
 
-CWD=$PWD
 RULE=""
+cd ..
 
 echo -e "\n\nInstalando so-commons-library...\n\n"
-cd $CWD
 git clone "https://github.com/sisoputnfrba/so-commons-library.git"
+cd so-commons-library
 sudo make install
-cd $CWD
+cd ..
+
+echo -e "\n\nInstalando ncurses...\n\n"
+sudo apt-get install libncurses5-dev
 
 echo -e "\n\nInstalando so-nivel-gui-library..\n\n"
-cd $CWD
-git clone https://github.com/sisoputnfrba/so-nivel-gui-library/
+git clone "https://github.com/sisoputnfrba/so-nivel-gui-library/"
 cd so-nivel-gui-library
 sudo make install
-cd $CWD
+cd ..
 
 PROJECTS=(utils Mi-RAM-HQ discordiador i-Mongo-Store)
 
