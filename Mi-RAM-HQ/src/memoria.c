@@ -275,124 +275,136 @@ t_tcb* obtener_tripulante_memoria(uint32_t id_tripulante, uint32_t id_patota_aso
 	return (t_tcb*) deserializar_memoria_tcb(leer_memoria(id_tripulante, id_patota_asociada, TCB));
 }
 
-t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
+t_tarea* obtener_tarea_segmentacion(t_tripulante* tripulante){
+	t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
+	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
 
-	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
-		t_segmento* segmento = buscar_segmento_id(tripulante->id, tripulante->id_patota_asociado, TCB);
-		t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
+	t_segmento* segmento_tareas = buscar_segmento_id(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
+	//	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
+	//	log_info(logger,"tareas: %s",tareas);
 
-		t_segmento* segmento_tareas = buscar_segmento_id(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
-		//	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
-		//	log_info(logger,"tareas: %s",tareas);
+	char* tarea_string = string_new();
+	char* c_leido = calloc(2,sizeof(char));
+	uint32_t new_offset=0;
+	uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
+	log_info(logger,"offset: %i",offset);
 
-		char* tarea_string = string_new();
-		char* c_leido = calloc(2,sizeof(char));
-		uint32_t new_offset=0;
-		uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
-		log_info(logger,"offset: %i",offset);
+	if(offset >= segmento_tareas->tamanio)
+		return NULL;
 
-		if(offset >= segmento_tareas->tamanio)
-			return NULL;
+	uint32_t inicio_tarea = segmento_tareas->inicio + offset;
+	log_info(logger,"inicio_tarea: %i",inicio_tarea);
+	do{
+		memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+		new_offset++;
+		string_append(&tarea_string, c_leido);
+	}while((c_leido[0] != '\n') && ((offset + new_offset) <= segmento_tareas->tamanio));
+	log_info(logger,"tarea_string: %s",tarea_string);
+	log_info(logger,"new_offset: %i",new_offset);
 
-		uint32_t inicio_tarea = segmento_tareas->inicio + offset;
-		log_info(logger,"inicio_tarea: %i",inicio_tarea);
-		do{
-			memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
-			new_offset++;
-			string_append(&tarea_string, c_leido);
-		}while((c_leido[0] != '\n') && ((offset + new_offset) <= segmento_tareas->tamanio));
-		log_info(logger,"tarea_string: %s",tarea_string);
-		log_info(logger,"new_offset: %i",new_offset);
+	tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);
+	modificar_memoria_segmentacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
+	t_tarea* tarea = obtener_tarea_archivo(tarea_string);
 
-		tcb->prox_instruccion = dar_direccion_logica(segmento_tareas->nro_segmento,new_offset+offset);
-		modificar_memoria_segmentacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
-		t_tarea* tarea = obtener_tarea_archivo(tarea_string);
+	return tarea;
+}
 
-		return tarea;
-	}else if(son_iguales(esquema_memoria, "PAGINACION")) {
+t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
+	t_tcb* tcb  = deserializar_memoria_tcb(leer_memoria_paginacion(tripulante->id, tripulante->id_patota_asociado, TCB));
 
-		realizar_proceso_de_verificacion_de_paginas_en_memoria(obtener_tabla_paginas_con_id_patota(tripulante->id_patota_asociado));
+	log_info(logger,"prox_instruccion: %i",tcb->prox_instruccion);
+	uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
+	log_info(logger,"offset: %d",offset);
 
-		t_tcb* tcb  = deserializar_memoria_tcb(leer_memoria(tripulante->id, tripulante->id_patota_asociado, TCB));
+	if(offset >= tamanio_pagina)
+		return NULL;
+	uint32_t nro_pagina = dar_numero_particion_direccion_logica(tcb->prox_instruccion);
 
-		log_info(logger,"prox_instruccion: %i",tcb->prox_instruccion);
-		uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
-		log_info(logger,"offset: %d",offset);
+	t_tabla_paginas* tabla = dar_tabla_paginas(tripulante->id_patota_asociado);
+//	realizar_proceso_de_verificacion_de_paginas_en_memoria(tabla);
+	t_pagina* pagina = dar_pagina_de_tabla(tabla, nro_pagina);
+	t_asociador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
 
-		if(offset >= tamanio_pagina)
-			return NULL;
-		uint32_t nro_pagina = dar_numero_particion_direccion_logica(tcb->prox_instruccion);
+	if(offset >= asociador->tamanio)
+		return NULL;
+	char* tarea_string = string_new();
+	char* c_leido = calloc(2,sizeof(char));
+	uint32_t new_offset=0;
+	verificar_marco_memoria(pagina, tripulante->id_patota_asociado);
+	if(pagina->marco == NULL)
+		log_error(logger, "Ta cagado el marco de la pagina %i del tripulante %i", pagina->numeroPagina, tripulante->id);
+	uint32_t inicio_tarea = pagina->marco->inicioMemoria + offset; // TODO FALLA SEGURAMENTE MARCO ESTA EN SWAP
+	log_info(logger,"inicio_tarea: %i",inicio_tarea);
+	do{
+		memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+		new_offset++;
+		string_append(&tarea_string, c_leido);
+	}while((c_leido[0] != '\n') && ((offset + new_offset) < tamanio_pagina) && ((offset + new_offset) < asociador->tamanio));
+	log_info(logger,"tarea_string: %s",tarea_string);
+	log_info(logger,"new_offset: %i",new_offset);
 
-		t_tabla_paginas* tabla = dar_tabla_paginas(tripulante->id_patota_asociado);
-		t_pagina* pagina = dar_pagina_de_tabla(tabla, nro_pagina);
-		t_asociador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
+	nro_pagina = pagina->numeroPagina;
+	uint32_t offset_logico = new_offset+offset;
 
-		if(offset >= asociador->tamanio)
-			return NULL;
-		char* tarea_string = string_new();
-		char* c_leido = calloc(2,sizeof(char));
-		uint32_t new_offset=0;
-
-		uint32_t inicio_tarea = pagina->marco->inicioMemoria + offset;
-		log_info(logger,"inicio_tarea: %i",inicio_tarea);
-		do{
-			memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
-			new_offset++;
-			string_append(&tarea_string, c_leido);
-		}while((c_leido[0] != '\n') && ((offset + new_offset) < tamanio_pagina) && ((offset + new_offset) < asociador->tamanio));
-		log_info(logger,"tarea_string: %s",tarea_string);
-		log_info(logger,"new_offset: %i",new_offset);
-
-		nro_pagina = pagina->numeroPagina;
-		uint32_t offset_logico = new_offset+offset;
-
-		if((c_leido[0] != '\n') && (offset + new_offset) >= tamanio_pagina){
-			log_info(logger,"Se entro al if 2");
-			t_list* paginas = obtener_paginas_asignadas(tabla, tripulante->id_patota_asociado, TAREAS);
-			if(list_size(paginas) > 1){
-				bool aux = false;
-				bool dar_proxima_pagina(t_pagina* pagina_A){
-					if(pagina_A->numeroPagina == pagina->numeroPagina){
-						aux = true;
-						return false;
-					}
-					return aux;
+	if((c_leido[0] != '\n') && (offset + new_offset) >= tamanio_pagina){
+		log_info(logger,"Se entro al if 2");
+		t_list* paginas = obtener_paginas_asignadas(tabla, tripulante->id_patota_asociado, TAREAS);
+		if(list_size(paginas) > 1){
+			bool aux = false;
+			bool dar_proxima_pagina(t_pagina* pagina_A){
+				if(pagina_A->numeroPagina == pagina->numeroPagina){
+					aux = true;
+					return false;
 				}
-				t_pagina* pagina_aux = list_find(paginas, dar_proxima_pagina);
-				t_asociador_pagina* asociador_2 = dar_asociador_pagina(pagina_aux, tripulante->id_patota_asociado, TAREAS);
-				offset = asociador_2->inicio;
-
-				new_offset=0;
-				log_info(logger,"offset: %d",offset);
-
-				if(offset >= tamanio_pagina)
-					return NULL;
-
-				inicio_tarea = pagina_aux->marco->inicioMemoria + offset;
-				log_info(logger,"inicio_tarea: %i",inicio_tarea);
-
-				while((c_leido[0] != '\n') && ((offset + new_offset) < tamanio_pagina) && ((offset + new_offset) < asociador_2->tamanio)){
-					memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
-					new_offset++;
-					string_append(&tarea_string, c_leido);
-				}
-
-				nro_pagina = pagina_aux->numeroPagina;
-				offset_logico = new_offset+offset;
-
-				log_info(logger,"tarea_string: %s",tarea_string);
-				log_info(logger,"nro_pagina: %i",nro_pagina);
-
+				return aux;
 			}
+			t_pagina* pagina_aux = list_find(paginas, dar_proxima_pagina);
+			pagina_aux->marco = traer_pagina_con_marco_asignado(pagina_aux, tripulante->id);
+			t_asociador_pagina* asociador_2 = dar_asociador_pagina(pagina_aux, tripulante->id_patota_asociado, TAREAS);
+			offset = asociador_2->inicio;
+
+			new_offset=0;
+			log_info(logger,"offset: %d",offset);
+
+			if(offset >= tamanio_pagina)
+				return NULL;
+
+			inicio_tarea = pagina_aux->marco->inicioMemoria + offset;
+			log_info(logger,"inicio_tarea: %i",inicio_tarea);
+
+			while((c_leido[0] != '\n') && ((offset + new_offset) < tamanio_pagina) && ((offset + new_offset) < asociador_2->tamanio)){
+				memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
+				new_offset++;
+				string_append(&tarea_string, c_leido);
+			}
+
+			nro_pagina = pagina_aux->numeroPagina;
+			offset_logico = new_offset+offset;
+
+			log_info(logger,"tarea_string: %s",tarea_string);
+			log_info(logger,"nro_pagina: %i",nro_pagina);
 		}
-
-		tcb->prox_instruccion = dar_direccion_logica(nro_pagina,offset_logico);
-		modificar_memoria_paginacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
-		t_tarea* tarea = obtener_tarea_archivo(tarea_string);
-
-		return tarea;
 	}
-	return NULL;
+
+	tcb->prox_instruccion = dar_direccion_logica(nro_pagina,offset_logico);
+	modificar_memoria_paginacion(serializar_memoria_tcb(tcb),tripulante->id_patota_asociado,TCB);
+	t_tarea* tarea = obtener_tarea_archivo(tarea_string);
+
+	return tarea;
+}
+
+t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
+	pthread_mutex_lock(&mutex_tocar_memoria);
+	t_tarea* tarea;
+
+	if(son_iguales(esquema_memoria, "SEGMENTACION"))
+		tarea = obtener_tarea_segmentacion(tripulante);
+
+	else if(son_iguales(esquema_memoria, "PAGINACION"))
+		tarea = obtener_tarea_paginacion(tripulante);
+
+	pthread_mutex_unlock(&mutex_tocar_memoria);
+	return tarea;
 }
 
 void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -891,7 +903,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	}
 
 	// Aca viene la parte de swap
-	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
+	for(int offset = 0; offset < tamanio_swap; offset += tamanio_pagina){
 
 		t_marco_en_swap* nuevoMarco = malloc(sizeof(t_marco_en_swap));
 		nuevoMarco->inicioSwap = offset;
@@ -1114,6 +1126,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 		pagina_libre->espacio_libre -= tamanio_subir;
 		tamanio_restante -= tamanio_subir;
+		pagina_libre->marco = marco;
 
 		log_info(logger, "Se subio %i en la pagina %i que contiene el marco %i", tamanio_subir, pagina_libre->numeroPagina, pagina_libre->marco->numeroMarco);
 	}
@@ -1216,6 +1229,7 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
 
 	t_tabla_paginas* tabla = dar_tabla_paginas(patota_asociada);
+//	realizar_proceso_de_verificacion_de_paginas_en_memoria(tabla);
 
 	t_list* paginas = obtener_paginas_asignadas(tabla, id_tripulante, tipo_dato);
 
@@ -1223,6 +1237,7 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 
 	for(int i=0; i<list_size(paginas);i++){
 		t_pagina* pagina = list_get(paginas,i);
+		verificar_marco_memoria(pagina, patota_asociada);
 		log_info(logger, "Se buscara asociador para el tripulante %i en la pagina %i", id_tripulante, pagina->numeroPagina);
 		t_asociador_pagina* asociador = dar_asociador_pagina(pagina, id_tripulante, tipo_dato);
 		uint32_t offset_stream = buffer->size - tamanio_restante;
@@ -1239,6 +1254,7 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 
 void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
 	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota);
+//	realizar_proceso_de_verificacion_de_paginas_en_memoria(tabla);
 	t_list* paginas = obtener_paginas_asignadas(tabla, id, tipo_dato);
 	void* dato_requerido;
 	int tamanio_total = 0;
@@ -1246,6 +1262,12 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	for(int i=0; i<list_size(paginas);i++){
 		log_info(logger, "list_size %i", list_size(paginas));
 		t_pagina* pagina = list_get(paginas,i);
+		verificar_marco_memoria(pagina, id_patota);
+
+		if(pagina->marco == NULL)
+			log_error(logger, "Ta cagado el marco de la pagina %i", pagina->numeroPagina);
+		log_info(logger, "Se obtuvo la pagina %i que esta en el marco %i", pagina->numeroPagina, pagina->marco->numeroMarco);
+
 		t_asociador_pagina* asociador = dar_asociador_pagina(pagina, id, tipo_dato);
 		offset = tamanio_total;
 		tamanio_total += asociador->tamanio;
@@ -1330,23 +1352,20 @@ t_tabla_paginas* obtener_tabla_paginas_con_id_patota(uint32_t id_patota){
 bool verificar_paginas_en_memoria(t_tabla_paginas* tabla){
 
 	bool esta_en_memoria(t_pagina* pagina){
-		return pagina->bit_presencia==1;
+		return pagina->bit_presencia;
 	}
 
 	return list_all_satisfy(tabla->paginas,esta_en_memoria);
 }
 
 void traer_paginas_a_memoria(t_tabla_paginas* tabla){
-
-	for(int i=0;i<list_size(tabla->paginas);i++){
-		t_pagina* pagina = list_get(tabla->paginas,i);
-
-		if(pagina->bit_presencia==false){
-
+	void traer_pagina(t_pagina* pagina){
+		if(!pagina->bit_presencia){
 			traer_pagina_con_marco_asignado(pagina,tabla->id_patota_asociada);
 		}
-
 	}
+
+	list_iterate(tabla->paginas,traer_pagina);
 }
 
 void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tabla){
@@ -1355,7 +1374,7 @@ void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tab
 	//QUE QUEREMOS EJECUTAR, POR SER LA SUSTITUCION GLOBAL
 
 	pthread_mutex_lock(&mutexVerificarPaginas);
-	while(verificar_paginas_en_memoria(tabla)==false){
+	if(!verificar_paginas_en_memoria(tabla)){
 		log_info(logger,"Trayendo paginas de SWAP a memoria.");
 		traer_paginas_a_memoria(tabla);
 		log_info(logger,"Se trajeron las paginas de SWAP a memoria.");
@@ -1417,6 +1436,11 @@ t_marco_en_swap* asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint
 
 	return marcoDeSwap;
 
+}
+
+void verificar_marco_memoria(t_pagina* pagina, uint32_t id_patota){
+	if(!pagina->bit_presencia || (pagina->marco==NULL))
+		pagina->marco = traer_pagina_con_marco_asignado(pagina, id_patota);
 }
 
 t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
@@ -1582,7 +1606,7 @@ void seleccionar_victima_CLOCK(void){
 }
 
 void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
-	t_pagina* paginaACopiar = obtenerPaginaAsociada(marcoALimpiar);
+	t_pagina* paginaACopiar = obtener_pagina_con_marco(marcoALimpiar);
 	t_tabla_paginas* tabla = obtener_tabla_paginas_con_marco(marcoALimpiar);
 
 	log_info(logger,"Se procede a swapear la pagina #%i de la patota #%i que estaba asociada al marco #%i, elegido como victima",
@@ -1598,7 +1622,7 @@ void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 	memcpy(memoria_virtual + marcoAsignadoDeSwap->inicioSwap, memoria+marcoALimpiar->inicioMemoria,tamanio_pagina);
 	pthread_mutex_unlock(&mutexMemoriaVirtual);
 
-	log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %i",memoria_virtual+marcoAsignadoDeSwap->inicioSwap);
+	log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %i",marcoAsignadoDeSwap->inicioSwap);
 
 }
 

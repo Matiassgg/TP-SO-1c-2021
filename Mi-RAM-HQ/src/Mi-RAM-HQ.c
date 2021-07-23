@@ -72,23 +72,22 @@ void finalizar_mi_ram(int signum){
 		free(path_swap);
 		free(seleccionar_victima);
 		free(algoritmo_reemplazo);
-		free(criterio_seleccion);
+//		free(criterio_seleccion);
 		free(memoria_virtual);
 
-		list_destroy(lista_tablas_paginas);
+//		list_destroy(lista_tablas_paginas);
 		list_destroy(tablaDeMarcos);
 		list_destroy(marcos_swap);
 	}
 
-	log_destroy(logger);
-	config_destroy(config);
 	free(memoria);
 	free(esquema_memoria);
 	free(ip_discordiador);
 	free(puerto_discordiador);
-	free(esquema_memoria);
 	free(ip_Mi_RAM_HQ);
 	free(puerto_escucha);
+	log_destroy(logger);
+	config_destroy(config);
 
 	exit(0);
 }

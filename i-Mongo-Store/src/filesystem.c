@@ -336,6 +336,7 @@ int dar_bloque_libre(){
 			return i;
 		}
 	}
+	log_info(logger,"No hay bloques libres");
 	bitarray_destroy(bitarray);
 	pthread_mutex_unlock(&mutex_bitmap);
 	return -1;
