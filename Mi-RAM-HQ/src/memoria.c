@@ -21,6 +21,7 @@ void iniciar_memoria() {
 void preparar_memoria() {
 	memoria = calloc(1,tamanio_memoria);
 
+	lista_mutex_patotas = list_create();
 	pthread_mutex_init(&mutex_subir_patota, NULL);
 	pthread_mutex_init(&mutexTablaMarcos, NULL);
 	pthread_mutex_init(&mutexMemoriaVirtual, NULL);
@@ -110,8 +111,30 @@ t_tcb* crear_tcb(t_tripulante* tripulante){
 	return tcb;
 }
 
+t_mutex_patota* obtener_patota_mutex(uint32_t id_patota, bool es_iniciar){
+	bool esta_asociador(t_mutex_patota* asociador){
+		return asociador->id_patota == id_patota;
+	}
+
+	if(!list_any_satisfy(lista_mutex_patotas, esta_asociador)){
+		t_mutex_patota* asociador_mutex = malloc(sizeof(t_mutex_patota));
+
+		asociador_mutex->id_patota = id_patota;
+		pthread_mutex_init(&asociador_mutex->mutex_patota, NULL);
+		if(!es_iniciar)
+			pthread_mutex_lock(&asociador_mutex->mutex_patota);
+
+		list_add(lista_mutex_patotas,asociador_mutex);
+
+		return asociador_mutex;
+	}
+
+	return (t_mutex_patota*) list_find(lista_mutex_patotas,esta_asociador);
+}
+
 void cargar_memoria_patota(t_patota* patota){
 	pthread_mutex_lock(&mutex_subir_patota);
+	t_mutex_patota* asociador_mutex = obtener_patota_mutex(patota->id_patota, true);
 	t_pcb* pcb_nuevo = crear_pcb(patota);
 
 	char* tareas = obtener_tareas(patota);
@@ -148,11 +171,14 @@ void cargar_memoria_patota(t_patota* patota){
 
 	}
 
+	pthread_mutex_unlock(&asociador_mutex->mutex_patota);
 	pthread_mutex_unlock(&mutex_subir_patota);
 
 }
 
 void cargar_memoria_tripulante(t_tripulante* tripulante){
+	t_mutex_patota* asociador_mutex = obtener_patota_mutex(tripulante->id_patota_asociado, false);
+	pthread_mutex_lock(&asociador_mutex->mutex_patota);
 	pthread_mutex_lock(&mutex_subir_patota);
 
 	t_tcb* tcb = crear_tcb(tripulante);
@@ -163,6 +189,7 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 	log_info(logger, "Se subio a memoria el tripulante");
 
 
+	pthread_mutex_unlock(&asociador_mutex->mutex_patota);
 	pthread_mutex_unlock(&mutex_subir_patota);
 
 }

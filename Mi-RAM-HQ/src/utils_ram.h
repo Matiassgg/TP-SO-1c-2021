@@ -102,6 +102,11 @@ typedef struct {
 	int idPatota;
 } t_marco_en_swap;
 
+typedef struct {
+	uint32_t id_patota;
+	pthread_mutex_t mutex_patota;
+} t_mutex_patota;
+
 //---------MAIN--------//
 t_config* config; //1
 t_log* logger; //1
@@ -139,6 +144,7 @@ pthread_mutex_t mutexBuscarPagina;
 pthread_mutex_t mutexBuscarInfoTripulante;
 pthread_mutex_t mutex_tocar_memoria;
 pthread_mutex_t mutex_subir_patota;
+t_list* lista_mutex_patotas;
 pthread_mutex_t mutex_tablas;
 pthread_mutex_t mutex_marcos;
 
