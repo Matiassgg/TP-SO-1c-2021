@@ -119,6 +119,7 @@ typedef struct {
 t_patota* deserializar_iniciar_patota(uint32_t);
 t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente);
 t_respuesta recibir_respuesta(uint32_t);
+t_tripulante* deserializar_actualizar_estado(uint32_t socket_cliente);
 void enviar_respuesta(t_respuesta, uint32_t);
 void serializar_respuesta(t_respuesta, t_buffer*);
 

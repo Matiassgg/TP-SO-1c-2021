@@ -393,12 +393,18 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 			log_info(logger, "Se entra al ultimo_bloque != -1");
 			bloque_libre = ultimo_bloque;
 			ultimo_bloque = -1;
-			if(tamanio_restante != -1){
+			if(tamanio_restante > 0){
 				offset_bloque = block_size - tamanio_restante;
 				tamanio_subida = minimo((cant_caracteres - offset),tamanio_restante);
 			}
-			else
-				log_info(logger, "No se entra al tamanio_restante != -1");
+			else{
+				log_info(logger, "No se entra al tamanio_restante > 0");
+				bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
+				list_add(bloques, bloque_libre);
+				offset_bloque = 0;
+				tamanio_subida = minimo((cant_caracteres - offset),block_size);
+				log_info(logger, "tamanio_subida = min(%i,%i)",(cant_caracteres - offset),block_size);
+			}
 		}
 		else{
 			log_info(logger, "No se entra al ultimo_bloque != -1");
@@ -571,8 +577,12 @@ int ultimo_bloque_config(t_config* config){
 int tamanio_restante_config(t_config* config){
 	int size = config_get_int_value(config, "SIZE");
 	div_t aux = div(size, block_size);
-
-	return block_size - aux.rem;
+	if(size == 0)
+		return block_size;
+	if(aux.rem == 0 && size > 0)
+		return 0;
+	else
+		return block_size - aux.rem;
 }
 
 void subir_FS(char* a_subir, char* archivo, bool es_files){

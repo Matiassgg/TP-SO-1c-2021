@@ -25,7 +25,7 @@ void enviar_RAM_listar_tripulantes(t_tripulante* tripulante, uint32_t socket_con
 
 void enviar_RAM_actualizar_estado(t_tripulante* tripulante, uint32_t socket_conexion){
 	t_paquete* paquete_a_enviar = crear_paquete(ACTUALIZAR_ESTADO_TRIPULANTE);
-	serializar_iniciar_tripulante(tripulante, paquete_a_enviar->buffer);
+	serializar_actualizar_estado(tripulante, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
@@ -159,6 +159,26 @@ void serializar_iniciar_tripulante(t_tripulante* msg, t_buffer* buffer){
 	memcpy(buffer->stream + offset, &(msg->posicion->pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 	memcpy(buffer->stream + offset, &(msg->posicion->pos_y), sizeof(uint32_t));
+}
+
+void serializar_actualizar_estado(t_tripulante* msg, t_buffer* buffer){
+	//------------ORDEN------------
+	//1. ID
+	//2. Patota asociada
+	//3. Estado
+	//-----------------------------
+	uint32_t offset = 0;
+
+	buffer->size = sizeof(uint32_t)*2 + sizeof(t_estado);
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(msg->id), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(msg->estado), sizeof(t_estado));
 }
 
 void serializar_bitacora_tarea(t_tripulante* msg, t_buffer* buffer) {

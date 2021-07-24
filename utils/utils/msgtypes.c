@@ -48,6 +48,23 @@ t_tripulante* deserializar_iniciar_tripulante(uint32_t socket_cliente){
 	return msg;
 }
 
+t_tripulante* deserializar_actualizar_estado(uint32_t socket_cliente){
+	//------------ORDEN------------
+	//1. ID
+	//2. Patota asociada
+	//3. Estado
+	//-----------------------------
+	t_tripulante* msg = malloc(sizeof(t_tripulante));
+	msg->posicion = malloc(sizeof(t_posicion));
+
+	recv(socket_cliente, &(msg->id), sizeof(uint32_t), 0);
+
+	recv(socket_cliente, &(msg->id_patota_asociado), sizeof(uint32_t), 0);
+
+	recv(socket_cliente, &(msg->estado), sizeof(t_estado), 0);
+	return msg;
+}
+
 void enviar_respuesta(t_respuesta respuesta, uint32_t socket_conexion){
 	t_paquete* paquete_a_enviar = crear_paquete(RESPUESTA);
 

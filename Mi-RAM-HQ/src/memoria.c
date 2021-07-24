@@ -574,10 +574,7 @@ void dump_memoria_principal(){
 void modificar_memoria_estado_tripulante(t_tripulante* tripulante,char nuevo_estado){
 
     t_tcb* tcb = deserializar_memoria_tcb(leer_memoria(tripulante->id, tripulante->id_patota_asociado, TCB));
-
-    if(nuevo_estado!='X'){
-        tcb->estado = nuevo_estado;
-    }
+    tcb->estado = nuevo_estado;
 
     modificar_memoria(tcb,tripulante->id_patota_asociado,TCB);
 }

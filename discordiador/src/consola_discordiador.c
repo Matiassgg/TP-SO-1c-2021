@@ -95,14 +95,20 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	if(son_iguales(palabras_del_mensaje[0] ,"LISTAR_TRIPULANTES")) {
 		// Envio mensaje a RAM y el se encarga de armar el listado de cada wachin
 		t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
-		enviar_paquete(paquete_a_enviar, socket_Mi_RAM_HQ);
-		t_list* lista_tripulantes = recibir_listado_tripulantes(socket_Mi_RAM_HQ);
+		int socket_con_RAM;
+	    if((socket_con_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ)) == -1)
+	    	log_error(logger, "DISCORDIADOR :: No me pude conectar a Mi-RAM-HQ");
+	    else
+			log_info(logger, "DISCORDIADOR :: Me pude conectar a Mi-RAM-HQ");
+		enviar_paquete(paquete_a_enviar, socket_con_RAM);
+		t_list* lista_tripulantes = recibir_listado_tripulantes(socket_con_RAM);
 		char* string_listado = de_listado_a_string(lista_tripulantes);
 
 		log_info(logger, "\n\n%s\n", string_listado);
 
 		free(string_listado);
 		list_destroy_and_destroy_elements(lista_tripulantes, free);
+		liberar_conexion(&socket_con_RAM);
 		return;
 	}
 
