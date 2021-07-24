@@ -69,5 +69,7 @@ void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 void rafaga_cpu(uint32_t tiempo);
 char* obtener_estado_segun_caracter(char);
+int conectar_con_RAM();
+int conectar_con_MONGO();
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */

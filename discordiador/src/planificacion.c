@@ -67,7 +67,6 @@ void planificar_tripulantes_bloqueados(){
 
 void arrancar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
-		log_info(logger, "Se entro al for de iniciar plani");
 		pthread_t planificar_corto;
 		pthread_create(&planificar_corto, NULL, (void*) planificacion_corto_plazo, NULL);
 		pthread_detach(planificar_corto);
@@ -80,14 +79,12 @@ void arrancar_planificacion(){
 void iniciar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
 		sem_post(&semaforo_planificacion);
-		log_info(logger, "Se inicia plani");
 	}
 }
 
 void pausar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
 		sem_wait(&semaforo_planificacion);
-		log_info(logger, "Se pausa plani");
 	}
 }
 

@@ -31,9 +31,9 @@ En el caso de RR los tripulantes deberán ir alternándose cada 3 ciclos de CPU.
 Iniciar los módulos en el orden definido por el grupo en la primer vuelta con el algoritmo
 de planificación FIFO y en la segunda con RR en Discordiador
 Ejecutar los siguientes comandos en la consola del Discordiador.
-INICIAR_PATOTA 2 IO_Patota1.txt 1|1
-INICIAR_PATOTA 1 IO_Patota2.txt 1|0
-INICIAR_PATOTA 1 IO_Patota3.txt 0|1
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Finales/IO_Patota1.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/IO_Patota2.txt 1|0
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/IO_Patota3.txt 0|1
 INICIAR_PLANIFICACION
 LISTAR_TRIPULANTES
 

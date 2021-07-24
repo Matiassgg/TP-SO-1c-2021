@@ -78,14 +78,17 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		t_patota* patota = de_consola_a_patota(palabras_del_mensaje);
 		patota->id_patota = cantidad_patotas;
+		int socket_con_RAM = conectar_con_RAM();
 
 		// Enviar la creacion de la patota
-		enviar_iniciar_patota(patota,socket_Mi_RAM_HQ);
-		enviar_iniciar_patota(patota,socket_Mongo_Store);
+		enviar_iniciar_patota(patota,socket_con_RAM);
+		enviar_iniciar_patota(patota,socket_con_RAM);
 
 		// Empezar a planificar la patota
 		planificar_patota(patota);
 //		list_add(patotas, patota); VER SI ES NECESARIO
+
+		liberar_conexion(&socket_con_RAM);
 
 		return;
 	}
@@ -95,11 +98,7 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	if(son_iguales(palabras_del_mensaje[0] ,"LISTAR_TRIPULANTES")) {
 		// Envio mensaje a RAM y el se encarga de armar el listado de cada wachin
 		t_paquete* paquete_a_enviar = crear_paquete(LISTAR_TRIPULANTES);
-		int socket_con_RAM;
-	    if((socket_con_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ)) == -1)
-	    	log_error(logger, "DISCORDIADOR :: No me pude conectar a Mi-RAM-HQ");
-	    else
-			log_info(logger, "DISCORDIADOR :: Me pude conectar a Mi-RAM-HQ");
+		int socket_con_RAM = conectar_con_RAM();
 		enviar_paquete(paquete_a_enviar, socket_con_RAM);
 		t_list* lista_tripulantes = recibir_listado_tripulantes(socket_con_RAM);
 		char* string_listado = de_listado_a_string(lista_tripulantes);
@@ -132,10 +131,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"INICIAR_PLANIFICACION")) {
-		iniciar_planificacion();
-
 		log_info(logger, "DISCORDIADOR :: Se da inicio a la planificacion");
-
+		iniciar_planificacion();
+		log_info(logger, "Se inicia la planificacion");
 		return;
 	}
 
@@ -143,9 +141,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 	if(son_iguales(palabras_del_mensaje[0] ,"PAUSAR_PLANIFICACION")) {
 		log_info(logger, "DISCORDIADOR :: Se esta deteniendo la planificacion");
-
 		pausar_planificacion();
-
+		log_info(logger, "Se pausa la planificacion");
 		return;
 	}
 
@@ -156,13 +153,15 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "DISCORDIADOR :: Obtenemos la bitacora del tripulante %i", id_tripulante);
 
 		// Consulta a i-Mongo-Store para obtener la bitacora
-		enviar_Mongo_obtener_bitacora(id_tripulante, socket_Mongo_Store);
+		int socket_mongo = conectar_con_MONGO();
+		enviar_Mongo_obtener_bitacora(id_tripulante, socket_mongo);
 
-		char* bitacora = recibir_obtener_bitacora_respuesta(socket_Mongo_Store);
+		char* bitacora = recibir_obtener_bitacora_respuesta(socket_mongo);
 
 		log_info(logger, "\nBITACORA DEL TRIPULANTE %i:\n%s\n", id_tripulante, bitacora);
 
 		free(bitacora);
+		liberar_conexion(&socket_mongo);
 		return;
 	}
 }

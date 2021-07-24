@@ -158,3 +158,22 @@ char* obtener_estado_segun_caracter(char estado) {
 	}
 	return estado_string;
 }
+int conectar_con_RAM(){
+	int socket_con_RAM;
+	if((socket_con_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ)) == -1)
+		log_error(logger, "DISCORDIADOR :: No me pude conectar a Mi-RAM-HQ");
+	else
+		log_info(logger, "DISCORDIADOR :: Me pude conectar a Mi-RAM-HQ");
+
+	return socket_con_RAM;
+}
+
+int conectar_con_MONGO(){
+	int socket_con_MONGO;
+	if((socket_con_MONGO = crear_conexion(ip_Mongo_Store, puerto_Mongo_Store)) == -1)
+		log_error(logger, "DISCORDIADOR :: No me pude conectar a i-Mongo-Store");
+	else
+		log_info(logger, "DISCORDIADOR :: Me pude conectar a i-Mongo-Store");
+
+	return socket_con_MONGO;
+}

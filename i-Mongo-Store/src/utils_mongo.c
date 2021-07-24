@@ -100,7 +100,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			verificar_archivo_tarea(tarea);
 
-			free(tripulante);
+			free(tarea);
 		break;
 		case MOVER_HACIA:
 			posicion = deserializar_mover_hacia_posicion(cliente_fd);
@@ -159,13 +159,17 @@ void verificar_archivo_tarea(t_tarea_Mongo* tarea){
 	} else if(son_iguales(tarea->tarea,"GENERAR_COMIDA") || son_iguales(tarea->tarea,"CONSUMIR_COMIDA")){
 		if(archivo_recursos_existe("Comida.ims"))
 			procesar_tarea(tarea);
-		else
+		else{
 			procesar_falta_archivo(tarea,"Comida.ims");
+			procesar_tarea(tarea);
+		}
 	} else if(son_iguales(tarea->tarea,"GENERAR_BASURA") || son_iguales(tarea->tarea,"DESCARTAR_BASURA")){
 		if(archivo_recursos_existe("Basura.ims"))
 			procesar_tarea(tarea);
-		else
+		else{
 			procesar_falta_archivo(tarea,"Basura.ims");
+			procesar_tarea(tarea);
+		}
 	}
 
 }
