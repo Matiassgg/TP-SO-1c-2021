@@ -15,9 +15,6 @@ void iniciar_Mi_RAM_HQ() {
     log_info(logger, "Ya obtuvimos la config de Mi RAM HQ\n");
     log_info(logger, "El pid de Mi-RAM-HQ es %i\n",process_getpid());
 
-	tablaDeMarcos = list_create();
-	marcos_swap = list_create();
-
     iniciar_memoria();
 
 	signal(SIGINT, finalizar_mi_ram);
@@ -75,7 +72,7 @@ void finalizar_mi_ram(int signum){
 //		free(criterio_seleccion);
 		free(memoria_virtual);
 
-//		list_destroy(lista_tablas_paginas);
+		list_destroy(lista_tablas_paginas);
 		list_destroy(tablaDeMarcos);
 		list_destroy(marcos_swap);
 	}

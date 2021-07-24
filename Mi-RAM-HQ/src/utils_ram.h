@@ -159,5 +159,6 @@ t_tarea* obtener_tarea(t_tripulante* tripulante);
 char* obtener_tareas(t_patota* patota);
 t_tarea* obtener_tarea_archivo(char* tarea_string);
 t_list* obtener_listado_tripulantes(void);
+char estado_char(t_estado estado);
 
 #endif /* MI_RAM_HQ_SRC_UTILS_RAM_H_ */
