@@ -484,9 +484,12 @@ void agregar_a_dump(char* stream){
 	fclose(dump);
 }
 
-char* agregar_segmento_dump(uint32_t pid, t_segmento* segmento, uint32_t nro_segmento){
+char* agregar_segmento_dump(int pid, t_segmento* segmento, uint32_t nro_segmento){
 	char* stream_aux = string_duplicate("Proceso:");
-	string_append_with_format(&stream_aux, " %-3i Segmento: %-3i Inicio: 0x%04X	Tam: %ib\n", pid, nro_segmento, segmento->inicio, segmento->tamanio);
+	if(pid == -1)
+		string_append_with_format(&stream_aux, " %-3c Segmento: %-3i Inicio: 0x%04X	Tam: %ib\n", '-', nro_segmento, segmento->inicio, segmento->tamanio);
+	else
+		string_append_with_format(&stream_aux, " %-3i Segmento: %-3i Inicio: 0x%04X	Tam: %ib\n", pid, nro_segmento, segmento->inicio, segmento->tamanio);
 
 	return stream_aux;
 }
@@ -536,6 +539,10 @@ void dump_memoria_principal(){
 				t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
 				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
 				k++;
+			}
+			for(int j=0; j<list_size(lista_segmentos_libres); j++){
+				t_segmento* segmento_libre= list_get(lista_segmentos_libres, j);
+				string_append(&stream_dump,agregar_segmento_dump(-1, segmento_libre,i));
 			}
 		}
 	}

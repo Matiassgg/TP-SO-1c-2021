@@ -1,5 +1,25 @@
 -------------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------Estabilidad General
+
+Iniciar los módulos en el orden definido por el grupo en la primer vuelta con el algoritmo de planificación FIFO y en la segunda con RR
+Ejecutar los siguientes comandos en la consola del Discordiador.
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota1.txt 9|9 0|0 5|5
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota2.txt 4|0 2|6 8|2
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota3.txt 2|3 5|8 5|3
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota4.txt 0|9 4|4 9|0
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota5.txt 0|2 9|6 3|5
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+Esperar el final de la planificación listando los tripulantes cada cierto tiempo.
+Resultados Esperados
+Deberán terminar todos los tripulantes.
+No deben encontrarse ni esperas activas ni memory leaks.
+Las patotas 3 y 4 deberán ejecutar sin verse afectadas por los encolamientos en E/S.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------DISCORDIADOR
 
 -------------------------------------------------------CPU
