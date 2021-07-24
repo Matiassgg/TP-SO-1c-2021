@@ -1346,7 +1346,7 @@ uint32_t crear_archivo_swap(){
 		return -1;
 	llenar_archivo(fd, tamanio_swap);
 	memoria_virtual = mmap(NULL,tamanio_swap,PROT_READ | PROT_WRITE,MAP_SHARED,fd,0);
-	close(fd);
+//	close(fd);
 	return 0;
 }
 

@@ -385,12 +385,9 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 	int offset_bloque = 0;
 
 	uint32_t cant_caracteres = string_length(stream)+1;
-	log_info(logger, "ultimo_bloque %i - tamanio_restante %i",ultimo_bloque,tamanio_restante);
 	while(offset < cant_caracteres){
-		log_info(logger, "Se entra al while");
 		uint32_t tamanio_subida;
 		if(ultimo_bloque != -1){
-			log_info(logger, "Se entra al ultimo_bloque != -1");
 			bloque_libre = ultimo_bloque;
 			ultimo_bloque = -1;
 			if(tamanio_restante > 0){
@@ -398,24 +395,19 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 				tamanio_subida = minimo((cant_caracteres - offset),tamanio_restante);
 			}
 			else{
-				log_info(logger, "No se entra al tamanio_restante > 0");
 				bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
 				list_add(bloques, bloque_libre);
 				offset_bloque = 0;
 				tamanio_subida = minimo((cant_caracteres - offset),block_size);
-				log_info(logger, "tamanio_subida = min(%i,%i)",(cant_caracteres - offset),block_size);
 			}
 		}
 		else{
-			log_info(logger, "No se entra al ultimo_bloque != -1");
 			bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
 			list_add(bloques, bloque_libre);
 			offset_bloque = 0;
 			tamanio_subida = minimo((cant_caracteres - offset),block_size);
-			log_info(logger, "tamanio_subida = min(%i,%i)",(cant_caracteres - offset),block_size);
 		}
 
-		log_info(logger, "bloque_libre %i - stream %s - tamanio_subida %i\ncontenido_blocks_aux + (bloque_libre*block_size) %s", bloque_libre, stream + offset, tamanio_subida, (char*)contenido_blocks_aux);
 		offset_bloque += (bloque_libre*block_size);
 		memcpy(contenido_blocks_aux + offset_bloque, stream + offset, tamanio_subida);
 
@@ -560,12 +552,12 @@ int ultimo_bloque_config(t_config* config){
 		else
 			cant_bloques = aux.quot + 1;
 
-		log_info(logger, "Hay %i bloques por %i/%i es %i y el resto es %i",cant_bloques, size, block_size, aux.quot, aux.rem);
+//		log_info(logger, "Hay %i bloques por %i/%i es %i y el resto es %i",cant_bloques, size, block_size, aux.quot, aux.rem);
 
 		if(cant_bloques != 0){
 			char** bloques_config = config_get_array_value(config, "BLOCKS");
-			for(int i=0;i<cant_bloques;i++)
-				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[cant_bloques-1]));
+//			for(int i=0;i<cant_bloques;i++)
+//				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[cant_bloques-1]));
 
 			return atoi(bloques_config[cant_bloques-1]);
 		}

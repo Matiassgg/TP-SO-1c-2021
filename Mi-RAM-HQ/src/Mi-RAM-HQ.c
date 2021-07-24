@@ -13,7 +13,7 @@ void iniciar_Mi_RAM_HQ() {
 	leer_config();
 	logger = iniciar_logger_RAM(archivo_log, "Mi-RAM-HQ.c");
     log_info(logger, "Ya obtuvimos la config de Mi RAM HQ\n");
-    log_info(logger, "El pid de Mi-RAM-HQ es %i\n",process_getpid());
+//    log_info(logger, "El pid de Mi-RAM-HQ es %i\n",process_getpid());
 
     iniciar_memoria();
 
@@ -67,10 +67,10 @@ void finalizar_mi_ram(int signum){
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")) {
 		free(path_swap);
-		free(seleccionar_victima);
-		free(algoritmo_reemplazo);
+//		free(seleccionar_victima);
+//		free(algoritmo_reemplazo);
 //		free(criterio_seleccion);
-		free(memoria_virtual);
+//		free(memoria_virtual);
 
 		list_destroy(lista_tablas_paginas);
 		list_destroy(tablaDeMarcos);
@@ -78,13 +78,13 @@ void finalizar_mi_ram(int signum){
 	}
 
 	free(memoria);
-	free(esquema_memoria);
-	free(ip_discordiador);
-	free(puerto_discordiador);
-	free(ip_Mi_RAM_HQ);
-	free(puerto_escucha);
+//	free(esquema_memoria);
+//	free(ip_discordiador);
+//	free(puerto_discordiador);
+//	free(ip_Mi_RAM_HQ);
+//	free(puerto_escucha);
 	log_destroy(logger);
-	config_destroy(config);
+//	config_destroy(config);
 
 	exit(0);
 }
