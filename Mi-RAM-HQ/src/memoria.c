@@ -32,6 +32,7 @@ void preparar_memoria() {
 	pthread_mutex_init(&mutexBuscarInfoTripulante, NULL);
 	pthread_mutex_init(&mutex_tocar_memoria, NULL);
 	pthread_mutex_init(&mutexVerificarPaginas, NULL);
+	pthread_mutex_init(&mutex_tocar_memoria_tareas,NULL);
 
 	if(esquema_memoria == NULL)
 		log_error(logger, "Error al leer el esquema de memoria");
@@ -143,30 +144,22 @@ void cargar_memoria_patota(t_patota* patota){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 
-		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
-		pthread_mutex_unlock(&mutex_tocar_memoria);
 		log_info(logger, "Se subio a memoria la tarea");
 
 		t_segmento* segmento_tareas = buscar_segmento_id(pcb_nuevo->pid, pcb_nuevo->pid, TAREAS);
 		pcb_nuevo->tareas = dar_direccion_logica(segmento_tareas->nro_segmento, 0);
 
-		pthread_mutex_lock(&mutex_tocar_memoria);
 		escribir_en_memoria(pcb_nuevo, pcb_nuevo->pid, PCB);
-		pthread_mutex_unlock(&mutex_tocar_memoria);
 		log_info(logger, "Se subio a memoria la patota");
 
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
 
-			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(tareas, pcb_nuevo->pid, TAREAS);
-			pthread_mutex_unlock(&mutex_tocar_memoria);
 			log_info(logger, "Se subio a memoria la tarea");
 
-			pthread_mutex_lock(&mutex_tocar_memoria);
 			escribir_en_memoria(pcb_nuevo, pcb_nuevo->pid, PCB);
-			pthread_mutex_unlock(&mutex_tocar_memoria);
 			log_info(logger, "Se subio a memoria la patota");
 
 	}
@@ -183,9 +176,7 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 	t_tcb* tcb = crear_tcb(tripulante);
 
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	escribir_en_memoria(tcb, tripulante->id_patota_asociado, TCB);
-	pthread_mutex_unlock(&mutex_tocar_memoria);
 	log_info(logger, "Se subio a memoria el tripulante");
 
 
@@ -196,6 +187,7 @@ void cargar_memoria_tripulante(t_tripulante* tripulante){
 
 void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 	t_buffer* buffer;
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	switch(tipo_dato){
 		case TAREAS:
 			buffer = serializar_memoria_tareas((char*) informacion);
@@ -215,10 +207,12 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 		escribir_en_memoria_paginacion(buffer,patota_asociada,tipo_dato);
 	}
 
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_dato){
 	t_buffer* buffer;
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	switch(tipo_dato){
 		case TAREAS:
 			buffer = serializar_memoria_tareas((char*) informacion);
@@ -237,6 +231,7 @@ void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_d
 	else{
 		modificar_memoria_paginacion(buffer, id_patota, tipo_dato);
 	}
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
@@ -394,7 +389,7 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 }
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
-	pthread_mutex_lock(&mutex_tocar_memoria);
+	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
 	t_tarea* tarea;
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION"))
@@ -403,7 +398,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	else if(son_iguales(esquema_memoria, "PAGINACION"))
 		tarea = obtener_tarea_paginacion(tripulante);
 
-	pthread_mutex_unlock(&mutex_tocar_memoria);
+	pthread_mutex_unlock(&mutex_tocar_memoria_tareas);
 	return tarea;
 }
 
@@ -590,9 +585,8 @@ void modificar_memoria_estado_tripulante(t_tripulante* tripulante,char nuevo_est
     if(nuevo_estado!='X'){
         tcb->estado = nuevo_estado;
     }
-    pthread_mutex_lock(&mutex_tocar_memoria);
+
     modificar_memoria(tcb,tripulante->id_patota_asociado,TCB);
-    pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////SEGMENTACIÓN/////////////////////////////////////////////////////////////////
@@ -1029,7 +1023,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 		t_marco* marco = NULL;
 
 		if (pagina_libre->bit_presencia == 0) {
-			t_marco* marco = buscar_marco_libre();
+			marco = buscar_marco_libre();
 			marco->bitUso = true;
 			pagina_libre->marco = marco;
 			pagina_libre->bit_presencia = 1;

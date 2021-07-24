@@ -24,6 +24,7 @@ void iniciar_discordiador() {
     arrancar_planificacion();
 }
 void iniciar_patotas(){
+	cantidad_patotas = 0;
 	cantidad_tripulantes = 0;
 //	patotas = list_create(); VER SI ES NECESARIO
 }

@@ -61,6 +61,7 @@ sem_t semaforo_cola_bloqueados_io;
 sem_t semaforo_cola_bloqueados_sabotaje;
 sem_t semaforo_cola_bloqueados_sabotaje_tripulantes;
 
+uint32_t cantidad_patotas;
 uint32_t cantidad_tripulantes;
 
 void arrancar_servidor(void);
