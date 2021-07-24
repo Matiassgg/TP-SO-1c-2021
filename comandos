@@ -12,16 +12,18 @@ INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota5.txt 0|2 9|6 3|
 INICIAR_PLANIFICACION
 LISTAR_TRIPULANTES
 
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota1.txt 9|9 0|0 5|5
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
 Esperar el final de la planificación listando los tripulantes cada cierto tiempo.
 Resultados Esperados
 Deberán terminar todos los tripulantes.
 No deben encontrarse ni esperas activas ni memory leaks.
 Las patotas 3 y 4 deberán ejecutar sin verse afectadas por los encolamientos en E/S.
 
-
 -------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------DISCORDIADOR
-
 -------------------------------------------------------CPU
 Iniciar los módulos en el orden definido por el grupo en la primer vuelta con el algoritmo
 de planificación FIFO y en la segunda con RR en Discordiador
@@ -65,8 +67,6 @@ van a generar que los tripulantes de las otras 2 patotas tengan que esperar.
 En RR debe llegar primero el tripulante de la patota 2 a realizar su tarea de E/S
 antes que los tripulantes de la patota 1.
 Se liberan los bloques del archivo Basura.ims generado por el tripulante de la patota 2.
-
-
 
 
 -------------------------------------------------------------------------------------------------------------------------------------
