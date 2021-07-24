@@ -75,19 +75,8 @@ INICIAR_PLANIFICACION
 LISTAR_TRIPULANTES
 
 
-
-INICIAR_PATOTA 10 /home/utnso/a-mongos-pruebas/Generales/espartana.txt
-INICIAR_PLANIFICACION
-
-Una vez iniciada la planificación eliminar los tripulantes 4, 5 y 6 de la patota espartana
-
-INICIAR_PATOTA 6 /home/utnso/a-mongos-pruebas/Generales/persa.txt
-
-Una vez verificada la asignación de la memoria finalizar todos los tripulantes de la patota espartana y verificar el estado de la memoria.
-Enviar la señal para compactar y verificar el estado de la memoria..
-Finalizar todos los tripulantes de la patota persa y verificar el estado de la memoria.
-
-
+-------------------------------------------------------RAM
+---------------------------------------------------PAGINACION
 
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaA.txt 1|1
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaB.txt 3|3
@@ -95,7 +84,12 @@ INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaC.txt 5|5
 INICIAR_PLANIFICACION
 
 
+-------------------------------------------------------FS
+---------------------------------------------------File System
 
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaA.txt
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaB.txt
+INICIAR_PLANIFICACION
 
 
 
