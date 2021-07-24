@@ -15,6 +15,7 @@ void preparar_planificacion(){
 	pthread_mutex_init(&mutex_cola_bloqueados_io, NULL);
 	sem_init(&semaforo_planificacion, 0, 0);
 	sem_init(&semaforo_cola_ready, 0, 0);
+	sem_init(&semaforo_cola_bloqueados_io, 0, 0);
 	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
@@ -41,6 +42,22 @@ void planificar_patota(t_patota* patota){
 
 
 }
+
+void planificar_tripulantes_bloqueados(){
+	while(1){
+		verificar_planificacion_activa();
+
+		while (!cola_bloqueados_vacia()) {
+			pthread_mutex_lock(&mutex_cola_bloqueados_io);
+			t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_bloq_E_S);
+			pthread_mutex_unlock(&mutex_cola_bloqueados_io);
+			log_info(logger, "El tripulante %i iniciara la tarea en E/S %s por %i ciclos", tripulante->id, tripulante->tarea_act->tarea, tripulante->tarea_act->tiempo);
+			rafaga_cpu(tripulante->tarea_act->tiempo);
+			tripulante->tarea_act->tiempo = 0;
+		}
+	}
+}
+
 void arrancar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
 		log_info(logger, "Se entro al for de iniciar plani");
@@ -48,6 +65,9 @@ void arrancar_planificacion(){
 		pthread_create(&planificar_corto, NULL, (void*) planificacion_corto_plazo, NULL);
 		pthread_detach(planificar_corto);
 	}
+	pthread_t planificador_bloqueados;
+	pthread_create(&planificador_bloqueados, NULL, (void*) planificar_tripulantes_bloqueados, NULL);
+	pthread_detach(planificador_bloqueados);
 }
 
 void iniciar_planificacion(){
@@ -74,8 +94,7 @@ void planificacion_segun_FIFO() {
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
 			tripulante_plani->tripulante->estado = EXEC;
-
-			// TODO :: AVISAR A RAM QUE AHORA ESTA EN EXEC
+			enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
 
 
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
@@ -85,6 +104,15 @@ void planificacion_segun_FIFO() {
 			}
 		}
 	}
+}
+
+bool cola_bloqueados_vacia(){
+	sem_wait(&semaforo_cola_bloqueados_io);
+	pthread_mutex_lock(&mutex_cola_bloqueados_io);
+	bool esta_vacia = queue_is_empty(cola_bloq_E_S);
+	pthread_mutex_unlock(&mutex_cola_bloqueados_io);
+
+	return esta_vacia;
 }
 
 bool cola_ready_vacia(){
@@ -113,8 +141,9 @@ void planificacion_segun_RR() {
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
-//			t_tripulante* tripulante = tripulante_plani->tripulante;
-			// tripulante->estado = EXEC;
+			t_tripulante* tripulante = tripulante_plani->tripulante;
+			tripulante->estado = EXEC;
+			enviar_RAM_actualizar_estado(tripulante,tripulante->socket_conexion_RAM);
 
 			for(int i=0; i<quantum && verificar_planificacion_activa() && tripulante_plani->esta_activo; i++) {
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
