@@ -89,7 +89,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			break;
 		while(tripulante->tarea_act->tiempo > 0 && puedo_seguir(tripulante_plani))
 			hacer_tarea(tripulante_plani);
-		if(tripulante->tarea_act->tiempo <= 0){
+		if(puedo_seguir(tripulante_plani) && tripulante->tarea_act->tiempo <= 0){
 			log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 			enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
 		}
