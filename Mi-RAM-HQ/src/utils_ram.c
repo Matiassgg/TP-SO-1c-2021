@@ -142,11 +142,10 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		break;
 		case ACTUALIZAR_ESTADO_TRIPULANTE:
 			tripulante = deserializar_iniciar_tripulante(cliente_fd);
-			t_estado estado_nuevo = tripulante->estado;
 
 			log_info(logger, "RAM :: Nos llego ACTUALIZAR_ESTADO_TRIPULANTE del tripulante %i",tripulante->id);
 
-			modificar_memoria_estado_tripulante(tripulante,estado_nuevo);
+			modificar_memoria_estado_tripulante(tripulante,estado_char(tripulante->estado));
 
 			log_info(logger, "RAM :: Se actualizo el estado del tripulante.");
 
@@ -155,6 +154,19 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 	}
 }
 
+char estado_char(t_estado estado){
+    switch(estado){
+        case NEW:
+            return 'N';
+        case READY:
+            return 'R';
+        case EXEC:
+            return 'E';
+        case BLOCKED_I_O: case BLOCKED_EMERG:
+            return 'B';
+    }
+    return 'X';
+}
 
 /*
 void eliminar_patota_de_swap(uint32_t idPatota){
