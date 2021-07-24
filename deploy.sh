@@ -20,8 +20,9 @@ cd so-nivel-gui-library
 sudo make install
 cd ..
 
+cd
 echo "\n\nDescargando pruebas a-mongo...\n\n"
-https://github.com/sisoputnfrba/a-mongos-pruebas.git
+git clone https://github.com/sisoputnfrba/a-mongos-pruebas.git
 
 cd $PROJECT
 make 
