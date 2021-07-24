@@ -9,13 +9,16 @@ void preparar_planificacion(){
 
 	log_info(logger, "DISCORDIADOR :: Se crearan las colas de planificacion");
 	crear_colas_planificacion();
-	id_tcb = 1;
 
 	pthread_mutex_init(&mutex_cola_ready, NULL);
+	pthread_mutex_init(&mutex_cola_exec, NULL);
 	pthread_mutex_init(&mutex_cola_bloqueados_io, NULL);
+	pthread_mutex_init(&mutex_planificacion_bloqueados_sabotajes, NULL);
 	sem_init(&semaforo_planificacion, 0, 0);
 	sem_init(&semaforo_cola_ready, 0, 0);
+	sem_init(&semaforo_cola_exec, 0, 0);
 	sem_init(&semaforo_cola_bloqueados_io, 0, 0);
+	sem_init(&semaforo_cola_bloqueados_sabotaje, 0, 0);
 	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
@@ -45,15 +48,15 @@ void planificar_patota(t_patota* patota){
 
 void planificar_tripulantes_bloqueados(){
 	while(1){
-		verificar_planificacion_activa();
-
-		while (!cola_bloqueados_vacia()) {
+		while (!cola_bloqueados_vacia() && verificar_planificacion_activa()) {
 			pthread_mutex_lock(&mutex_cola_bloqueados_io);
-			t_tripulante* tripulante = (t_tripulante*) queue_pop(cola_bloq_E_S);
+			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_bloq_E_S);
 			pthread_mutex_unlock(&mutex_cola_bloqueados_io);
-			log_info(logger, "El tripulante %i iniciara la tarea en E/S %s por %i ciclos", tripulante->id, tripulante->tarea_act->tarea, tripulante->tarea_act->tiempo);
-			rafaga_cpu(tripulante->tarea_act->tiempo);
-			tripulante->tarea_act->tiempo = 0;
+			log_info(logger, "El tripulante %i iniciara la tarea en E/S %s por %i ciclos", tripulante_plani->tripulante->id, tripulante_plani->tripulante->tarea_act->tarea, tripulante_plani->tripulante->tarea_act->tiempo);
+
+			rafaga_cpu(tripulante_plani->tripulante->tarea_act->tiempo);
+			tripulante_plani->tripulante->tarea_act->tiempo = 0;
+
 		}
 	}
 }
@@ -84,6 +87,16 @@ void pausar_planificacion(){
 	}
 }
 
+void subir_tripulante_exec(p_tripulante* tripulante_plani){
+	log_info(logger, "Se agrega al tripulante %i a EXEC", tripulante_plani->tripulante->id);
+	tripulante_plani->tripulante->estado = EXEC;
+	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
+	pthread_mutex_lock(&mutex_cola_exec);
+	list_add(lista_exec, tripulante_plani);
+	pthread_mutex_unlock(&mutex_cola_exec);
+	sem_post(&semaforo_cola_exec);
+}
+
 void planificacion_segun_FIFO() {
 	log_info(logger, "Entramos a la planificacion POR FIFO");
 	while(1){
@@ -93,9 +106,8 @@ void planificacion_segun_FIFO() {
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
-			tripulante_plani->tripulante->estado = EXEC;
-			enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
 
+			subir_tripulante_exec(tripulante_plani);
 
 			while(verificar_planificacion_activa() && tripulante_plani->esta_activo){
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
@@ -127,6 +139,8 @@ bool cola_ready_vacia(){
 bool verificar_planificacion_activa(){
 	sem_wait(&semaforo_planificacion);
 	sem_post(&semaforo_planificacion);
+	pthread_mutex_lock(&mutex_planificacion_bloqueados_sabotajes);
+	pthread_mutex_unlock(&mutex_planificacion_bloqueados_sabotajes);
 
 	return true;
 }
@@ -142,8 +156,8 @@ void planificacion_segun_RR() {
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
 			t_tripulante* tripulante = tripulante_plani->tripulante;
-			tripulante->estado = EXEC;
-			enviar_RAM_actualizar_estado(tripulante,tripulante->socket_conexion_RAM);
+
+			subir_tripulante_exec(tripulante_plani);
 
 			for(int i=0; i<quantum && verificar_planificacion_activa() && tripulante_plani->esta_activo; i++) {
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
@@ -171,9 +185,10 @@ void crear_colas_planificacion() {
 	cola_bloq_E_S = queue_create();
 	cola_bloq_Emergencia = queue_create();
 	lista_expulsados = list_create();
+	lista_bloq_Emergencia = list_create();
+	lista_exec = list_create();
 }
 
-void liberar_pcb_patota(t_patota* patota){
-	list_destroy_and_destroy_elements(patota->posiciones, free);
-	free(patota);
+void planificar_tripulante_para_sabotaje(){
+
 }

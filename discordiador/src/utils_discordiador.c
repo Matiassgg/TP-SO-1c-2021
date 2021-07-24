@@ -93,14 +93,45 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 
 			// REVISAR
-//			detener_tripulantes_con_tareas();
-//			planificar_tripulante_para_sabotaje();
+			detener_tripulantes();
+			planificar_tripulante_para_sabotaje();
 
 			free(posicion_sabotaje);
 			break;
 	}
 
 }
+
+void detener_tripulantes(){
+
+	for(int i=0; i<list_size(lista_exec); i++){
+		pthread_mutex_lock(&mutex_cola_exec);
+		p_tripulante* tripulante_plani = (p_tripulante*) list_get(lista_exec,i);
+		pthread_mutex_unlock(&mutex_cola_exec);
+
+		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+
+		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
+	}
+	for(int i=0; i<queue_size(cola_ready); i++){
+		pthread_mutex_lock(&mutex_cola_ready);
+		p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
+		pthread_mutex_unlock(&mutex_cola_ready);
+
+		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
+	}
+	for(int i=0; i<queue_size(cola_ready); i++){
+		pthread_mutex_lock(&mutex_cola_bloqueados_io);
+		p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_bloq_E_S);
+		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
+
+		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
+	}
+
+
+
+}
+
 
 void rafaga_cpu(uint32_t tiempo){
 	sleep(retardo_ciclo_cpu * tiempo);

@@ -36,6 +36,8 @@ t_queue* cola_exec;
 t_queue* cola_exit;
 t_queue* cola_bloq_E_S;
 t_queue* cola_bloq_Emergencia;
+t_list* lista_bloq_Emergencia;
+t_list* lista_exec;
 t_list* lista_expulsados;
 
 typedef struct {
@@ -47,18 +49,20 @@ typedef struct {
 } p_tripulante;
 
 pthread_mutex_t mutex_cola_ready;
+pthread_mutex_t mutex_cola_exec;
 pthread_mutex_t mutex_cola_bloqueados_io;
 pthread_mutex_t mutex_cola_bloqueados_sabotajes;
 pthread_mutex_t mutex_planificacion_bloqueados_io;
 pthread_mutex_t mutex_planificacion_bloqueados_sabotajes;
 sem_t semaforo_planificacion;
 sem_t semaforo_cola_ready;
+sem_t semaforo_cola_exec;
 sem_t semaforo_cola_bloqueados_io;
+sem_t semaforo_cola_bloqueados_sabotaje;
+sem_t semaforo_cola_bloqueados_sabotaje_tripulantes;
 
-uint32_t cantidad_patotas;
-//t_list* patotas;
-uint32_t id_tcb;
 uint32_t cantidad_tripulantes;
+
 void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
