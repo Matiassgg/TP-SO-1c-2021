@@ -18,7 +18,7 @@ void resolver_sabotaje_superbloque_bitmap(){
 	//Constatar contra el bitmap que esten todos los valores correctos.
 //	Si el bloque está cruzado en un archivo, tiene que estar marcado como usado, y si no , tiene que estar marcado como libre
 	t_list* bloquesUsadosPorFiles = obtener_bloques_usados();
-	list_any_satisfy(bloquesUsadosPorFiles,comparar_bitmap())
+//TODO	list_any_satisfy(bloquesUsadosPorFiles,comparar_bitmap());
 
 //	t_bitarray* bitarray = leer_bitmap();
 //
@@ -120,7 +120,7 @@ t_list* listaArchivosDeBitacora() {
 t_list* obtener_bloques_usados(){
 	t_list* lista_bloques = list_create();
 
-	list_add_all(lista_bloques,obtener_bloques_recusos());
+	list_add_all(lista_bloques,obtener_bloques_recursos());
 	list_add_all(lista_bloques,obtener_bloques_bitacora());
 
 	return lista_bloques;
@@ -132,7 +132,7 @@ t_list* obtener_bloques_recursos(){
 	void traer_bloques_recursos(char* archivo){
 		char* path_recurso = obtener_path_files(archivo);
 		log_info("ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_recurso);
-		t_config recurso = config_create(path_recurso);
+		t_config* recurso = config_create(path_recurso);
 		sumar_bloques_config(lista_bloques,recurso);
 		config_destroy(recurso);
 	}
@@ -157,7 +157,7 @@ t_list* obtener_bloques_bitacora(){
 	void traer_bloques_bitacoras(char* archivo){
 		char* path_bitacora = obtener_path_bitacora(archivo);
 		log_info("ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_bitacora);
-		t_config bitacora = config_create(path_bitacora);
+		t_config* bitacora = config_create(path_bitacora);
 		sumar_bloques_config(lista_bloques,bitacora);
 		config_destroy(bitacora);
 	}
