@@ -2,6 +2,7 @@
 
 void procesar_nuevo_sabotaje(int signal) {
 	if(hay_sabotajes()) {
+		resolver_sabotaje();
 		posicion_sabotaje = list_remove(posiciones_sabotaje, proxima_posicion_sabotaje);
 		log_info(logger, "MANDAMOS LA POSICION DE SABOTAJE %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
 	}
@@ -27,9 +28,6 @@ bool hay_sabotajes() {
 // TODO HAY UNA CONSOLA EN MONGO? -> No es necesaria para mandar el signal o ke ?
 void verificar_sabotaje() {
 	signal(SIGUSR1, &procesar_nuevo_sabotaje);
-	while (1) {
-		// Tiene que seguir porque puede recibir mas señales de sabotaje supongo nose
-	}
 }
 
 // CREO QUE ESTO NO SE USA
