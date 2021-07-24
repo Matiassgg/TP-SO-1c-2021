@@ -432,11 +432,16 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 			t_pagina* pagina = list_get(tabla->paginas,i);
 
 			if(pagina->bit_presencia==1){
-				log_info(logger,"Se libera el marco nro #%d",pagina->marco->numeroMarco);
+				log_info(logger,"Se libera el marco de memoria nro #%d",pagina->marco->numeroMarco);
 				pagina->marco->bitUso = 0;
-				//pagina->marco->timeStamp = NULL;
 				pagina->bit_presencia = 0;
-		}
+			}else if(pagina->bit_presencia == 0 && pagina->marco!=NULL){
+				t_marco_en_swap* marcoSwap = buscar_marco_en_swap(pagina,tabla->id_patota_asociada);
+				marcoSwap->bitUso = 0;
+				marcoSwap->idPatota = -1;
+				marcoSwap->nroPagina = -1;
+				log_info(logger,"Se libera el marco de swap nro #%d",marcoSwap->numeroMarcoSwap);
+			}
 
 		}
 			//list_remove(lista_tablas_paginas,tabla);
@@ -881,7 +886,7 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	}
 
 	// Aca viene la parte de swap
-	for(int offset = 0; offset < tamanio_swap; offset += tamanio_pagina){
+	for(int offset = 0; offset < tamanio_swap -1; offset += tamanio_pagina){
 
 		t_marco_en_swap* nuevoMarco = malloc(sizeof(t_marco_en_swap));
 		nuevoMarco->inicioSwap = offset;
