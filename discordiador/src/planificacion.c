@@ -48,12 +48,12 @@ void planificar_patota(t_patota* patota){
 
 void planificar_tripulantes_bloqueados(){
 	while(1){
-		while (!cola_bloqueados_vacia() && verificar_planificacion_activa()) {
+		while (!cola_bloqueados_vacia()) {
 			pthread_mutex_lock(&mutex_cola_bloqueados_io);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_bloq_E_S);
 			pthread_mutex_unlock(&mutex_cola_bloqueados_io);
 
-			pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
+//			pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
 			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 
 			log_info(logger, "El tripulante %i iniciara la tarea en E/S %s por %i ciclos", tripulante_plani->tripulante->id, tripulante_plani->tripulante->tarea_act->tarea, tripulante_plani->tripulante->tarea_act->tiempo);
@@ -143,8 +143,8 @@ bool cola_ready_vacia(){
 bool verificar_planificacion_activa(){
 	sem_wait(&semaforo_planificacion);
 	sem_post(&semaforo_planificacion);
-	pthread_mutex_lock(&mutex_planificacion_bloqueados_sabotajes);
-	pthread_mutex_unlock(&mutex_planificacion_bloqueados_sabotajes);
+//	pthread_mutex_lock(&mutex_planificacion_bloqueados_sabotajes);
+//	pthread_mutex_unlock(&mutex_planificacion_bloqueados_sabotajes);
 
 	return true;
 }
