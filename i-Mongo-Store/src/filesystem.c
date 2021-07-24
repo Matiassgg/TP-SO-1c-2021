@@ -521,7 +521,7 @@ void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, u
 	free(stream_aux);
 	config_set_value(config,"CARACTER_LLENADO",&caracter);
 	stream_aux = dar_hash_md5(config->path);
-	config_set_value(config,"BLOCKS",stream_aux);
+	config_set_value(config,"MD5_ARCHIVO",stream_aux);
 
 	free(stream_aux);
 
