@@ -53,6 +53,7 @@ pthread_mutex_t mutex_planificacion_bloqueados_io;
 pthread_mutex_t mutex_planificacion_bloqueados_sabotajes;
 sem_t semaforo_planificacion;
 sem_t semaforo_cola_ready;
+sem_t semaforo_cola_bloqueados_io;
 
 uint32_t cantidad_patotas;
 //t_list* patotas;

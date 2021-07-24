@@ -9,6 +9,16 @@ void subir_tripulante_ready(p_tripulante* tripulante_plani){
 	sem_post(&semaforo_cola_ready);
 }
 
+void subir_tripulante_bloqueado(t_tripulante* tripulante){
+	log_info(logger, "Se agrega al tripulante %i a BLOCKED_I_O", tripulante->id);
+	tripulante->estado = BLOCKED_I_O;
+	enviar_RAM_actualizar_estado(tripulante,tripulante->socket_conexion_RAM);
+	pthread_mutex_lock(&mutex_cola_bloqueados_io);
+	queue_push(cola_bloq_E_S, tripulante);
+	pthread_mutex_unlock(&mutex_cola_bloqueados_io);
+	sem_post(&semaforo_cola_bloqueados_io);
+}
+
 t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
 	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
 	tripulante->posicion = malloc(sizeof(t_posicion));
@@ -78,8 +88,10 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			break;
 		while(tripulante->tarea_act->tiempo > 0 && puedo_seguir(tripulante_plani))
 			hacer_tarea(tripulante_plani);
-		if(tripulante->tarea_act->tiempo > 0)
+		if(tripulante->tarea_act->tiempo <= 0){
+			log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 			enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
+		}
 		tripulante_plani->esta_activo = false;
 		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		if(!verificar_estado(tripulante))
@@ -126,22 +138,12 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		// TODO FS DEBE ENTERARSE QUE SE VA A TRATAR DE ACCEDER A ALGUN ARCHIVO O KE ??
 		enviar_Mongo_tarea_e_s(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_Mongo);
 		// Se debe acceder al FS -> BLoquear al wachin hasta que termine de hacer la tarea
-		pthread_mutex_lock(&mutex_cola_bloqueados_io);
-		queue_push(cola_bloq_E_S,tripulante_plani);
-		tripulante_plani->esta_activo = false;
-		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
 
-		pthread_mutex_lock(&mutex_cola_bloqueados_io);
-		queue_pop(cola_bloq_E_S);
 		tripulante_plani->esta_activo = false;
-		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
-
-		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
+		subir_tripulante_bloqueado(tripulante_plani->tripulante);
 	}
 	else{
 		hacer_ciclos_tarea(tripulante_plani->tripulante);
-
-		log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante_plani->tripulante->id, tarea_por_hacer);
 	}
 
 }

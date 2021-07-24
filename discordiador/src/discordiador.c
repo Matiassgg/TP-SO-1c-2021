@@ -64,7 +64,7 @@ void conectar_modulos(){
 }
 
 void finalizar_discordiador(){
-	log_info(logger,"\t\t\t~. Mi-RAM-HQ FINALIZADO .~\n");
+	log_info(logger,"\t\t\t~. Discordiador FINALIZADO .~\n");
 	liberar_conexion(&socket_Mi_RAM_HQ);
 	liberar_conexion(&socket_Mongo_Store);
 

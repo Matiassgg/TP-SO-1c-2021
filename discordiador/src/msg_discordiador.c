@@ -23,6 +23,12 @@ void enviar_RAM_listar_tripulantes(t_tripulante* tripulante, uint32_t socket_con
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
+void enviar_RAM_actualizar_estado(t_tripulante* tripulante, uint32_t socket_conexion){
+	t_paquete* paquete_a_enviar = crear_paquete(ACTUALIZAR_ESTADO_TRIPULANTE);
+	serializar_iniciar_tripulante(tripulante, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, socket_conexion);
+}
+
 void enviar_RAM_expulsar_tripulante(t_tripulante* tripulante, uint32_t socket_conexion) {
 	t_paquete* paquete_a_enviar = crear_paquete(EXPULSAR_TRIPULANTE);
 	serializar_ids_tripulante(tripulante, paquete_a_enviar->buffer);
