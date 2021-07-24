@@ -556,8 +556,8 @@ int ultimo_bloque_config(t_config* config){
 
 		if(cant_bloques != 0){
 			char** bloques_config = config_get_array_value(config, "BLOCKS");
-//			for(int i=0;i<cant_bloques;i++)
-//				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[cant_bloques-1]));
+			for(int i=0;i<cant_bloques;i++)
+				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[i]));
 
 			return atoi(bloques_config[cant_bloques-1]);
 		}
@@ -580,9 +580,13 @@ int tamanio_restante_config(t_config* config){
 void subir_FS(char* a_subir, char* archivo, bool es_files){
 	pthread_mutex_lock(&mutex_FS);
 	t_config* config = config_create(archivo);
+	log_info(logger, "Se obtuvo el config");
 	int ultimo_bloque = ultimo_bloque_config(config);
+	log_info(logger, "Se obtuvo el ultimo_bloque %i", ultimo_bloque);
 	int tamanio_restante = tamanio_restante_config(config);
+	log_info(logger, "Se obtuvo el tamanio_restante %i", tamanio_restante);
 	t_list* bloques = agregar_stream_blocks(a_subir, ultimo_bloque, tamanio_restante);
+	log_info(logger, "Se subio a blocks");
 
 	if(es_files)
 		actualizar_archivo_file(a_subir[0], bloques, config, string_length(a_subir));
