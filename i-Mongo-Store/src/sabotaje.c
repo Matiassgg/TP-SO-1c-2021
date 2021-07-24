@@ -12,21 +12,25 @@ void resolver_sabotaje_superbloque_blocks(){
 	actualizar_valor_blocks_superbloque(blocksReales);
 }
 
-void resolver_sabotaje_superbloque_bitmap(){
+void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_usados){
 //TODO
 //Corregir el bitmap con lo que se halle en la metadata de los archivos.
 	//Constatar contra el bitmap que esten todos los valores correctos.
 //	Si el bloque está cruzado en un archivo, tiene que estar marcado como usado, y si no , tiene que estar marcado como libre
-	t_list* bloquesUsadosPorFiles = obtener_bloques_usados();
-//TODO	list_any_satisfy(bloquesUsadosPorFiles,comparar_bitmap());
 
-//	t_bitarray* bitarray = leer_bitmap();
-//
-//	    bool actualizar_bitmap(int bloques){
-//	        if(bitarray_test_bit(bitarray,bloques) == 0)
-//	            bitarray_set_bit(bitarray,bloques);
-//	    }
-//	    list_iterate(lista_bloques,actualizar_bitmap);
+	//Limpiar bitmap
+	for(int i=0;i<bitarray_get_max_bit(bitarray);i++){
+		bitarray_clean_bit(bitarray,i);
+	}
+
+	void actualizar_bitmap(int bloque){
+		bitarray_set_bit(bitarray,bloque);
+	}
+
+	list_iterate(bloques_usados,actualizar_bitmap);
+
+	subir_bitmap(bitarray);
+	log_info(logger,"Se resolvio sabotaje de bitmap (o al menos eso creo)");
 }
 
 void detectar_sabotaje_superbloque_bitmap(){
@@ -37,15 +41,28 @@ void detectar_sabotaje_superbloque_bitmap(){
 		if(bitarray_test_bit(bitarray,bloque)==0){
 			return 1;
 		}
+		return 0;
 	}
-	bool no_contiene(int bloque){
 
+	bool chequear_falsos_unos(){
+		for(int i=0;i<bitarray_get_max_bit(bitarray);i++){
+
+			bool no_esta_presente(uint32_t bloque){
+				return i != bloque;
+			}
+
+			if(bitarray_test_bit(bitarray,i)==1 && list_all_satisfy(bloques_usados,no_esta_presente))
+				return 1;
+		}
+		return 0;
 	}
-//	list_any_satisfy(bloques_usados,inconsistencia_bitmap);
-//	for(int=0,i<bitarray_get_max_bit(bitarray),i++){
-//		if(bitarray_test_bit(bitarray,i)==1 && list_all_satisfy(bloques_usados,no_contiene()))
-//			return 1;
-//	}
+
+	if(list_any_satisfy(bloques_usados,inconsistencia_bitmap) || chequear_falsos_unos()){
+		resolver_sabotaje_superbloque_bitmap(bitarray,bloques_usados);
+	}
+	else{
+		log_info(logger, "FSCK -> No hubo sabotajes en el bitmap de superbloques.ims");
+	}
 }
 
 void resolver_sabotaje_files_size(char* archivo){
@@ -88,11 +105,11 @@ void actualizar_valor_blocks_superbloque(uint32_t blocksReales){
 
 FILE* abrirSuperbloque(char* modo){
 	FILE * superbloque = fopen(path_superbloque,modo);
-	if(superbloque == -1){
-		log_error(logger, "Error al leer superbloque");
-		exit(1);
+	if(superbloque){
+		return superbloque;
 	}
-	return superbloque;
+	log_error(logger, "Error al leer superbloque");
+	exit(1);
 }
 
 t_list* listaArchivosDeBitacora() {

@@ -316,7 +316,7 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 	uint32_t nro_pagina = dar_numero_particion_direccion_logica(tcb->prox_instruccion);
 
 	t_tabla_paginas* tabla = dar_tabla_paginas(tripulante->id_patota_asociado);
-//	realizar_proceso_de_verificacion_de_paginas_en_memoria(tabla);
+
 	t_pagina* pagina = dar_pagina_de_tabla(tabla, nro_pagina);
 	t_asociador_pagina* asociador = dar_asociador_pagina(pagina, tripulante->id_patota_asociado, TAREAS);
 
@@ -448,18 +448,6 @@ void expulsar_tripulante(t_tripulante* tripulante){
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
 	eliminar_tripulante(tripulante->id);
-}
-
-int indice_elemento(t_list* lista, void* elemento){
-	int indice = 0;
-	bool encontrado = false;
-
-	for (int i = 0; i < list_size(lista) && !encontrado; i++) {
-		if(list_get(lista, i) == elemento) encontrado = true;
-		indice = i;
-	}
-
-	return indice;
 }
 
 FILE* crear_archivo_dump(){
@@ -1024,7 +1012,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 		if (pagina_libre->bit_presencia == 0) {
 			marco = buscar_marco_libre();
-			marco->bitUso = true;
+			marco->bitUso = 1;
 			pagina_libre->marco = marco;
 			pagina_libre->bit_presencia = 1;
 
@@ -1038,6 +1026,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 
 			// Agrego a lista de timestamp por marco
 			if (son_iguales(algoritmo_reemplazo, "CLOCK")) {
+				marco->bitUso = 1;
 				log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numeroMarco, marco->bitUso);
 			}
 		}else if(pagina_libre->bit_presencia==1){
@@ -1553,6 +1542,23 @@ void seleccionar_victima_CLOCK(void){
 			}
 		}
 
+		if (!victima_seleccionada) {
+			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
+				if (bit_uso(punteroMarcoClock)==1) {
+					victima_seleccionada = true;
+				} else {
+					punteroMarcoClock->bitUso = 0;
+				}
+				if(!victima_seleccionada){
+					// referencio a la siguiente entrada
+					punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
+
+					// aumento el indice del puntero
+					posicion_puntero_actual = ((posicion_puntero_actual + 1) % cantidad_de_marcos);
+				}
+			}
+		}
+
 	}
 
 
@@ -1565,6 +1571,18 @@ void seleccionar_victima_CLOCK(void){
 
 	pthread_mutex_unlock(&mutexFree);
 
+}
+
+int indice_elemento(t_list* lista, void* elemento){
+	int indice = 0;
+	bool encontrado = false;
+
+	for (int i = 0; i < list_size(lista) && !encontrado; i++) {
+		if(list_get(lista, i) == elemento) encontrado = true;
+		indice = i;
+	}
+
+	return indice;
 }
 
 void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
@@ -1590,7 +1608,11 @@ void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 
 
 bool bit_uso_apagado(t_marco* marco){
-	return !marco->bitUso;
+	return marco->bitUso==0;
+}
+
+bool bit_uso(t_marco* marco){
+	return marco->bitUso;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
