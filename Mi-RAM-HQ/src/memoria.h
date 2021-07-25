@@ -81,6 +81,7 @@ void traer_paginas_a_memoria(t_tabla_paginas* tabla);
 void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tabla);
 void modificar_memoria_estado_tripulante(t_tripulante* tripulante,char nuevo_estado);
 t_tabla_paginas* obtener_tabla_paginas_con_id_patota(uint32_t id_patota);
+t_pagina* obtener_pagina_con_marco(t_marco* marco);
 
 t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato);
 t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante, e_tipo_dato tipo_dato);

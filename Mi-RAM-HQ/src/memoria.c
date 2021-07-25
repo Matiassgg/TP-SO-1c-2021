@@ -984,7 +984,17 @@ t_marco* buscar_marco_libre(){
 		pthread_mutex_unlock(&mutexVictima);
 	}
 
-	return  list_find(tablaDeMarcos, marco_esta_libre);
+	t_marco* marco = list_find(tablaDeMarcos, marco_esta_libre);
+
+	if(marco==NULL){
+		return NULL;
+	}else{
+		if(obtener_pagina_con_marco(marco)!=NULL){
+			generar_proceso_de_pase_a_swap(marco);
+		}
+
+		return marco;
+	}
 }
 
 void asignar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, t_asociador_pagina* asociador,  e_tipo_dato tipo_dato){
@@ -1538,22 +1548,10 @@ void seleccionar_victima_CLOCK(void){
 	bool victima_seleccionada = false;
 
 	while (!victima_seleccionada) {
-		if (!victima_seleccionada) {
-			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
-				if (bit_uso_apagado(punteroMarcoClock)) victima_seleccionada = true;
-				if(!victima_seleccionada){
-					// referencio a la siguiente entrada
-					punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
-
-					// aumento el indice del puntero
-					posicion_puntero_actual = ((posicion_puntero_actual + 1) % cantidad_de_marcos);
-				}
-			}
-		}
 
 		if (!victima_seleccionada) {
 			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
-				if (bit_uso(punteroMarcoClock)==1) {
+				if (punteroMarcoClock->bitUso==0) {
 					victima_seleccionada = true;
 				} else {
 					punteroMarcoClock->bitUso = 0;
@@ -1598,21 +1596,22 @@ void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 	t_pagina* paginaACopiar = obtener_pagina_con_marco(marcoALimpiar);
 	t_tabla_paginas* tabla = obtener_tabla_paginas_con_marco(marcoALimpiar);
 
-	log_info(logger,"Se procede a swapear la pagina #%i de la patota #%i que estaba asociada al marco #%i, elegido como victima",
-			paginaACopiar->numeroPagina,tabla->id_patota_asociada,marcoALimpiar->numeroMarco);
+	if(paginaACopiar!=NULL){
+		log_info(logger,"Se procede a swapear la pagina #%i de la patota #%i que estaba asociada al marco #%i, elegido como victima",
+				paginaACopiar->numeroPagina,tabla->id_patota_asociada,marcoALimpiar->numeroMarco);
 
-	//ACÁ YA LIMPIO EL MARCO, Y LA PÁGINA ES LLEVADA SWAP
-	t_marco_en_swap* marcoAsignadoDeSwap = asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar,tabla->id_patota_asociada);
+		//ACÁ YA LIMPIO EL MARCO, Y LA PÁGINA ES LLEVADA SWAP
+		t_marco_en_swap* marcoAsignadoDeSwap = asignar_marco_en_swap_y_sacar_de_memoria(paginaACopiar,tabla->id_patota_asociada);
 
-	log_info(logger,"El marco elegido en swap para guardar el contenido de la pagina es el numero #%d",marcoAsignadoDeSwap->numeroMarcoSwap);
+		log_info(logger,"El marco elegido en swap para guardar el contenido de la pagina es el numero #%d",marcoAsignadoDeSwap->numeroMarcoSwap);
 
-	//SE COPIA EN MEMORIA_VIRTUAL
-	pthread_mutex_lock(&mutexMemoriaVirtual);
-	memcpy(memoria_virtual + marcoAsignadoDeSwap->inicioSwap, memoria+marcoALimpiar->inicioMemoria,tamanio_pagina);
-	pthread_mutex_unlock(&mutexMemoriaVirtual);
+		//SE COPIA EN MEMORIA_VIRTUAL
+		pthread_mutex_lock(&mutexMemoriaVirtual);
+		memcpy(memoria_virtual + marcoAsignadoDeSwap->inicioSwap, memoria+marcoALimpiar->inicioMemoria,tamanio_pagina);
+		pthread_mutex_unlock(&mutexMemoriaVirtual);
 
-	log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %i",marcoAsignadoDeSwap->inicioSwap);
-
+		log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %i",marcoAsignadoDeSwap->inicioSwap);
+	}
 }
 
 
