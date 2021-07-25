@@ -989,12 +989,14 @@ t_marco* buscar_marco_libre(){
 	if(marco==NULL){
 		return NULL;
 	}else{
-		if(obtener_pagina_con_marco(marco)!=NULL){
+		t_pagina* pagina = obtener_pagina_con_marco(marco);
+		if(pagina!=NULL){
 			generar_proceso_de_pase_a_swap(marco);
 		}
 
 		return marco;
 	}
+
 }
 
 void asignar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, t_asociador_pagina* asociador,  e_tipo_dato tipo_dato){
@@ -1320,39 +1322,6 @@ t_tabla_paginas* obtener_tabla_paginas_con_id_patota(uint32_t id_patota){
 	return tablaBuscada;
 }
 
-bool verificar_paginas_en_memoria(t_tabla_paginas* tabla){
-
-	bool esta_en_memoria(t_pagina* pagina){
-		return pagina->bit_presencia;
-	}
-
-	return list_all_satisfy(tabla->paginas,esta_en_memoria);
-}
-
-void traer_paginas_a_memoria(t_tabla_paginas* tabla){
-	void traer_pagina(t_pagina* pagina){
-		if(pagina->bit_presencia==0){
-			traer_pagina_con_marco_asignado(pagina,tabla->id_patota_asociada);
-		}
-	}
-
-	list_iterate(tabla->paginas,traer_pagina);
-}
-
-void realizar_proceso_de_verificacion_de_paginas_en_memoria(t_tabla_paginas* tabla){
-
-	//ESTO LO TENGO QUE HACER PORQUE PUEDE QUE AL AGARRAR UN MARCO VICTIMA, NOS SAQUE UNO DEL PROCESO
-	//QUE QUEREMOS EJECUTAR, POR SER LA SUSTITUCION GLOBAL
-
-	pthread_mutex_lock(&mutexVerificarPaginas);
-	if(!verificar_paginas_en_memoria(tabla)){
-		log_info(logger,"Trayendo paginas de SWAP a memoria.");
-		traer_paginas_a_memoria(tabla);
-		log_info(logger,"Se trajeron las paginas de SWAP a memoria.");
-	}
-	pthread_mutex_unlock(&mutexVerificarPaginas);
-}
-
 //////////////////////////////////////////SWAP/////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1433,7 +1402,7 @@ t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
 		pthread_mutex_lock(&mutexMemoriaVirtual);
 		memcpy(memoria+marcoLibre->inicioMemoria,memoria_virtual+marco_en_swap->inicioSwap,tamanio_pagina);
 		pthread_mutex_unlock(&mutexMemoriaVirtual);
-		log_info(logger,"Se copia el contenido de la pagina de memoria virtual a memoria en la locacion: %d",marcoLibre->inicioMemoria);
+		log_info(logger,"Se copia el contenido de la pagina de memoria virtual a memoria en la locacion: %X",marcoLibre->inicioMemoria);
 		//ASIGNO
 		log_info(logger,"Se asigna el marco nro #%d a la pagina nro #%d que se encontraba alojada en el marco de swap nro #%d",marcoLibre->numeroMarco,pagina->numeroPagina,marco_en_swap->numeroMarcoSwap);
 		pagina->marco=marcoLibre;
@@ -1551,10 +1520,10 @@ void seleccionar_victima_CLOCK(void){
 
 		if (!victima_seleccionada) {
 			for (int i = 0; i < cantidad_de_marcos && !victima_seleccionada; i++) {
-				if (punteroMarcoClock->bitUso==0) {
+				if (!bit_uso(punteroMarcoClock)) {
 					victima_seleccionada = true;
 				} else {
-					punteroMarcoClock->bitUso = 0;
+					punteroMarcoClock->bitUso = false;
 				}
 				if(!victima_seleccionada){
 					// referencio a la siguiente entrada
@@ -1610,7 +1579,7 @@ void generar_proceso_de_pase_a_swap(t_marco* marcoALimpiar){
 		memcpy(memoria_virtual + marcoAsignadoDeSwap->inicioSwap, memoria+marcoALimpiar->inicioMemoria,tamanio_pagina);
 		pthread_mutex_unlock(&mutexMemoriaVirtual);
 
-		log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %i",marcoAsignadoDeSwap->inicioSwap);
+		log_info(logger, "El contenido de la pagina asociada al marco victima ya fue copiado en memoria virtual en la locacion: %X",marcoAsignadoDeSwap->inicioSwap);
 	}
 }
 
