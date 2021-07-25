@@ -1032,6 +1032,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 		t_marco* marco = NULL;
 
 		if (pagina_libre->bit_presencia == 0) {
+			pthread_mutex_lock(&mutex_marcos);
 			marco = buscar_marco_libre();
 			marco->bitUso = 1;
 			pagina_libre->marco = marco;
@@ -1050,6 +1051,7 @@ void escribir_en_memoria_paginacion(t_buffer* buffer, uint32_t id_patota_asociad
 				marco->bitUso = 1;
 				log_info(logger, "Los bits del marco numero %d se han inicializados: bit de uso: %d", marco->numeroMarco, marco->bitUso);
 			}
+			pthread_mutex_unlock(&mutex_marcos);
 		}else if(pagina_libre->bit_presencia==1){
 			marco = pagina_libre->marco;
 		}
