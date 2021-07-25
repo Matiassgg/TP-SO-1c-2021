@@ -53,6 +53,7 @@ void subir_segmento_libre(t_segmento* segmento);
 t_tabla_segmentos* dar_tabla_segmentos(uint32_t id_patota);
 void subir_tabla_segmento(t_segmento* segmento, uint32_t id_patota, uint32_t id_tripulante, e_tipo_dato tipo_dato);
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido);
+void verificar_tabla_segmentos_vacia(t_tabla_segmentos* tabla);
 
 t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato);
 void liberar_segmento(t_segmento* segmento);
