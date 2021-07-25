@@ -25,6 +25,6 @@ void detectar_sabotaje_files_size(char* archivo);
 void detectar_sabotaje_files_blocks();
 void detectar_algun_sabotaje_en_files();
 void detectar_algun_sabotaje_en_superbloque();
-
+uint32_t tamanio_real_blocks_ims();
 
 #endif /* I_MONGO_STORE_SRC_SABOTAJE_H_ */

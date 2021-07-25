@@ -10,13 +10,6 @@ void detectar_algun_sabotaje_en_superbloque(){
 	detectar_sabotaje_superbloque_bitmap();
 }
 
-uint32_t tamanio_real_blocks_ims(){
-	struct stat st;
-	stat(path_blocks, &st);
-	uint32_t size_blocks_ims = st.st_size;
-	return size_blocks_ims;
-}
-
 void detectar_sabotaje_superbloque_blocks(){
 	//Cambian el valor del campo blocks del superbloque. Ej, si teniamos 10 bloques de 80 bytes, y nos cambian a 20.
 	//sobreescribir “cantidad de bloques” del superbloque con la cantidad de bloques real en el disco (tamaño del blocks.ims)
@@ -35,8 +28,15 @@ void detectar_sabotaje_superbloque_blocks(){
 	fclose(superbloque);
 }
 
+uint32_t tamanio_real_blocks_ims(){
+	struct stat st;
+	stat(path_blocks, &st);
+	uint32_t size_blocks_ims = st.st_size;
+	return size_blocks_ims;
+}
+
 void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales){
-	//TODO
+
 	FILE* superbloque = abrirSuperbloque("rb+");
 	fseek(superbloque,sizeof(uint32_t),SEEK_SET);
 	fwrite(&blocks_reales,sizeof(uint32_t),1,superbloque);
@@ -45,7 +45,6 @@ void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales){
 }
 
 void detectar_sabotaje_superbloque_bitmap(){
-	//TODO
 	//Corregir el bitmap con lo que se halle en la metadata de los archivos.
 		//Constatar contra el bitmap que esten todos los valores correctos.
 	//	Si el bloque está cruzado en un archivo, tiene que estar marcado como usado, y si no , tiene que estar marcado como libre
@@ -164,14 +163,19 @@ void detectar_sabotaje_files_blocks(char* archivo){
 
 	t_config* archivo_recurso = config_create(archivo);
 	char* md5_guardado = config_get_string_value(archivo_recurso,"MD5_ARCHIVO");
-	char* calcular_md5 = "boca";
+	char* calcular_md5 = dar_hash_md5(archivo);
 
 	if(md5_guardado != calcular_md5){
+		log_info(logger,"HAY SABOTAJE en %s:\n MD5 GUARDADO: %s || MD5 RECALCULADO: %s",archivo,md5_guardado,calcular_md5);
 		resolver_sabotaje_files_blocks(archivo_recurso);
 	}
 }
 
 void resolver_sabotaje_files_blocks(t_config* archivo_recurso){
+	log_info(logger, "Se entra a resolver el sabotaje en el campo blocks del file %s", archivo_recurso->path);
+	//TODO
+	//tomar como referencia el size del archivo y el caracter de llenado e ir llenando los bloques hasta completar el size del archivo,
+	//en caso de que falten bloques, los mismos se deberán agregar al final del mismo.
 
 }
 
