@@ -82,7 +82,6 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		// Enviar la creacion de la patota
 		enviar_iniciar_patota(patota,socket_con_RAM);
-		enviar_iniciar_patota(patota,socket_con_RAM);
 
 		// Empezar a planificar la patota
 		planificar_patota(patota);
