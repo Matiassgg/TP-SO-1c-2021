@@ -5,9 +5,6 @@ int main(int argc, char* argv[]) {
 	iniciar_mongo();
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
 	pthread_join(hiloReceive, NULL);
-
-//	verificar_sabotaje();
-
     return EXIT_SUCCESS;
 }
 
@@ -18,6 +15,7 @@ void iniciar_mongo(void) {
 //    FS_RESET();
 
     inicializar_filesystem();
+//  verificar_sabotajes();
 	signal(SIGINT, finalizar_i_mongo);
 
 //    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
