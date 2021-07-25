@@ -10,13 +10,6 @@ void detectar_algun_sabotaje_en_superbloque(){
 	detectar_sabotaje_superbloque_bitmap();
 }
 
-uint32_t tamanio_real_blocks_ims(){
-	struct stat st;
-	stat(path_blocks, &st);
-	uint32_t size_blocks_ims = st.st_size;
-	return size_blocks_ims;
-}
-
 void detectar_sabotaje_superbloque_blocks(){
 	//Cambian el valor del campo blocks del superbloque. Ej, si teniamos 10 bloques de 80 bytes, y nos cambian a 20.
 	//sobreescribir “cantidad de bloques” del superbloque con la cantidad de bloques real en el disco (tamaño del blocks.ims)
@@ -35,8 +28,15 @@ void detectar_sabotaje_superbloque_blocks(){
 	fclose(superbloque);
 }
 
+uint32_t tamanio_real_blocks_ims(){
+	struct stat st;
+	stat(path_blocks, &st);
+	uint32_t size_blocks_ims = st.st_size;
+	return size_blocks_ims;
+}
+
 void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales){
-	//TODO
+
 	FILE* superbloque = abrirSuperbloque("rb+");
 	fseek(superbloque,sizeof(uint32_t),SEEK_SET);
 	fwrite(&blocks_reales,sizeof(uint32_t),1,superbloque);
@@ -45,7 +45,6 @@ void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales){
 }
 
 void detectar_sabotaje_superbloque_bitmap(){
-	//TODO
 	//Corregir el bitmap con lo que se halle en la metadata de los archivos.
 		//Constatar contra el bitmap que esten todos los valores correctos.
 	//	Si el bloque está cruzado en un archivo, tiene que estar marcado como usado, y si no , tiene que estar marcado como libre
@@ -84,7 +83,6 @@ void detectar_sabotaje_superbloque_bitmap(){
 
 void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_usados){
 
-
 	//Limpiar bitmap
 	for(int i=0;i<bitarray_get_max_bit(bitarray);i++){
 		bitarray_clean_bit(bitarray,i);
@@ -103,18 +101,18 @@ void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_
 void detectar_algun_sabotaje_en_files(){
 
 	if(archivo_recursos_existe("Oxigeno.ims")){
-		chequear_sabotajes_en("Oxigeno.ims");
+		chequear_sabotajes_en_recurso("Oxigeno.ims");
 	}
 	if(archivo_recursos_existe("Comida.ims")){
-		chequear_sabotajes_en("Comida.ims");
+		chequear_sabotajes_en_recurso("Comida.ims");
 	}
 	if(archivo_recursos_existe("Basura.ims")){
-		chequear_sabotajes_en("Basura.ims");
+		chequear_sabotajes_en_recurso("Basura.ims");
 	}
 
 }
 
-void chequear_sabotajes_en(char* path_relativo){
+void chequear_sabotajes_en_recurso(char* path_relativo){
 	char* path_archivo = obtener_path_files(path_relativo);
 	detectar_sabotaje_files_size(path_archivo);
 	detectar_sabotaje_files_blockcount(path_archivo);
@@ -131,7 +129,8 @@ void detectar_sabotaje_files_size(char* archivo){
 }
 
 void resolver_sabotaje_files_size(char* archivo){
-	t_config* archivo_recurso = config_create(archivo);
+
+	//t_config* archivo_recurso = config_create(archivo);
 
 }
 
@@ -151,20 +150,33 @@ void detectar_sabotaje_files_blockcount(char* archivo){
 
 void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cantidad_bloques){
 	//Actualizar el valor de Block_count en base a lo que está en la lista de Blocks.
-	config_set_value(archivo_recurso,"BLOCK_COUNT",cantidad_bloques);
+	config_set_value(archivo_recurso,"BLOCK_COUNT", string_itoa(cantidad_bloques));
 	config_save(archivo_recurso);
 	config_destroy(archivo_recurso);
 }
 
-void detectar_sabotaje_files_blocks(){
-
-}
-
-void resolver_sabotaje_files_blocks(char*archivo){
+void detectar_sabotaje_files_blocks(char* archivo){
 	//TODO
 	//Lista de blocks alterado.
 	//Entra en juego el md5_archivo. Concatenamos los bloques, calculamos el md5 hasta el size, y lo comparamos con el md5 que tenemos guardado.
 	//Si no coinciden restaurar archivo, escribiendo tantos caracteres de llenado hasta completar el size, en el orden de bloques que tenemos
+
+	t_config* archivo_recurso = config_create(archivo);
+	char* md5_guardado = config_get_string_value(archivo_recurso,"MD5_ARCHIVO");
+	char* calcular_md5 = dar_hash_md5(archivo);
+
+	if(md5_guardado != calcular_md5){
+		log_info(logger,"HAY SABOTAJE en %s:\n MD5 GUARDADO: %s || MD5 RECALCULADO: %s",archivo,md5_guardado,calcular_md5);
+		resolver_sabotaje_files_blocks(archivo_recurso);
+	}
+}
+
+void resolver_sabotaje_files_blocks(t_config* archivo_recurso){
+	log_info(logger, "Se entra a resolver el sabotaje en el campo blocks del file %s", archivo_recurso->path);
+	//TODO
+	//tomar como referencia el size del archivo y el caracter de llenado e ir llenando los bloques hasta completar el size del archivo,
+	//en caso de que falten bloques, los mismos se deberán agregar al final del mismo.
+
 }
 
 
@@ -213,7 +225,7 @@ t_list* obtener_bloques_recursos(){
 
 	void traer_bloques_recursos(char* archivo){
 		char* path_recurso = obtener_path_files(archivo);
-		log_info("ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_recurso);
+		log_info(logger, "ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_recurso);
 		t_config* recurso = config_create(path_recurso);
 		sumar_bloques_config(lista_bloques,recurso);
 		config_destroy(recurso);
@@ -238,7 +250,7 @@ t_list* obtener_bloques_bitacora(){
 
 	void traer_bloques_bitacoras(char* archivo){
 		char* path_bitacora = obtener_path_bitacora(archivo);
-		log_info("ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_bitacora);
+		log_info(logger, "ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_bitacora);
 		t_config* bitacora = config_create(path_bitacora);
 		sumar_bloques_config(lista_bloques,bitacora);
 		config_destroy(bitacora);
