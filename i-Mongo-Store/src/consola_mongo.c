@@ -25,8 +25,7 @@ bool hay_sabotajes() {
 	return proxima_posicion_sabotaje < list_size(posiciones_sabotaje);
 }
 
-// TODO HAY UNA CONSOLA EN MONGO? -> No es necesaria para mandar el signal o ke ?
-void verificar_sabotaje() {
+void verificar_sabotajes() {
 	signal(SIGUSR1, &procesar_nuevo_sabotaje);
 }
 
