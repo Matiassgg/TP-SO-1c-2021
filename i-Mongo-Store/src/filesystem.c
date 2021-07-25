@@ -7,7 +7,7 @@ void sincronizar_blocks(){
 		if(msync(contenido_blocks,block_size * blocks,MS_SYNC)==-1)
 			log_error(logger, "Error con la sincronizacion de blocks");
 		else
-			log_info(logger, "Se sincronizo correctamente blocks a %s", contenido_blocks);
+			log_info(logger, "Se sincronizo correctamente blocks");
 	}
 }
 
@@ -287,9 +287,9 @@ int crear_archivo_recursos(char* nombreArchivo, char caracter_llenado){
 
 		fclose(archivo);
 //		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
-
 		return 1;
 	}
+	log_error(logger, "No se pudo crear el archivo %s", ruta_archivo_recursos);
 	return 0;
 }
 
@@ -465,6 +465,44 @@ char* obtener_stream_tarea(char caracter, t_list* bloques, uint32_t size){
 	return stream;
 }
 
+t_list* obtener_bloques_totales(t_config* config){
+	t_list* bloques = list_create();
+	int size = config_get_int_value(config, "SIZE");
+	uint32_t cant_bloques;
+	div_t aux = div(size, block_size);
+	if (aux.rem == 0)
+		cant_bloques = aux.quot;
+	else
+		cant_bloques = aux.quot + 1;
+
+	if(cant_bloques != 0){
+		char** bloques_config = config_get_array_value(config, "BLOCKS");
+		for(int i=0; i<cant_bloques;i++){
+			list_add(bloques, atoi(bloques_config[i]));
+		}
+	}
+
+	return bloques;
+}
+
+void sacar_bloques_config(t_list* bloques, t_config* config){
+	t_list* bloques_nuevos = obtener_bloques_totales(config);
+	log_info(logger,"Se borrarar %i bloques de %i", list_size(bloques), list_size(bloques_nuevos));
+
+	bool es_bloque(uint32_t bloque){
+		bool esta_aca(uint32_t bloque_a_sacar){
+			return bloque == bloque_a_sacar;
+		}
+		return list_any_satisfy(bloques, esta_aca);
+	}
+	for(int i=0; i<list_size(bloques); i++)
+		list_remove_by_condition(bloques_nuevos, es_bloque);
+
+	bloques = list_duplicate(bloques_nuevos);
+	log_info(logger,"Nos quedaron %i bloques y en nuevos %i", list_size(bloques), list_size(bloques_nuevos));
+	sleep(10);
+}
+
 void sumar_bloques_config(t_list* bloques, t_config* config){
 	int size = config_get_int_value(config, "SIZE");
 	uint32_t cant_bloques;
@@ -487,7 +525,7 @@ void sumar_bloques_config(t_list* bloques, t_config* config){
 }
 
 char* obtener_stream_blocks(t_list* bloques){
-	uint32_t cant_bloques = (uint32_t) list_size(bloques);
+	uint32_t cant_bloques = (int) list_size(bloques);
 
 	char* stream = string_duplicate("[");
 	for(int i=0;i<cant_bloques;i++){
@@ -511,15 +549,23 @@ void actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* confi
 	config_save(config);
 }
 
-void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, uint32_t size){
-	sumar_bloques_config(bloques, config);
-	uint32_t size_old = config_get_int_value(config, "SIZE");
+void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, int size){
+	if(size < 0)
+		sacar_bloques_config(bloques, config);
+	else
+		sumar_bloques_config(bloques, config);
+
+	log_info(logger, "size %i", size);
+
+	int size_old = config_get_int_value(config, "SIZE");
 	char* stream_aux = obtener_stream_blocks(bloques);
-	config_set_value(config,"SIZE", string_itoa(size+size_old));
+	config_set_value(config,"SIZE", string_itoa(size_old+size));
 	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques)));
 	config_set_value(config,"BLOCKS",stream_aux);
 	free(stream_aux);
-	config_set_value(config,"CARACTER_LLENADO",&caracter);
+	stream_aux = string_repeat(caracter,1);
+	config_set_value(config,"CARACTER_LLENADO", stream_aux);
+	free(stream_aux);
 	stream_aux = dar_hash_md5(config->path);
 	config_set_value(config,"MD5_ARCHIVO",stream_aux);
 
@@ -556,8 +602,8 @@ int ultimo_bloque_config(t_config* config){
 
 		if(cant_bloques != 0){
 			char** bloques_config = config_get_array_value(config, "BLOCKS");
-			for(int i=0;i<cant_bloques;i++)
-				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[i]));
+//			for(int i=0;i<cant_bloques;i++)
+//				log_info(logger, "Bloque %i es bloque %i",i ,atoi(bloques_config[i]));
 
 			return atoi(bloques_config[cant_bloques-1]);
 		}
@@ -596,26 +642,6 @@ void subir_FS(char* a_subir, char* archivo, bool es_files){
 	pthread_mutex_unlock(&mutex_FS);
 	list_destroy(bloques);
 	config_destroy(config);
-}
-
-t_list* obtener_bloques_totales(t_config* config){
-	t_list* bloques = list_create();
-	int size = config_get_int_value(config, "SIZE");
-	uint32_t cant_bloques;
-	div_t aux = div(size, block_size);
-	if (aux.rem == 0)
-		cant_bloques = aux.quot;
-	else
-		cant_bloques = aux.quot + 1;
-
-	if(cant_bloques != 0){
-		char** bloques_config = config_get_array_value(config, "BLOCKS");
-		for(int i=0; i<cant_bloques;i++){
-			list_add(bloques, atoi(bloques_config[i]));
-		}
-	}
-
-	return bloques;
 }
 
 char* leer_blocks(t_list* bloques, int size){
@@ -674,6 +700,110 @@ char* leer_bitacora(uint32_t id_tripulante){
 
 	return informacion;
 }
+
+int obtener_bloques_a_sacar(uint32_t cantidad, int size, int cant_bloques){
+	int cant_bloques_sacar=0;
+	if(cantidad){
+		if(cantidad >= size)
+			cant_bloques_sacar = cant_bloques;
+		else{
+			div_t aux = div(size - cantidad, block_size);
+			int cant_bloques_actuales;
+			if (aux.rem == 0)
+				cant_bloques_actuales = aux.quot;
+			else
+				cant_bloques_actuales = aux.quot + 1;
+			cant_bloques_sacar = cant_bloques - cant_bloques_actuales;
+		}
+	}
+	return cant_bloques_sacar;
+}
+
+void liberar_bloque(int bloque){
+	pthread_mutex_lock(&mutex_bitmap);
+	t_bitarray* bitarray = leer_bitmap();
+	bitarray_set_bit(bitarray,bloque);
+	if(bitarray_test_bit(bitarray, bloque) == 0)
+		log_info(logger,"El bloque %i se libero correctamente con %i", bloque, bitarray_test_bit(bitarray, bloque));
+	subir_bitmap(bitarray);
+	bitarray_destroy(bitarray);
+	pthread_mutex_unlock(&mutex_bitmap);
+}
+
+void reset_archivo_file(char caracter, t_config* config){
+	config_set_value(config,"SIZE", "0");
+	config_set_value(config,"BLOCK_COUNT", "0");
+	config_set_value(config,"BLOCKS","[]");
+	config_set_value(config,"CARACTER_LLENADO",&caracter);
+//	stream_aux = dar_hash_md5(config->path);
+//	config_set_value(config,"MD5_ARCHIVO",stream_aux);
+//	TODO VER HASH
+
+	config_save(config);
+}
+//
+//void eliminar_caracteres_FS2(char caracter, uint32_t cantidad, char* archivo){
+//	char* stream_total = leer_FS(archivo);
+//	char* nuevo_stream = string_substring_until(stream_total, cantidad);
+//	pthread_mutex_lock(&mutex_FS);
+//	t_config* config = config_create(archivo);
+//
+//	char** bloques_config = config_get_array_value(config, "BLOCKS");
+//	int cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
+//	for(int i=0; i<cant_bloques;i++){
+//		liberar_bloque(atoi(bloques_config[i]));
+//	}
+//	reset_archivo_file(caracter, config);
+//	config_destroy(config);
+//	pthread_mutex_unlock(&mutex_FS);
+//
+//	subir_FS(nuevo_stream, archivo, true);
+//
+//	log_info(logger, "Se eliminaron %i caracteres %c de llenado", cantidad, caracter);
+//}
+
+void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
+	pthread_mutex_lock(&mutex_FS);
+	t_config* config = config_create(archivo);
+
+	char** bloques_config = config_get_array_value(config, "BLOCKS");
+	int size = config_get_int_value(config, "SIZE");
+	int cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
+	int cant_bloques_sacar = obtener_bloques_a_sacar(cantidad,size,cant_bloques);
+	log_info(logger,"cant_bloques_sacar %i",cant_bloques_sacar);
+	t_list* bloques = list_create();
+	for(int i=0; i<cant_bloques_sacar;i++){
+		liberar_bloque(atoi(bloques_config[cant_bloques_sacar-i-1]));
+		list_add(bloques, atoi(bloques_config[cant_bloques_sacar-i-1]));
+	}
+	int offset;
+	int ultimo_bloque_nuevo;
+	if(cant_bloques == cant_bloques_sacar && size <= cantidad){
+		offset = 0;
+		ultimo_bloque_nuevo = -1;
+		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
+	}
+	else{
+		div_t aux = div(size-cantidad, block_size);
+		if(aux.rem == 0)
+			offset = block_size;
+		else
+			offset = aux.rem;
+		ultimo_bloque_nuevo = atoi(bloques_config[cant_bloques - cant_bloques_sacar-1]);
+	}
+	if(ultimo_bloque_nuevo != -1){
+		memcpy(contenido_blocks_aux + offset + (ultimo_bloque_nuevo*block_size), "\0", 1);
+	}
+	int cantidad_negativa = cantidad*(-1);
+	actualizar_archivo_file(caracter, bloques, config, cantidad_negativa);
+	config_destroy(config);
+	pthread_mutex_unlock(&mutex_FS);
+
+
+	log_info(logger, "Se eliminaron %i caracteres %c de llenado", cantidad, caracter);
+}
+
+
 
 
 

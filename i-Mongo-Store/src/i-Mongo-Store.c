@@ -12,7 +12,7 @@ void iniciar_mongo(void) {
 	leer_config();
 	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
     log_info(logger, "Ya obtuvimos la config del mongo");
-//    FS_RESET();
+    FS_RESET();
 
     inicializar_filesystem();
 //  verificar_sabotajes();
@@ -53,7 +53,7 @@ void FS_RESET(){
 	if(borrarFS){
 		char* aux = string_new();
 //		eliminar_archivo()
-		string_append_with_format(&aux, "sh ../src/eliminadorFS.sh %s", punto_montaje);
+		string_append_with_format(&aux, "sh ../volar_polus.sh %s", punto_montaje);
 		system(aux);
 		free(aux);
 	}

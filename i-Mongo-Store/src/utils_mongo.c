@@ -96,7 +96,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		case TAREA_E_S:
 			tarea = deserializar_tarea(cliente_fd);
 
-			log_info(logger, "Nos llego TAREA_E_S del tripulante %i", tarea->id);
+			log_info(logger, "Nos llego la TAREA_E_S de %s del tripulante %i", tarea->tarea, tarea->id);
 
 			verificar_archivo_tarea(tarea);
 
@@ -239,15 +239,8 @@ void eliminar_caracteres_llenado_segun_tarea(char* nombre_tarea, uint32_t cantid
 }
 
 void eliminar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char* archivo){
-	uint32_t cantidad_caracteres = cantidad_caracteres_archivo(caracter, archivo);
-	if (cantidad >= cantidad_caracteres){
-		vaciar_archivo(archivo);
-		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
-	}
-	else{
-		//Eliminar caracteres del archivo.
-		quitar_caracteres_a_archivo(caracter,cantidad_caracteres,cantidad,archivo);
-	}
+	char* ruta_archivo = obtener_path_files(archivo);
+	eliminar_caracteres_FS(caracter, cantidad, ruta_archivo);
 }
 
 uint32_t cantidad_caracteres_archivo(char caracter, char* archivo){
