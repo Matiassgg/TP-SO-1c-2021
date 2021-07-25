@@ -86,7 +86,7 @@ Una vez iniciada la planificación esperar 10 ciclos de CPU y ejecutar los sigui
 EXPULSAR_TRIPULANTE 1
 EXPULSAR_TRIPULANTE 3
 LISTAR_TRIPULANTES
-INICIAR_PATOTA 2  /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaB.txt
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaB.txt 5|5
 LISTAR_TRIPULANTES
 
 Enviar nuevamente la señal para el DUMP de la memoria.
