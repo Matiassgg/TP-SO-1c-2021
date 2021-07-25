@@ -103,7 +103,7 @@ uint32_t crear_conexion(char* ip, char* puerto)
 	return socket_cliente;
 }
 
-void liberar_conexion(uint32_t* socket_cliente)
+void liberar_conexion(int* socket_cliente)
 {
 	close(*socket_cliente);
     *socket_cliente = -1;

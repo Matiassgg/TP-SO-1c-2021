@@ -13,6 +13,6 @@ int iniciar_servidor(t_log* logger, char* ip, char* puerto);
 int esperar_cliente(t_log* logger, int socket_servidor);
 uint32_t conectar(char* ip, char* puerto);
 uint32_t crear_conexion(char *ip, char* puerto);
-void liberar_conexion(uint32_t* socket_cliente);
+void liberar_conexion(int* socket_cliente);
 
 #endif
