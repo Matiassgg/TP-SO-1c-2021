@@ -4,7 +4,7 @@
 #include "utils_mongo.h"
 #include "dirent.h"
 
-void resolver_sabotaje_files_blocks(char*);
+void resolver_sabotaje_files_blocks(t_config*);
 void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cantidad_bloques);
 char* obtener_path_bitacora(char* nombreBitacora);
 FILE* abrirSuperbloque(char* modo);
@@ -20,9 +20,11 @@ void resolver_sabotaje_files_size(char* archivo);
 void actualizar_valor_blocks_superbloque(uint32_t blocksReales);
 t_list* listaArchivosDeBitacora();
 char* obtener_path_bitacora(char* nombreBitacora);
-void chequear_sabotajes_en(char* path_relativo);
+void chequear_sabotajes_en_recurso(char* path_relativo);
 void detectar_sabotaje_files_size(char* archivo);
 void detectar_sabotaje_files_blocks();
+void detectar_algun_sabotaje_en_files();
+void detectar_algun_sabotaje_en_superbloque();
 
 
 #endif /* I_MONGO_STORE_SRC_SABOTAJE_H_ */
