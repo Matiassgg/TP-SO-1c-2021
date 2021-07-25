@@ -19,6 +19,7 @@ t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta);
 void hacer_peticon_IO(void);
 bool es_tarea_de_recursos(char*);
 bool es_tarea_de_eliminar_residuos(char*);
+void subir_tripulante_ready(p_tripulante* tripulante_plani);
 
 
 bool existe_archivo(char*);

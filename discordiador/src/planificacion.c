@@ -156,10 +156,8 @@ void planificacion_segun_RR() {
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
-			t_tripulante* tripulante = tripulante_plani->tripulante;
 
 			subir_tripulante_exec(tripulante_plani);
-
 			for(int i=0; i<quantum && verificar_planificacion_activa() && tripulante_plani->esta_activo; i++) {
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
 				if(tripulante_plani->esta_activo)
@@ -172,10 +170,7 @@ void planificacion_segun_RR() {
 }
 
 void finalizar_tripulante_plani(uint32_t id_tripulante) {
-	list_add(lista_expulsados, id_tripulante);
-//	t_tripulante* tripulante_por_expulsar = malloc(sizeof(t_tripulante));
-//	free(tripulante_por_expulsar);
-	// TODO NO ES ASI
+	// ??
 }
 
 void crear_colas_planificacion() {
@@ -190,6 +185,4 @@ void crear_colas_planificacion() {
 	lista_exec = list_create();
 }
 
-void planificar_tripulante_para_sabotaje(){
 
-}

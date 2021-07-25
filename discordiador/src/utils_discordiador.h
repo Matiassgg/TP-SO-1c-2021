@@ -8,17 +8,18 @@ char* ip_discordiador;
 char* puerto_escucha;
 char* ip_Mi_RAM_HQ;
 char* puerto_Mi_RAM_HQ;
-uint32_t socket_Mi_RAM_HQ;
+int socket_Mi_RAM_HQ;
 
 char* ip_Mongo_Store;
 char* puerto_Mongo_Store;
-uint32_t socket_Mongo_Store;
+int socket_Mongo_Store;
 
 char* punto_montaje;
 char* archivo_log;
 
 uint32_t grado_multitarea;
 uint32_t duracion_sabotaje;
+t_posicion* posicion_sabotaje;
 uint32_t retardo_ciclo_cpu;
 
 void* planificacion_corto_plazo;
@@ -69,7 +70,10 @@ void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 void rafaga_cpu(uint32_t tiempo);
 char* obtener_estado_segun_caracter(char);
-int conectar_con_RAM();
-int conectar_con_MONGO();
+int conectar_con_RAM(void);
+int conectar_con_MONGO(void);
+void detener_tripulantes(void);
+bool posicion_mas_cercana(t_posicion*,t_posicion*,t_posicion*);
+void planificar_tripulante_para_sabotaje(void);
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */

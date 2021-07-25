@@ -6,14 +6,14 @@
 
 void preparar_planificacion(void);
 void planificar_patota(t_patota*);
-void arrancar_planificacion();
+void arrancar_planificacion(void);
 void iniciar_planificacion(void);
-void planificar_tripulantes_bloqueados();
+void planificar_tripulantes_bloqueados(void);
 void pausar_planificacion(void);
 void crear_colas_planificacion(void);
-bool cola_bloqueados_vacia();
-bool cola_ready_vacia();
-bool verificar_planificacion_activa();
+bool cola_bloqueados_vacia(void);
+bool cola_ready_vacia(void);
+bool verificar_planificacion_activa(void);
 void planificacion_segun_FIFO(void);
 void planificacion_segun_RR(void);
 void finalizar_tripulante_plani(uint32_t);

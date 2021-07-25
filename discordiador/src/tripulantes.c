@@ -69,7 +69,6 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 	// TODO :: SOLICITA LA TAREA A EJECUTAR
 	solicitar_tarea(tripulante);
 
-	// ROMPE SI NO HAY + TAREAS :: TODO
 	while(tripulante->tarea_act && (tripulante->estado != EXIT)){
 		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
 		tripulante_plani->tripulante = tripulante;
@@ -110,7 +109,7 @@ void actualizar_estado(t_tripulante* tripulante){
 		return id == tripulante->id;
 	}
 
-	if(list_any_satisfy(lista_expulsados,esta_expulsado)){
+	if(list_any_satisfy(lista_expulsados, (void*) esta_expulsado)){
 		tripulante->estado = EXIT;
 		log_info(logger, "El tripulante %i esta en estado EXIT", tripulante->id);
 	}
