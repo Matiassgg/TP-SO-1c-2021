@@ -163,29 +163,6 @@ char* path_bitacora_tripulante(uint32_t id_tripulante){
 	return pathArchivoBitacora;
 }
 
-//void inicializar_bitmap(){
-//	path_superbloque = string_new();
-//
-//	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
-//
-//	if (!directorio_existe(path_superbloque)) {
-//		log_error(logger, "NO EXISTE EL SUPERBLOQUE");
-//		exit(0);
-//	}
-//
-//	t_bitarray* bitarray = crear_bitmap();
-//	FILE* superbloque = fopen(path_superbloque,"rb+");
-//
-//	if(superbloque){
-//		fseek(superbloque,2*sizeof(uint32_t),SEEK_SET);
-//		fwrite(bitarray->bitarray, bitarray->size, 1, superbloque);
-//		free(bitarray);
-//
-//		fclose(superbloque);
-//	}
-//
-//}
-
 t_bitarray* crear_bitmap() {
 	bitarray_string = malloc(blocks / 8);
 

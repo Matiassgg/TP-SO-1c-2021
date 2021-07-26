@@ -96,6 +96,7 @@ void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_
 
 	subir_bitmap(bitarray);
 	log_info(logger,"Se resolvio sabotaje de bitmap (o al menos eso creo)");
+	list_destroy(bloques_usados);
 }
 
 void detectar_algun_sabotaje_en_files(){
@@ -145,7 +146,7 @@ void detectar_sabotaje_files_blockcount(char* archivo){
 	if(block_count != cantidad_bloques){
 		resolver_sabotaje_files_blockcount(archivo_recurso, cantidad_bloques);
 	}
-
+	list_destroy(bloques);
 }
 
 void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cantidad_bloques){
@@ -257,7 +258,7 @@ t_list* obtener_bloques_bitacora(){
 	}
 
 	list_iterate(listaArchivos,traer_bloques_bitacoras);
-
+	list_destroy(listaArchivos);
 	return lista_bloques;
 }
 
