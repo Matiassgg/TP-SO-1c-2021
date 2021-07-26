@@ -584,11 +584,12 @@ void dump_memoria_principal(){
 					}
 			}
 			}
-			for(int j=0; j<list_size(lista_segmentos_libres); j++){
-				t_segmento* segmento_libre= list_get(lista_segmentos_libres, j);
-				string_append(&stream_dump,agregar_segmento_dump(-1, segmento_libre,i));
-			}
 		}
+
+		for(int j=0; j<list_size(lista_segmentos_libres); j++){
+				t_segmento* segmento_libre= list_get(lista_segmentos_libres, j);
+				string_append(&stream_dump,agregar_segmento_dump(-1, segmento_libre,0));
+			}
 	}
 	else if(son_iguales(esquema_memoria,"PAGINACION")){
 		for(int i=0;i<list_size(tablaDeMarcos);i++){
