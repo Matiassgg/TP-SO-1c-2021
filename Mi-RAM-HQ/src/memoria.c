@@ -636,17 +636,20 @@ void ordenar_segmentos(){
 	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
 		t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
 
-		t_segmento* segmento_pcb = dictionary_get(tabla->diccionario_segmentos, "PCB");
-		segmento_pcb->inicio = inicio_nuevo;
-		inicio_nuevo += segmento_pcb->tamanio;
-
 		t_segmento* segmento_tareas = dictionary_get(tabla->diccionario_segmentos, "TAREAS");
+		memcpy(memoria+inicio_nuevo,memoria+segmento_tareas->inicio,segmento_tareas->tamanio);
 		segmento_tareas->inicio = inicio_nuevo;
 		inicio_nuevo += segmento_tareas->tamanio;
+
+		t_segmento* segmento_pcb = dictionary_get(tabla->diccionario_segmentos, "PCB");
+		memcpy(memoria+inicio_nuevo,memoria+segmento_pcb->inicio,segmento_pcb->tamanio);
+		segmento_pcb->inicio = inicio_nuevo;
+		inicio_nuevo += segmento_pcb->tamanio;
 
 		for(int j=0; j<list_size(tabla->tripulantes_activos); j++){
 			int id_tripulante = list_get(tabla->tripulantes_activos,j);
 			t_segmento* segmento_tripulante = dictionary_get(tabla->diccionario_segmentos, dar_key_tripulante(id_tripulante));
+			memcpy(memoria+inicio_nuevo,memoria+segmento_tripulante->inicio,segmento_tripulante->tamanio);
 			segmento_tripulante->inicio = inicio_nuevo;
 			inicio_nuevo += segmento_tripulante->tamanio;
 		}
