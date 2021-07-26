@@ -634,7 +634,7 @@ void ordenar_segmentos(){
 	pthread_mutex_lock(&mutex_tablas);
 	uint32_t inicio_nuevo = 0;
 	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
-		t_tabla_segmentos* tabla = (t_tabla_segmentos*) list_get(lista_tablas_segmentos, i);
+		t_tabla_segmentos* tabla = list_get(lista_tablas_segmentos, i);
 
 		t_segmento* segmento_tareas = dictionary_get(tabla->diccionario_segmentos, "TAREAS");
 		memcpy(memoria+inicio_nuevo,memoria+segmento_tareas->inicio,segmento_tareas->tamanio);
