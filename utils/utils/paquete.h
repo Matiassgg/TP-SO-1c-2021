@@ -6,16 +6,9 @@
 #include <commons/collections/list.h>
 #include <commons/string.h>
 
-//typedef enum
-//{
-//	MENSAJE,
-//	PAQUETE
-//}op_code; // ?????
-
 //---------MENSAJES--------//
 typedef enum {
 	MSGTYPE_UNKNOWN = 0,
-	// Discordiador
 	INICIAR_PLANIFICACION,
 	PAUSAR_PLANIFICACION,
 	INICIAR_PATOTA,
@@ -27,8 +20,7 @@ typedef enum {
 	OBTENER_BITACORA_RESPUESTA,
 	ESTA_ON,
 	SABOTAJE,
-	// Tripulantes ?
-	ARRANCAR_TAREAS,					// 1.	Informar al módulo Mi-RAM HQ que desea iniciar, indicando a qué patota pertenece
+	ARRANCAR_TAREAS,
 	MOVER_HACIA,
 	SOLICITAR_TAREA,
 	EJECUTAR_TAREA,
@@ -37,13 +29,7 @@ typedef enum {
 	FINALIZAR_SABOTAJE,
 	TAREA_E_S,
 	ACTUALIZAR_ESTADO_TRIPULANTE,
-//	GENERAR_OXIGENO,
-//	CONSUMIR_OXIGENO,
-//	GENERAR_COMIDA,
-//	CONSUMIR_COMIDA,
-//	GENERAR_BASURA,
-//	DESCARTAR_BASURA,
-	// Respuesta
+	TRIPULANTE_SABOTAJE,
 	RESPUESTA
 }op_code;
 

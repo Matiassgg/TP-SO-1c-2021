@@ -157,6 +157,7 @@ char* obtener_estado_segun_caracter(char estado) {
 	}
 	return estado_string;
 }
+
 int conectar_con_RAM(){
 	int socket_con_RAM;
 	if((socket_con_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ)) == -1)
@@ -256,23 +257,59 @@ bool posicion_mas_cercana(t_posicion* posicion_A, t_posicion* posicion_B, t_posi
 	return resultado;
 }
 
+char* obtener_estado_segun_enum(int estado) {
+	char* estado_string;
+	switch(estado) {
+		case NEW:
+			estado_string = "NEW";
+			break;
+		case READY:
+			estado_string = "READY";
+			break;
+		case BLOCKED_I_O: case BLOCKED_EMERG:
+			estado_string =  "BLOCK I/O";
+			break;
+		case EXEC:
+			estado_string =  "EXEC";
+			break;
+		default:
+			estado_string = "ERROR";
+			break;
+	}
+	return estado_string;
+}
+
 void planificar_tripulante_para_sabotaje(){
 
-	bool tripulante_en_exec_o_ready(p_tripulante* tripulante) {
-		char estado = tripulante->tripulante->estado;
-		return estado == 'E' || estado == 'R';
+	bool tripulante_en_exec_o_ready(t_tripulante* tripulante) {
+		char* estado = obtener_estado_segun_enum(tripulante->estado);
+		return estado == "EXEC" || estado == "READY";
 	}
 
-	bool ordenar_segun_posicion(p_tripulante* tripulante_A, p_tripulante* tripulante_B) {
-		return posicion_mas_cercana(tripulante_A->tripulante->posicion, tripulante_B->tripulante->posicion, posicion_sabotaje);
+	bool ordenar_segun_posicion(t_tripulante* tripulante_A, t_tripulante* tripulante_B) {
+		return posicion_mas_cercana(tripulante_A->posicion, tripulante_B->posicion, posicion_sabotaje);
 	}
 
-	list_sort(lista_bloq_Emergencia, (void*) ordenar_segun_posicion);
-	t_list* tripulantes = list_filter(lista_bloq_Emergencia, (void*) tripulante_en_exec_o_ready);
+	t_list* tripulantes = list_filter(lista_bloq_Emergencia, tripulante_en_exec_o_ready);
+
+	if(list_size(tripulantes) == 0){
+		log_info(logger, "No hay tripulantes para mandar a resolver el sabotaje, triste");
+		return;
+	}
+
+	list_sort(tripulantes, ordenar_segun_posicion);
 	t_tripulante* tripulante_mas_cercano = list_get(tripulantes, 0);
 
-	//subir_tripulante_exec(tripulante_mas_cercano);
-	log_info(logger, "POSICION SABOTAJE: %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
-	log_info(logger, "ID TRIPULANTE MAS CERCANO: %d", tripulante_mas_cercano->id);
-	log_info(logger, "POSICION TRIPULANTE: %d|%d", tripulante_mas_cercano->posicion->pos_x, tripulante_mas_cercano->posicion->pos_y);
+	log_info(logger, "El tripulante %d corre en panico a la posicion del sabotaje", tripulante_mas_cercano->id);
+	ejecutar_tripulante_para_sabotaje(tripulante_mas_cercano);
+	log_info(logger, "El tripulante %d llego a la posicion del sabotaje", tripulante_mas_cercano->id);
+
+	rafaga_cpu(duracion_sabotaje);
+	log_info(logger, "El tripulante %d finalizo su I/O en emergencia", tripulante_mas_cercano->id);
+
+	log_info(logger, "Invocando al FSCK para comenzar las correcciones correspondientes");
+	enviar_Mongo_tripulante_sabotaje(tripulante_mas_cercano, socket_Mongo_Store);
+
+	log_info(logger, "Volviendo a toda la tripulacion de la nave de amongo a la normalidad", tripulante_mas_cercano->id);
+
 }

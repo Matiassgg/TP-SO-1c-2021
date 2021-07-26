@@ -100,8 +100,13 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 	}
 
 	expulsar_tripulante(tripulante);
-	// TODO finalizar tripulante
-	// TODO supongo que plani dira che vos movete y este wacho se mueve, asi?
+}
+
+void ejecutar_tripulante_para_sabotaje(t_tripulante* tripulante){
+	// Muevo al tripulante a la posicion del sabotaje
+	while(!esta_en_el_lugar(tripulante->posicion, posicion_sabotaje)){
+		avanzar_hacia(tripulante, posicion_sabotaje);
+	}
 }
 
 void actualizar_estado(t_tripulante* tripulante){

@@ -2,16 +2,21 @@
 
 void procesar_nuevo_sabotaje(int signal) {
 	if(hay_sabotajes()) {
-		if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
-			log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
-		else
-			log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
 
-		enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
-		t_tripulante* tripulante = recibir_tripulante_sabotaje(socket_discordiador);
-		resolver_sabotaje(tripulante);
+		if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1){
+			log_error(logger, "No me pude conectar al DISCORDIADOR");
+			return;
+		}
+		log_info(logger, "Pude conectar al DISCORDIADOR");
 		posicion_sabotaje = list_remove(posiciones_sabotaje, proxima_posicion_sabotaje);
-		log_info(logger, "MANDAMOS LA POSICION DE SABOTAJE %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
+
+		log_info(logger, "Mandamos la posicion de sabotaje %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
+		enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
+
+		t_tripulante* tripulante = recibir_tripulante_sabotaje(socket_discordiador);
+		log_info(logger, "Nos llega el tripulante %d para que se resuelva el sabotaje", tripulante->id);
+		resolver_sabotaje(tripulante);
+
 
 		liberar_conexion(&socket_discordiador);
 	}

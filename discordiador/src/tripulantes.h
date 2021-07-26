@@ -20,8 +20,6 @@ void hacer_peticon_IO(void);
 bool es_tarea_de_recursos(char*);
 bool es_tarea_de_eliminar_residuos(char*);
 void subir_tripulante_ready(p_tripulante* tripulante_plani);
-
-
 bool existe_archivo(char*);
 
 #endif /* DISCORDIADOR_SRC_TRIPULANTES_H_ */

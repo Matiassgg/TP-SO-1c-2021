@@ -45,6 +45,13 @@ void enviar_Mongo_obtener_bitacora(uint32_t id_tripulante, uint32_t socket_conex
 	enviar_paquete(paquete_a_enviar, socket_conexion);
 }
 
+void enviar_Mongo_tripulante_sabotaje(t_tripulante* tripulante, int conexion_Mongo){
+	t_paquete* paquete_a_enviar = crear_paquete(TRIPULANTE_SABOTAJE);
+	log_info("SE MANDA EL CODIGO DE OP :: %i", TRIPULANTE_SABOTAJE);
+	serializar_tripulante_sabotaje(tripulante, paquete_a_enviar->buffer);
+	enviar_paquete(paquete_a_enviar, conexion_Mongo);
+}
+
 char* deserializar_respuesta_obtener_bitacora_respuesta(uint32_t socket_cliente) {
 	//------------ORDEN------------
 	//1. Tam bitacora
@@ -326,6 +333,22 @@ void serializar_ids_tripulante(t_tripulante* msg, t_buffer* buffer){
 	offset += sizeof(uint32_t);
 
 	memcpy(buffer->stream + offset, &(msg->id_patota_asociado), sizeof(uint32_t));
+}
+
+void serializar_tripulante_sabotaje(t_tripulante* tripulante, t_buffer* buffer){
+	//------------ORDEN------------
+	//1. ID
+	//2. Patota asociada
+	//-----------------------------
+	uint32_t offset = 0;
+
+	buffer->size = 2 * sizeof(uint32_t);
+	buffer->stream = malloc(buffer->size);
+
+	memcpy(buffer->stream + offset, &(tripulante->id), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(buffer->stream + offset, &(tripulante->id_patota_asociado), sizeof(uint32_t));
 }
 
 t_tarea* recibir_tarea(uint32_t socket_cliente){
