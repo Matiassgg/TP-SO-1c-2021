@@ -485,13 +485,14 @@ void expulsar_tripulante(t_tripulante* tripulante){
 
 	eliminar_tripulante(tripulante->id);
 
+	bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
+		return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
+	}
+
 	if(list_size(tabla->tripulantes_activos)<1){
 		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
 		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
-		tabla->id_patota_asociada = -1;
-		list_destroy(tabla->tripulantes_activos);
-		tabla->tripulantes_activos=NULL;
-		dictionary_clean(tabla->diccionario_segmentos);
+		list_remove_by_condition(lista_tablas_segmentos,es_tabla);
 	}
 }
 
@@ -567,28 +568,25 @@ void dump_memoria_principal(){
 			uint32_t id_patota_asociada = tabla_segmentos->id_patota_asociada;
 			t_dictionary* diccionario_tabla = tabla_segmentos->diccionario_segmentos;
 
-			if(!dictionary_is_empty(diccionario_tabla)){
-				t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
-				t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
-				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas,0));
-				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb,1));
-			}
+			t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
+			t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
+			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas,0));
+			string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb,1));
 
-			if(tabla_segmentos->tripulantes_activos!=NULL){
-				if(list_size(tabla_segmentos->tripulantes_activos)>0){
-					int k = 2;
-					for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
-						t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
-						string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
-						k++;
-					}
-			}
+
+			if(list_size(tabla_segmentos->tripulantes_activos)>0){
+				int k = 2;
+				for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
+					t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
+					string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
+					k++;
+				}
 			}
 		}
 
 		for(int j=0; j<list_size(lista_segmentos_libres); j++){
 				t_segmento* segmento_libre= list_get(lista_segmentos_libres, j);
-				string_append(&stream_dump,agregar_segmento_dump(-1, segmento_libre,0));
+				string_append(&stream_dump,agregar_segmento_dump(-1, segmento_libre,j));
 			}
 	}
 	else if(son_iguales(esquema_memoria,"PAGINACION")){
