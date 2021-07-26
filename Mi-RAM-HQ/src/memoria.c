@@ -402,18 +402,10 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	return tarea;
 }
 
-void verificar_tabla_segmentos_vacia(t_tabla_segmentos* tabla){
-	if(list_size(tabla->tripulantes_activos)<1){
-		tabla->id_patota_asociada = -1;
-	}
-}
-
 void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		liberar_segmento( sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato) );
-		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
-		verificar_tabla_segmentos_vacia(tabla);
 	}
 	else{
 		t_tabla_paginas* tabla = dar_tabla_paginas(patota_asociada);
@@ -457,10 +449,50 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 	}
 }
 
+t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
+
+	switch(tipo_dato){
+		case TAREAS:
+			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"TAREAS");
+		break;
+		case PCB:
+			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"PCB");
+		break;
+		case TCB:
+			;
+			bool es_tripulante(uint32_t id_tripulante){
+				return id_tripulante == id;
+			}
+			list_remove_by_condition(tabla->tripulantes_activos, es_tripulante);
+			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos, dar_key_tripulante(id));
+		break;
+	}
+
+}
+
+void liberar_segmento(t_segmento* segmento){
+	segmento->nro_segmento = 0;
+
+	subir_segmento_libre(segmento);
+
+}
+
 void expulsar_tripulante(t_tripulante* tripulante){
+	t_tabla_segmentos* tabla = dar_tabla_segmentos(tripulante->id_patota_asociado);
+
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
 	eliminar_tripulante(tripulante->id);
+
+	if(list_size(tabla->tripulantes_activos)<1){
+		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
+		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
+		tabla->id_patota_asociada = -1;
+		list_destroy(tabla->tripulantes_activos);
+		tabla->tripulantes_activos=NULL;
+		dictionary_clean(tabla->diccionario_segmentos);
+	}
 }
 
 FILE* crear_archivo_dump(){
@@ -535,21 +567,22 @@ void dump_memoria_principal(){
 			uint32_t id_patota_asociada = tabla_segmentos->id_patota_asociada;
 			t_dictionary* diccionario_tabla = tabla_segmentos->diccionario_segmentos;
 
-			t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
-			t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
-
-			if(segmento_tareas!=NULL)
+			if(!dictionary_is_empty(diccionario_tabla)){
+				t_segmento* segmento_tareas = dictionary_get(diccionario_tabla, "TAREAS");
+				t_segmento* segmento_pcb = dictionary_get(diccionario_tabla, "PCB");
 				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tareas,0));
-			if(segmento_pcb!=NULL)
 				string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_pcb,1));
+			}
 
-			if(list_size(tabla_segmentos->tripulantes_activos)>0){
-				int k = 2;
-				for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
-					t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
-					string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
-					k++;
-				}
+			if(tabla_segmentos->tripulantes_activos!=NULL){
+				if(list_size(tabla_segmentos->tripulantes_activos)>0){
+					int k = 2;
+					for(int j=0; j<list_size(tabla_segmentos->tripulantes_activos); j++){
+						t_segmento* segmento_tripulante = dictionary_get(diccionario_tabla, dar_key_tripulante(list_get(tabla_segmentos->tripulantes_activos,j)));
+						string_append(&stream_dump,agregar_segmento_dump(id_patota_asociada, segmento_tripulante,k));
+						k++;
+					}
+			}
 			}
 			for(int j=0; j<list_size(lista_segmentos_libres); j++){
 				t_segmento* segmento_libre= list_get(lista_segmentos_libres, j);
@@ -822,7 +855,7 @@ t_segmento* dar_nuevo_segmento(t_segmento* segmento, uint32_t size){
 
 void subir_segmento_memoria(t_segmento* segmento, void* stream){
 	memcpy(memoria + segmento->inicio, stream, segmento->tamanio);
-	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
+	log_info(logger, "Segmento nro  #%i - Inicio del segmento en: %i de tamanio = %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
 }
 
 void subir_segmento_libre(t_segmento* segmento){
@@ -841,35 +874,6 @@ t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
 	}
 
 	return (t_segmento*) list_remove_by_condition(lista_segmentos_libres, esta_libre);
-}
-
-t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
-	t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
-
-	switch(tipo_dato){
-		case TAREAS:
-			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"TAREAS");
-		break;
-		case PCB:
-			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"PCB");
-		break;
-		case TCB:
-			;
-			bool es_tripulante(uint32_t id_tripulante){
-				return id_tripulante == id;
-			}
-			list_remove_by_condition(tabla->tripulantes_activos, es_tripulante);
-			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos, dar_key_tripulante(id));
-		break;
-	}
-
-}
-
-void liberar_segmento(t_segmento* segmento){
-	segmento->nro_segmento = 0;
-
-	subir_segmento_libre(segmento);
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
