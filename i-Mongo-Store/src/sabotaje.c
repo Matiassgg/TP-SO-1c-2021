@@ -1,21 +1,59 @@
 #include "sabotaje.h"
 
-void resolver_sabotaje(){
-	detectar_algun_sabotaje_en_superbloque();
-	detectar_algun_sabotaje_en_files();
+void procesar_nuevo_sabotaje(int signal) {
+	if(hay_sabotajes()) {
+		if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
+			log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
+		else
+			log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
+
+		enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
+		t_tripulante* tripulante = recibir_tripulante_sabotaje(socket_discordiador);
+		resolver_sabotaje(tripulante);
+		posicion_sabotaje = list_remove(posiciones_sabotaje, proxima_posicion_sabotaje);
+		log_info(logger, "MANDAMOS LA POSICION DE SABOTAJE %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
+
+		liberar_conexion(&socket_discordiador);
+	}
+	else {
+		log_warning(logger, "YA NO HAY MAS POSICIONES DE SABOTAJES");
+		return;
+	}
 }
 
-void detectar_algun_sabotaje_en_superbloque(){
-	detectar_sabotaje_superbloque_blocks();
-	detectar_sabotaje_superbloque_bitmap();
+bool hay_sabotajes() {
+	return proxima_posicion_sabotaje < list_size(posiciones_sabotaje);
 }
 
-void detectar_sabotaje_superbloque_blocks(){
+void verificar_sabotajes() {
+	signal(SIGUSR1, procesar_nuevo_sabotaje);
+}
+
+void resolver_sabotaje(t_tripulante* tripulante){
+	if(detectar_algun_sabotaje_en_superbloque())
+		log_info(logger, "El tripulante %i resolvio el sabotaje en el superbloque");
+	else if(detectar_algun_sabotaje_en_files())
+		log_info(logger, "El tripulante %i resolvio el sabotaje en files");
+	else
+		log_warning(logger, "No se detectar sabotajes");
+}
+
+bool detectar_algun_sabotaje_en_superbloque(){
+	if(detectar_sabotaje_superbloque_blocks())
+		return true;
+	else if(detectar_sabotaje_superbloque_bitmap())
+		return true;
+	else
+		return false;
+}
+
+bool detectar_sabotaje_superbloque_blocks(){
 	//Cambian el valor del campo blocks del superbloque. Ej, si teniamos 10 bloques de 80 bytes, y nos cambian a 20.
 	//sobreescribir “cantidad de bloques” del superbloque con la cantidad de bloques real en el disco (tamaño del blocks.ims)
 
 
-	FILE * superbloque = abrirSuperbloque("rb");
+	FILE * superbloque = abrirSuperbloque("rb+");
+	bool hubo_sabotaje=false;
 	uint32_t sizeUnBlock;
 	uint32_t supuesto_blocks;
 	fseek(superbloque,1,SEEK_SET);
@@ -23,9 +61,11 @@ void detectar_sabotaje_superbloque_blocks(){
 	fread(&supuesto_blocks,sizeof(uint32_t),1,superbloque);
 	uint32_t blocks_reales = tamanio_real_blocks_ims() / sizeUnBlock;
 	if(blocks_reales != supuesto_blocks ){
-		resolver_sabotaje_superbloque_blocks(blocks_reales);
+		resolver_sabotaje_superbloque_blocks(blocks_reales, superbloque);
+		hubo_sabotaje = true;
 	}
 	fclose(superbloque);
+	return hubo_sabotaje;
 }
 
 uint32_t tamanio_real_blocks_ims(){
@@ -35,29 +75,25 @@ uint32_t tamanio_real_blocks_ims(){
 	return size_blocks_ims;
 }
 
-void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales){
+void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales, FILE * superbloque){
 
-	FILE* superbloque = abrirSuperbloque("rb+");
 	fseek(superbloque,sizeof(uint32_t),SEEK_SET);
 	fwrite(&blocks_reales,sizeof(uint32_t),1,superbloque);
 	log_info(logger,"Resolviendo sabotaje -> Se actualiza valor de blocks de superbloque a %d",blocks_reales);
-	fclose(superbloque);
 }
 
-void detectar_sabotaje_superbloque_bitmap(){
+bool detectar_sabotaje_superbloque_bitmap(){
 	//Corregir el bitmap con lo que se halle en la metadata de los archivos.
 		//Constatar contra el bitmap que esten todos los valores correctos.
 	//	Si el bloque está cruzado en un archivo, tiene que estar marcado como usado, y si no , tiene que estar marcado como libre
 
 
 	t_list* bloques_usados = obtener_bloques_usados();
+	pthread_mutex_lock(&mutex_bitmap);
 	t_bitarray* bitarray = leer_bitmap();
 
 	bool inconsistencia_bitmap(int bloque){
-		if(bitarray_test_bit(bitarray,bloque)==0){
-			return 1;
-		}
-		return 0;
+		return bitarray_test_bit(bitarray,bloque)==0;
 	}
 
 	bool chequear_falsos_unos(){
@@ -75,9 +111,13 @@ void detectar_sabotaje_superbloque_bitmap(){
 
 	if(list_any_satisfy(bloques_usados,inconsistencia_bitmap) || chequear_falsos_unos()){
 		resolver_sabotaje_superbloque_bitmap(bitarray,bloques_usados);
+		pthread_mutex_unlock(&mutex_bitmap);
+		return true;
 	}
 	else{
 		log_info(logger, "FSCK -> No hubo sabotajes en el bitmap de superbloques.ims");
+		pthread_mutex_unlock(&mutex_bitmap);
+		return false;
 	}
 }
 
@@ -99,7 +139,7 @@ void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_
 	list_destroy(bloques_usados);
 }
 
-void detectar_algun_sabotaje_en_files(){
+bool detectar_algun_sabotaje_en_files(){
 
 	if(archivo_recursos_existe("Oxigeno.ims")){
 		chequear_sabotajes_en_recurso("Oxigeno.ims");
@@ -228,8 +268,10 @@ t_list* obtener_bloques_recursos(){
 		char* path_recurso = obtener_path_files(archivo);
 		log_info(logger, "ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_recurso);
 		t_config* recurso = config_create(path_recurso);
-		sumar_bloques_config(lista_bloques,recurso);
+		t_list* bloques_recurso = obtener_bloques_totales(recurso);
+		list_add_all(lista_bloques, bloques_recurso);
 		config_destroy(recurso);
+		list_destroy(bloques_recurso);
 	}
 	if(archivo_recursos_existe("Oxigeno.ims")){
 		traer_bloques_recursos("Oxigeno.ims");
@@ -253,7 +295,9 @@ t_list* obtener_bloques_bitacora(){
 		char* path_bitacora = obtener_path_bitacora(archivo);
 		log_info(logger, "ABRIR Y OBTENER BLOQUES -> Se desea entrar en %s", path_bitacora);
 		t_config* bitacora = config_create(path_bitacora);
-		sumar_bloques_config(lista_bloques,bitacora);
+		t_list* bloques_bitacora = obtener_bloques_totales(bitacora);
+		list_add_all(lista_bloques, bloques_bitacora);
+		list_destroy(bloques_bitacora);
 		config_destroy(bitacora);
 	}
 

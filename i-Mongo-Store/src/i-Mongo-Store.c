@@ -15,7 +15,7 @@ void iniciar_mongo(void) {
     FS_RESET();
 
     inicializar_filesystem();
-//  verificar_sabotajes();
+    verificar_sabotajes();
 	signal(SIGINT, finalizar_i_mongo);
 
 //    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)

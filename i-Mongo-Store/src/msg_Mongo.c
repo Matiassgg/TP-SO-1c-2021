@@ -101,3 +101,26 @@ void serializar_sabotaje_en_mongo(t_posicion* posicion, t_buffer* buffer) {
 	offset += sizeof(uint32_t);
 }
 
+t_tripulante* deserializar_tripulante_sabotaje(int socket_cliente){
+	//------------ORDEN------------
+	//1. ID
+	//2. Patota asociada
+	//-----------------------------
+	t_tripulante* msg = malloc(sizeof(t_tripulante));
+
+	recv(socket_cliente, &(msg->id), sizeof(uint32_t), 0);
+	recv(socket_cliente, &(msg->id_patota_asociado), sizeof(uint32_t), 0);
+
+	return msg;
+}
+
+t_tripulante* recibir_tripulante_sabotaje(int socket_cliente){
+	int aux;
+	recv(socket_cliente, &aux, sizeof(op_code), MSG_WAITALL);
+	recv(socket_cliente, &aux, sizeof(uint32_t), MSG_WAITALL);
+
+	return deserializar_tripulante_sabotaje(socket_cliente);
+}
+
+
+

@@ -15,7 +15,7 @@ uint32_t socket_Mi_RAM_HQ;
 
 char* ip_discordiador;
 char* puerto_discordiador;
-uint32_t socket_discordiador;
+int socket_discordiador;
 
 char* punto_montaje;
 char* archivo_log;

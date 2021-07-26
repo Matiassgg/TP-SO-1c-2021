@@ -1,34 +1,5 @@
 #include "consola_mongo.h"
 
-void procesar_nuevo_sabotaje(int signal) {
-	if(hay_sabotajes()) {
-		resolver_sabotaje();
-		posicion_sabotaje = list_remove(posiciones_sabotaje, proxima_posicion_sabotaje);
-		log_info(logger, "MANDAMOS LA POSICION DE SABOTAJE %d|%d", posicion_sabotaje->pos_x, posicion_sabotaje->pos_y);
-	}
-	else {
-		log_warning(logger, "YA NO HAY MAS POSICIONES DE SABOTAJES");
-		return;
-	}
-
-	// Levanto la conexion aca nomas, para los sabotajes ? Nose
-    if((socket_discordiador = crear_conexion(ip_discordiador, puerto_discordiador)) == -1)
-    	log_error(logger, "MONGO STORE :: No me pude conectar al DISCORDIADOR");
-    else
-    	log_info(logger, "MONGO STORE:: Pude conectar al DISCORDIADOR");
-
-	enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
-	liberar_conexion(&socket_discordiador);
-}
-
-bool hay_sabotajes() {
-	return proxima_posicion_sabotaje < list_size(posiciones_sabotaje);
-}
-
-void verificar_sabotajes() {
-	signal(SIGUSR1, &procesar_nuevo_sabotaje);
-}
-
 // CREO QUE ESTO NO SE USA
 void procesar_mensajes_en_consola_mongo(char** palabras_del_mensaje) {
 

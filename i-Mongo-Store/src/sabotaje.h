@@ -4,6 +4,10 @@
 #include "utils_mongo.h"
 #include "dirent.h"
 
+void verificar_sabotajes(void);
+void procesar_nuevo_sabotaje(int signal);
+bool hay_sabotajes(void);
+void resolver_sabotaje();
 void resolver_sabotaje_files_blocks(t_config*);
 void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cantidad_bloques);
 char* obtener_path_bitacora(char* nombreBitacora);
@@ -13,8 +17,8 @@ t_list* obtener_bloques_bitacora();
 t_list* obtener_bloques_recursos();
 void resolver_sabotaje_superbloque_blocks();
 void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_usados);
-void detectar_sabotaje_superbloque_bitmap();
-void detectar_sabotaje_superbloque_blocks();
+bool detectar_sabotaje_superbloque_bitmap();
+bool detectar_sabotaje_superbloque_blocks();
 void detectar_sabotaje_files_blockcount(char* archivo);
 void resolver_sabotaje_files_size(char* archivo);
 void actualizar_valor_blocks_superbloque(uint32_t blocksReales);
@@ -23,8 +27,8 @@ char* obtener_path_bitacora(char* nombreBitacora);
 void chequear_sabotajes_en_recurso(char* path_relativo);
 void detectar_sabotaje_files_size(char* archivo);
 void detectar_sabotaje_files_blocks();
-void detectar_algun_sabotaje_en_files();
-void detectar_algun_sabotaje_en_superbloque();
+bool detectar_algun_sabotaje_en_files();
+bool detectar_algun_sabotaje_en_superbloque();
 uint32_t tamanio_real_blocks_ims();
 
 #endif /* I_MONGO_STORE_SRC_SABOTAJE_H_ */
