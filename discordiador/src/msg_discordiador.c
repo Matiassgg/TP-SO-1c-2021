@@ -47,7 +47,6 @@ void enviar_Mongo_obtener_bitacora(uint32_t id_tripulante, uint32_t socket_conex
 
 void enviar_Mongo_tripulante_sabotaje(t_tripulante* tripulante, int conexion_Mongo){
 	t_paquete* paquete_a_enviar = crear_paquete(TRIPULANTE_SABOTAJE);
-	log_info("SE MANDA EL CODIGO DE OP :: %i", TRIPULANTE_SABOTAJE);
 	serializar_tripulante_sabotaje(tripulante, paquete_a_enviar->buffer);
 	enviar_paquete(paquete_a_enviar, conexion_Mongo);
 }

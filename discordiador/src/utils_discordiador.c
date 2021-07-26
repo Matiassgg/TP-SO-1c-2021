@@ -88,7 +88,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "El sabotaje tendra una duracion de %d", duracion_sabotaje);
 
 			detener_tripulantes();
-			planificar_tripulante_para_sabotaje();
+			planificar_tripulante_para_sabotaje(cliente_fd);
 			free(posicion_sabotaje);
 			break;
 	}
@@ -279,7 +279,7 @@ char* obtener_estado_segun_enum(int estado) {
 	return estado_string;
 }
 
-void planificar_tripulante_para_sabotaje(){
+void planificar_tripulante_para_sabotaje(int socket_mongo){
 
 	bool tripulante_en_exec_o_ready(t_tripulante* tripulante) {
 		char* estado = obtener_estado_segun_enum(tripulante->estado);
@@ -292,8 +292,8 @@ void planificar_tripulante_para_sabotaje(){
 
 	t_list* tripulantes = list_filter(lista_bloq_Emergencia, tripulante_en_exec_o_ready);
 
-	if(list_size(tripulantes) == 0){
-		log_info(logger, "No hay tripulantes para mandar a resolver el sabotaje, triste");
+	if(list_size(tripulantes) == 0 || list_size(lista_expulsados) == cantidad_tripulantes){
+		log_warning(logger, "No hay tripulantes para mandar a resolver el sabotaje. Cantidad tripulantes: %d", list_size(tripulantes));
 		return;
 	}
 
@@ -304,12 +304,14 @@ void planificar_tripulante_para_sabotaje(){
 	ejecutar_tripulante_para_sabotaje(tripulante_mas_cercano);
 	log_info(logger, "El tripulante %d llego a la posicion del sabotaje", tripulante_mas_cercano->id);
 
+
+	log_info(logger, "Invocando al FSCK para comenzar las correcciones correspondientes");
+	enviar_Mongo_tripulante_sabotaje(tripulante_mas_cercano, socket_mongo);
+
 	rafaga_cpu(duracion_sabotaje);
 	log_info(logger, "El tripulante %d finalizo su I/O en emergencia", tripulante_mas_cercano->id);
 
-	log_info(logger, "Invocando al FSCK para comenzar las correcciones correspondientes");
-	enviar_Mongo_tripulante_sabotaje(tripulante_mas_cercano, socket_Mongo_Store);
+	log_info(logger, "Volviendo a toda la tripulacion de la nave de amongo a la normalidad");
 
-	log_info(logger, "Volviendo a toda la tripulacion de la nave de amongo a la normalidad", tripulante_mas_cercano->id);
 
 }

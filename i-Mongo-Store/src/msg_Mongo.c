@@ -118,7 +118,6 @@ t_tripulante* recibir_tripulante_sabotaje(int socket_cliente){
 	int aux;
 	recv(socket_cliente, &aux, sizeof(op_code), MSG_WAITALL);
 	recv(socket_cliente, &aux, sizeof(uint32_t), MSG_WAITALL);
-	log_info(logger, "CODIGO RECIBIDO :: %d", aux);
 
 	return deserializar_tripulante_sabotaje(socket_cliente);
 }

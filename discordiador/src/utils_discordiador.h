@@ -74,6 +74,6 @@ int conectar_con_RAM(void);
 int conectar_con_MONGO(void);
 void detener_tripulantes(void);
 bool posicion_mas_cercana(t_posicion*,t_posicion*,t_posicion*);
-void planificar_tripulante_para_sabotaje(void);
+void planificar_tripulante_para_sabotaje(int);
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */

@@ -14,14 +14,13 @@ void procesar_nuevo_sabotaje(int signal) {
 		enviar_discordiador_sabotaje(posicion_sabotaje, socket_discordiador);
 
 		t_tripulante* tripulante = recibir_tripulante_sabotaje(socket_discordiador);
-		log_info(logger, "Nos llega el tripulante %d para que se resuelva el sabotaje", tripulante->id);
+		log_info(logger, "Nos llega el tripulante %d para que resuelva el sabotaje", tripulante->id);
 		resolver_sabotaje(tripulante);
-
 
 		liberar_conexion(&socket_discordiador);
 	}
 	else {
-		log_warning(logger, "YA NO HAY MAS POSICIONES DE SABOTAJES");
+		log_warning(logger, "Ya no hay nuevas posiciones de sabotajes");
 		return;
 	}
 }
@@ -40,7 +39,7 @@ void resolver_sabotaje(t_tripulante* tripulante){
 	else if(detectar_algun_sabotaje_en_files())
 		log_info(logger, "El tripulante %i resolvio el sabotaje en files");
 	else
-		log_warning(logger, "No se detectar sabotajes");
+		log_warning(logger, "No se detectaron sabotajes");
 }
 
 bool detectar_algun_sabotaje_en_superbloque(){
@@ -61,7 +60,7 @@ bool detectar_sabotaje_superbloque_blocks(){
 	bool hubo_sabotaje=false;
 	uint32_t sizeUnBlock;
 	uint32_t supuesto_blocks;
-	fseek(superbloque,1,SEEK_SET);
+	fseek(superbloque,0,SEEK_SET);
 	fread(&sizeUnBlock,sizeof(uint32_t),1,superbloque);
 	fread(&supuesto_blocks,sizeof(uint32_t),1,superbloque);
 	uint32_t blocks_reales = tamanio_real_blocks_ims() / sizeUnBlock;
@@ -75,8 +74,10 @@ bool detectar_sabotaje_superbloque_blocks(){
 
 uint32_t tamanio_real_blocks_ims(){
 	struct stat st;
+
 	stat(path_blocks, &st);
-	uint32_t size_blocks_ims = st.st_size;
+	int size_blocks_ims = st.st_size;
+	log_info(logger, "VALOR :: %d", size_blocks_ims);
 	return size_blocks_ims;
 }
 
