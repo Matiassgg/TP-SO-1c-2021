@@ -25,7 +25,8 @@ void crear_blocks();
 char* path_bitacora_tripulante(uint32_t);
 void subir_FS(char*, char*, bool);
 int crear_archivo_bitacora(uint32_t);
-void sumar_bloques_config(t_list* bloques, t_config* config);
+t_list* sacar_bloques_config(t_list* bloques, t_config* config);
+t_list* sumar_bloques_config(t_list* bloques, t_config* config);
 t_bitarray* leer_bitmap();
 void subir_bitmap(t_bitarray* bitarray);
 

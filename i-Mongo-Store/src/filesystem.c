@@ -485,7 +485,7 @@ t_list* obtener_bloques_totales(t_config* config){
 	return bloques;
 }
 
-void sacar_bloques_config(t_list* bloques, t_config* config){
+t_list* sacar_bloques_config(t_list* bloques, t_config* config){
 	t_list* bloques_nuevos = obtener_bloques_totales(config);
 	log_info(logger,"Se borrarar %i bloques de %i", list_size(bloques), list_size(bloques_nuevos));
 
@@ -498,30 +498,15 @@ void sacar_bloques_config(t_list* bloques, t_config* config){
 	for(int i=0; i<list_size(bloques); i++)
 		list_remove_by_condition(bloques_nuevos, es_bloque);
 
-	bloques = list_duplicate(bloques_nuevos);
-	log_info(logger,"Nos quedaron %i bloques y en nuevos %i", list_size(bloques), list_size(bloques_nuevos));
-	sleep(10);
+	log_info(logger,"Nos quedaron %i bloques nuevos", list_size(bloques_nuevos));
+	return bloques_nuevos;
 }
 
-void sumar_bloques_config(t_list* bloques, t_config* config){
-	int size = config_get_int_value(config, "SIZE");
-	uint32_t cant_bloques;
-	div_t aux = div(size, block_size);
-	if (aux.rem == 0)
-		cant_bloques = aux.quot;
-	else
-		cant_bloques = aux.quot + 1;
+t_list* sumar_bloques_config(t_list* bloques, t_config* config){
+	t_list* bloques_nuevos = obtener_bloques_totales(config);
+	list_add_all(bloques_nuevos, bloques);
 
-	if(cant_bloques != 0){
-		char** bloques_config = config_get_array_value(config, "BLOCKS");
-		for(int i=0; i<cant_bloques;i++){
-			bool esta_presente(uint32_t bloque){
-				return atoi(bloques_config[i]) == bloque;
-			}
-			if(!list_any_satisfy(bloques, esta_presente))
-				list_add_in_index(bloques, i, atoi(bloques_config[i]));
-		}
-	}
+	return bloques_nuevos;
 }
 
 char* obtener_stream_blocks(t_list* bloques){
@@ -539,28 +524,31 @@ char* obtener_stream_blocks(t_list* bloques){
 }
 
 void actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* config, uint32_t size){
-	sumar_bloques_config(bloques, config);
+	t_list* bloques_a_subir = sumar_bloques_config(bloques, config);
 	uint32_t size_old = config_get_int_value(config, "SIZE");
-	char* blocks_stream = obtener_stream_blocks(bloques);
+	char* blocks_stream = obtener_stream_blocks(bloques_a_subir);
 	config_set_value(config,"BLOCKS",blocks_stream);
 	config_set_value(config,"SIZE", string_itoa(size+size_old));
 	free(blocks_stream);
 
 	config_save(config);
+	list_destroy(bloques_a_subir);
 }
 
 void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, int size){
+	log_info(logger, "\n ~~size %i~~ \n", size);
+	t_list* bloques_a_subir;
 	if(size < 0)
-		sacar_bloques_config(bloques, config);
+		bloques_a_subir = sacar_bloques_config(bloques, config);
 	else
-		sumar_bloques_config(bloques, config);
+		bloques_a_subir = sumar_bloques_config(bloques, config);
 
-	log_info(logger, "size %i", size);
+	log_info(logger, "\n ~~BLOCK_COUNT %i~~ \n", list_size(bloques_a_subir));
 
 	int size_old = config_get_int_value(config, "SIZE");
-	char* stream_aux = obtener_stream_blocks(bloques);
+	char* stream_aux = obtener_stream_blocks(bloques_a_subir);
 	config_set_value(config,"SIZE", string_itoa(size_old+size));
-	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques)));
+	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques_a_subir)));
 	config_set_value(config,"BLOCKS",stream_aux);
 	free(stream_aux);
 	stream_aux = string_repeat(caracter,1);
@@ -572,6 +560,7 @@ void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, i
 	free(stream_aux);
 
 	config_save(config);
+	list_destroy(bloques_a_subir);
 }
 
 t_buffer* serializar_tarea(t_tarea_Mongo* tarea) {
