@@ -212,7 +212,6 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 
 void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_dato){
 	t_buffer* buffer;
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	switch(tipo_dato){
 		case TAREAS:
 			buffer = serializar_memoria_tareas((char*) informacion);
@@ -231,7 +230,6 @@ void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_d
 	else{
 		modificar_memoria_paginacion(buffer, id_patota, tipo_dato);
 	}
-	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
@@ -247,14 +245,12 @@ void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
 
 void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
 	void* informacion;
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		informacion = leer_memoria_segmentacion(buscar_segmento_id(id, id_patota, tipo_dato));
 	}
 	else{
 		informacion = leer_memoria_paginacion(id, id_patota, tipo_dato);
 	}
-	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return informacion;
 }
 
@@ -275,8 +271,8 @@ t_tarea* obtener_tarea_segmentacion(t_tripulante* tripulante){
 	t_tcb* tcb = deserializar_memoria_tcb(leer_memoria_segmentacion(segmento));
 
 	t_segmento* segmento_tareas = buscar_segmento_id(tripulante->id_patota_asociado, tripulante->id_patota_asociado, TAREAS);
-	//	char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
-	//	log_info(logger,"tareas: %s",tareas);
+		char* tareas = (char*) leer_memoria_segmentacion(segmento_tareas);
+		log_info(logger,"tareas: %s",tareas);
 
 	char* tarea_string = string_new();
 	char* c_leido = calloc(2,sizeof(char));
@@ -399,6 +395,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		tarea = obtener_tarea_paginacion(tripulante);
 
 	pthread_mutex_unlock(&mutex_tocar_memoria_tareas);
+
 	return tarea;
 }
 
@@ -494,6 +491,7 @@ void expulsar_tripulante(t_tripulante* tripulante){
 		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
 		list_remove_by_condition(lista_tablas_segmentos,es_tabla);
 	}
+
 }
 
 FILE* crear_archivo_dump(){
@@ -768,15 +766,18 @@ t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo
 }
 
 void* leer_memoria_segmentacion(t_segmento* segmento){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	void* dato_requerido = malloc(segmento->tamanio);
 
 	memcpy(dato_requerido, memoria + segmento->inicio, segmento->tamanio);
 	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
 
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return dato_requerido;
 }
 
 void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	uint32_t id_tripulante = 0;
 	if(tipo_dato == TCB)
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
@@ -798,6 +799,7 @@ void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, 
 
 	subir_segmento_memoria(segmento, buffer->stream);
 
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -1213,6 +1215,7 @@ t_asociador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulant
 }
 
 void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	uint32_t id_tripulante = 0;
 	if(tipo_dato == TCB)
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
@@ -1235,6 +1238,8 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 		tamanio_restante -= asociador->tamanio;
 	}
 
+	pthread_mutex_unlock(&mutex_tocar_memoria);
+
 	if(tamanio_restante)
 		log_error(logger, "Falta info para subir");
 	else
@@ -1242,6 +1247,7 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 }
 
 void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota);
 	t_list* paginas = obtener_paginas_asignadas(tabla, id, tipo_dato);
 	void* dato_requerido;
@@ -1273,7 +1279,7 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 	t_tcb* tcb = deserializar_memoria_tcb(dato_requerido);
 	log_info(logger, "prox_instruccion %i - puntero_pcb %i", tcb->prox_instruccion, tcb->puntero_pcb);
 
-
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return dato_requerido;
 }
 

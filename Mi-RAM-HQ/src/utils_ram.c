@@ -96,7 +96,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "RAM :: Nos llego EXPULSAR_TRIPULANTE para el tripulante %i", tripulante->id);
 
-			// Eiminará un tripulante tanto de las estructuras administrativas de la memoria, como también del mapa
+			// Eliminará un tripulante tanto de las estructuras administrativas de la memoria, como también del mapa
 			// EN CASO QUE SEA NECESARIO eliminara su segmento de tareas
 
 			expulsar_tripulante(tripulante);
@@ -250,43 +250,6 @@ t_tarea* obtener_tarea_archivo(char* tarea_string){
 
 	return tarea;
 }
-/*
-bool esta_en_memoria(t_pagina* pagina, uint32_t idPatota) {
-	t_list* marcosEnMemoria = entradas_segun_pedido(idPatota);
-	int cantidadMarcos = list_size(marcosEnMemoria);
-	int offset = 0;
-	bool encontrado = false;
-
-	for (int i = 0; i < cantidadMarcos && !encontrado; i++) {
-		entradaTablaMarcos* entrada = list_get(marcosEnMemoria, i);
-		uint32_t cantidadLista;
-		uint32_t cantidadPlato;
-		char* nombrePlato = malloc(24);
-
-		memcpy(&cantidadLista, entrada->marco + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-
-		memcpy(&cantidadPlato, entrada->marco + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-
-		memcpy(nombrePlato, entrada->marco + offset, 24);
-
-		if (!strcmp(pagina->nombrePlato, nombrePlato)) {
-			encontrado = true;
-		} else {
-			encontrado = false;
-		}
-
-		offset = 0;
-
-		free(nombrePlato);
-	}
-
-	list_destroy(marcosEnMemoria);
-
-	return encontrado;
-}
-*/
 
 t_respuesta_listar_tripulante* de_tcb_a_listar(t_tcb* tcb, uint32_t id_patota){
 	t_respuesta_listar_tripulante* listar = malloc(sizeof(t_respuesta_listar_tripulante));
