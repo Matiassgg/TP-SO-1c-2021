@@ -555,6 +555,7 @@ t_buffer* serializar_tarea(t_tarea_Mongo* tarea) {
 }
 
 int ultimo_bloque_config(t_config* config){
+//	sleep(10);
 	int size = config_get_int_value(config, "SIZE");
 	if(size){
 		uint32_t cant_bloques;
