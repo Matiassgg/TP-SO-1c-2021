@@ -148,51 +148,80 @@ void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_
 bool detectar_algun_sabotaje_en_files(){
 
 	if(archivo_recursos_existe("Oxigeno.ims")){
-		chequear_sabotajes_en_recurso("Oxigeno.ims");
+		if(chequear_sabotajes_en_recurso("Oxigeno.ims"))
+			return 1;
 	}
 	if(archivo_recursos_existe("Comida.ims")){
-		chequear_sabotajes_en_recurso("Comida.ims");
+		if(chequear_sabotajes_en_recurso("Comida.ims")){
+			return 1;
+		}
 	}
 	if(archivo_recursos_existe("Basura.ims")){
-		chequear_sabotajes_en_recurso("Basura.ims");
+		if(chequear_sabotajes_en_recurso("Basura.ims")){
+			return 1;
+		}
 	}
-
+	return 0;
 }
 
-void chequear_sabotajes_en_recurso(char* path_relativo){
+bool chequear_sabotajes_en_recurso(char* path_relativo){
 	char* path_archivo = obtener_path_files(path_relativo);
-	detectar_sabotaje_files_size(path_archivo);
-	detectar_sabotaje_files_blockcount(path_archivo);
-	detectar_sabotaje_files_blocks(path_archivo);
+	t_config* config_recurso = config_create(path_archivo);
+
+	if(detectar_sabotaje_files_size(config_recurso)){
+		log_info(logger,"FSCK: Se detecto sabotaje en el campo SIZE del recurso %s",path_relativo);
+		return 1;
+	}
+	if(detectar_sabotaje_files_blockcount(config_recurso)){
+		log_info(logger,"FSCK: Se detecto sabotaje en el campo BLOCK_COUNT del recurso %s",path_relativo);
+		return 1;
+	}
+	if(detectar_sabotaje_files_blocks(config_recurso)){
+		log_info(logger,"FSCK: Se detecto sabotaje en el campo BLOCKS del recurso %s",path_relativo);
+		return 1;
+	}
+	log_info(logger,"FSCK: No se detectaron sabotajes en el recurso %s",path_relativo);
+	config_destroy(config_recurso);
+	return 0;
 }
 
-void detectar_sabotaje_files_size(char* archivo){
+bool detectar_sabotaje_files_size(t_config* archivo_recurso){
 	//TODO
 //Asumir correcto lo encontrado en los bloques.
 //Hay que recorrer todos los bloques del archivo y obtener y asumir como correcto el tamaño encontrado dentro de los bloques recorriendolos en orden.
 //	Ej. OOOOOOOOOOOOOOOOOOOOOOOOO recorremos hasta encontrar el primer carácter que no es una O, llegué al size 400, ese será el size del archivo.
 //	PONER UN CENTINELA PARA DECIR HASTA ACÁ LLEGUE
-
+	uint32_t supuesto_size = config_get_int_value(archivo_recurso,"SIZE");
+	uint32_t cantidad_real_caracteres = 0; // FALTA CALCULAR
+	if(supuesto_size != cantidad_real_caracteres){
+		resolver_sabotaje_files_size(archivo_recurso, cantidad_real_caracteres);
+		return 1;
+	}
+	else
+		return 0;
 }
 
-void resolver_sabotaje_files_size(char* archivo){
-
-	//t_config* archivo_recurso = config_create(archivo);
-
+void resolver_sabotaje_files_size(t_config* archivo_recurso, uint32_t cantidad_real_caracteres){
+	log_info(logger, "Se entra a resolver el sabotaje en el campo size del file %s", archivo_recurso->path);
+	config_set_value(archivo_recurso,"SIZE",string_itoa(cantidad_real_caracteres));
+	config_save(archivo_recurso);
+	config_destroy(archivo_recurso);
 }
 
-void detectar_sabotaje_files_blockcount(char* archivo){
-	t_config* archivo_recurso = config_create(archivo);
+bool detectar_sabotaje_files_blockcount(t_config* archivo_recurso){
 	t_list* bloques = list_create();
 	sumar_bloques_config(bloques,archivo_recurso);
 	uint32_t cantidad_bloques = list_size(bloques);
 
 	uint32_t block_count = config_get_int_value(archivo_recurso,"BLOCK_COUNT");
 
+	list_destroy(bloques);
+
 	if(block_count != cantidad_bloques){
 		resolver_sabotaje_files_blockcount(archivo_recurso, cantidad_bloques);
+		return 1;
 	}
-	list_destroy(bloques);
+	return 0;
 }
 
 void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cantidad_bloques){
@@ -202,28 +231,31 @@ void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cant
 	config_destroy(archivo_recurso);
 }
 
-void detectar_sabotaje_files_blocks(char* archivo){
+bool detectar_sabotaje_files_blocks(t_config* archivo_recurso){
 	//TODO
 	//Lista de blocks alterado.
 	//Entra en juego el md5_archivo. Concatenamos los bloques, calculamos el md5 hasta el size, y lo comparamos con el md5 que tenemos guardado.
 	//Si no coinciden restaurar archivo, escribiendo tantos caracteres de llenado hasta completar el size, en el orden de bloques que tenemos
-
-	t_config* archivo_recurso = config_create(archivo);
 	char* md5_guardado = config_get_string_value(archivo_recurso,"MD5_ARCHIVO");
-	char* calcular_md5 = dar_hash_md5(archivo);
+	char* calcular_md5 = ""; // CALCULAR
 
 	if(md5_guardado != calcular_md5){
-		log_info(logger,"HAY SABOTAJE en %s:\n MD5 GUARDADO: %s || MD5 RECALCULADO: %s",archivo,md5_guardado,calcular_md5);
-		resolver_sabotaje_files_blocks(archivo_recurso);
+		log_info(logger,"MD5 GUARDADO: %s -- MD5 RECALCULADO: %s",md5_guardado,calcular_md5);
+		char* bloques_reales; //generar_bloques();
+		resolver_sabotaje_files_blocks(archivo_recurso, bloques_reales);
+		return 1;
 	}
+	return 0;
 }
 
-void resolver_sabotaje_files_blocks(t_config* archivo_recurso){
+void resolver_sabotaje_files_blocks(t_config* archivo_recurso, char* stream_bloques_reales){
 	log_info(logger, "Se entra a resolver el sabotaje en el campo blocks del file %s", archivo_recurso->path);
 	//TODO
 	//tomar como referencia el size del archivo y el caracter de llenado e ir llenando los bloques hasta completar el size del archivo,
 	//en caso de que falten bloques, los mismos se deberán agregar al final del mismo.
-
+	config_set_value(archivo_recurso,"BLOCKS",stream_bloques_reales);
+	config_save(archivo_recurso);
+	config_destroy(archivo_recurso);
 }
 
 
