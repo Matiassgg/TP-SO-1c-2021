@@ -242,41 +242,25 @@ void eliminar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, cha
 	char* ruta_archivo = obtener_path_files(archivo);
 	eliminar_caracteres_FS(caracter, cantidad, ruta_archivo);
 }
-
-uint32_t cantidad_caracteres_archivo(char caracter, char* archivo){
-
-	char* ruta_completa_archivo = obtener_path_files(archivo);
-	FILE * file = fopen(ruta_completa_archivo, "rb");
-	if(file==NULL)
-		return -1;
-	uint32_t cantidad = 0;
-	char c;
-	while(!feof(file)){
-		fread(&c,sizeof(char),1,file);
-		if(c==caracter)
-			cantidad++;
-	}
-	fclose(file);
-	log_info(logger, "El archivo %s tiene %d veces el caracter de llenado %c",archivo,cantidad,caracter);
-
-	return cantidad;
-}
-
-int quitar_caracteres_a_archivo(char caracter, uint32_t cantidad_actual, uint32_t cantidad_a_sacar,char* archivo){
-	char* ruta_completa_archivo = obtener_path_files(archivo);
-	FILE * file = fopen(ruta_completa_archivo, "wb");
-	if(file==NULL){
-		log_warning(logger, "Error al abrir archivo %s cuando se quiso quitarle caracteres %c", archivo, caracter);
-		return -1;
-	}
-	int nueva_cantidad = cantidad_actual-cantidad_a_sacar;
-	char* caracteres = string_repeat(caracter,nueva_cantidad);
-	fwrite(caracteres,string_length(caracteres)+1,1,file);
-	fclose(file);
-	log_info(logger, "El archivo %s se le quitaron %d caracteres %c. De %d paso a %d",archivo,cantidad_a_sacar,caracter,cantidad_actual,nueva_cantidad);
-	return 1;
-}
-
+//Se puede repensar
+//uint32_t cantidad_caracteres_archivo(char caracter, char* archivo){
+//
+//	char* ruta_completa_archivo = obtener_path_files(archivo);
+//	FILE * file = fopen(ruta_completa_archivo, "rb");
+//	if(file==NULL)
+//		return -1;
+//	uint32_t cantidad = 0;
+//	char c;
+//	while(!feof(file)){
+//		fread(&c,sizeof(char),1,file);
+//		if(c==caracter)
+//			cantidad++;
+//	}
+//	fclose(file);
+//	log_info(logger, "El archivo %s tiene %d veces el caracter de llenado %c",archivo,cantidad,caracter);
+//
+//	return cantidad;
+//}
 
 void procesar_falta_archivo(t_tarea_Mongo* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;

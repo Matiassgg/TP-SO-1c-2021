@@ -437,7 +437,7 @@ char* obtener_stream_tarea(char caracter, t_list* bloques, uint32_t size){
 	}
 	string_append_with_format(&stream, "]\n");
 	string_append_with_format(&stream, "CARACTER_LLENADO=%c\n", caracter);
-	string_append_with_format(&stream, "MD5_ARCHIVO=%s\n", "XD");
+	string_append_with_format(&stream, "MD5_ARCHIVO=%s\n", "");
 
 	return stream;
 }
