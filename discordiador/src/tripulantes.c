@@ -82,7 +82,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		subir_tripulante_ready(tripulante_plani);
 
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
-			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion));
+			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion, true));
 		}
 		if(!puedo_seguir(tripulante_plani))
 			break;
@@ -105,7 +105,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 void ejecutar_tripulante_para_sabotaje(t_tripulante* tripulante){
 	// Muevo al tripulante a la posicion del sabotaje
 	while(!esta_en_el_lugar(tripulante->posicion, posicion_sabotaje)){
-		avanzar_hacia(tripulante, posicion_sabotaje);
+		enviar_mover_hacia(tripulante,avanzar_hacia(tripulante, posicion_sabotaje, true));
 	}
 }
 
@@ -214,7 +214,7 @@ bool quedan_movimientos(uint32_t posicion1, uint32_t posicion2) {
 	return posicion1 != posicion2;
 }
 
-t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta) {
+t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta, bool es_sabotaje) {
 	t_movimiento direccion;
 	if (quedan_movimientos(tripulante->posicion->pos_x, posicion_meta->pos_x)) {
 		if (tripulante->posicion->pos_x < posicion_meta->pos_x) {
@@ -235,7 +235,10 @@ t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta) 
 			}
 		}
 	}
-	rafaga_cpu(1);
+	if(!es_sabotaje)
+		rafaga_cpu(1);
+	else
+		rafaga(1);
 	log_info(logger, "El tripulante %i esta ahora en la posicion %i|%i yendo a %i|%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y, posicion_meta->pos_x, posicion_meta->pos_y);
 	return direccion;
 }

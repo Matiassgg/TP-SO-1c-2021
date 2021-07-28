@@ -15,7 +15,7 @@ void hacer_ciclos_tarea(t_tripulante* tripulante);
 bool quedan_pasos(t_tripulante* tripulante);
 bool esta_en_el_lugar(t_posicion* posicion1, t_posicion* posicion2);
 bool quedan_movimientos(uint32_t posicion1, uint32_t posicion2);
-t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta);
+t_movimiento avanzar_hacia(t_tripulante* tripulante, t_posicion* posicion_meta, bool es_sabotaje);
 void hacer_peticon_IO(void);
 bool es_tarea_de_recursos(char*);
 bool es_tarea_de_eliminar_residuos(char*);

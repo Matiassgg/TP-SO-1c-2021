@@ -71,6 +71,7 @@ void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 void rafaga_cpu(uint32_t tiempo);
+void rafaga();
 void rafaga_block_io(uint32_t tiempo);
 char* obtener_estado_segun_caracter(char);
 int conectar_con_RAM(void);
@@ -82,5 +83,6 @@ bool verificar_sabotaje_io();
 void detener_tripulantes(void);
 bool posicion_mas_cercana(t_posicion*,t_posicion*,t_posicion*);
 void planificar_tripulante_para_sabotaje(int);
+void regresar_tripulante(t_tripulante* tripulante);
 
 #endif /* DISCORDIADOR_SRC_UTILS_DISCORDIADOR_H_ */

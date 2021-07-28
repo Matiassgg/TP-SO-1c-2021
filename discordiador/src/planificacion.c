@@ -78,6 +78,8 @@ void arrancar_planificacion(){
 	pthread_t planificador_bloqueados;
 	pthread_create(&planificador_bloqueados, NULL, (void*) planificar_tripulantes_bloqueados, NULL);
 	pthread_detach(planificador_bloqueados);
+
+	desbloquear_sabotaje();
 }
 
 void iniciar_planificacion(){

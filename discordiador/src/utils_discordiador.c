@@ -136,7 +136,7 @@ void bloquear_sabotaje(){
 	pthread_mutex_lock(&mutex_sabotajes);
 	pthread_mutex_lock(&mutex_sabotajes_bloqueados_io);
 	for(int i=0; i<grado_multitarea; i++){
-		sem_post(&semaforo_cola_bloqueados_sabotaje);
+		sem_wait(&semaforo_cola_bloqueados_sabotaje);
 	}
 }
 
@@ -144,7 +144,7 @@ void desbloquear_sabotaje(){
 	pthread_mutex_unlock(&mutex_sabotajes);
 	pthread_mutex_unlock(&mutex_sabotajes_bloqueados_io);
 	for(int i=0; i<grado_multitarea; i++){
-		sem_wait(&semaforo_cola_bloqueados_sabotaje);
+		sem_post(&semaforo_cola_bloqueados_sabotaje);
 	}
 }
 
@@ -165,12 +165,16 @@ bool verificar_sabotaje_io(){
 
 void rafaga_cpu(uint32_t tiempo){
 	for(int i=0; i<tiempo && verificar_sabotaje_cpu(); i++)
-		sleep(retardo_ciclo_cpu);
+		rafaga(1);
+}
+
+void rafaga(int tiempo){
+	sleep(retardo_ciclo_cpu*tiempo);
 }
 
 void rafaga_block_io(uint32_t tiempo){
 	for(int i=0; i<tiempo && verificar_sabotaje_io(); i++)
-		sleep(retardo_ciclo_cpu);
+		rafaga(1);
 }
 
 char* obtener_estado_segun_caracter(char estado) {
@@ -345,10 +349,19 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 	log_info(logger, "Invocando al FSCK para comenzar las correcciones correspondientes");
 	enviar_Mongo_tripulante_sabotaje(tripulante_mas_cercano, socket_mongo);
 
-	rafaga_cpu(duracion_sabotaje);
+	rafaga(duracion_sabotaje);
 	log_info(logger, "El tripulante %d finalizo su I/O en emergencia", tripulante_mas_cercano->id);
 
 	log_info(logger, "Volviendo a toda la tripulacion de la nave de amongo a la normalidad");
 
+	regresar_tripulante(tripulante_mas_cercano);
 
+}
+
+
+void regresar_tripulante(t_tripulante* tripulante){
+	// Muevo al tripulante a la posicion de su tarea
+	while(!esta_en_el_lugar(tripulante->posicion, tripulante->tarea_act->posicion)){
+		enviar_mover_hacia(tripulante,avanzar_hacia(tripulante, posicion_sabotaje, true));
+	}
 }
