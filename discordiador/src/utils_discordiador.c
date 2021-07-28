@@ -89,6 +89,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			detener_tripulantes();
 			planificar_tripulante_para_sabotaje(cliente_fd);
+			desbloquear_sabotaje();
 			free(posicion_sabotaje);
 			break;
 	}
@@ -96,14 +97,14 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 }
 
 void detener_tripulantes(){
-
+	bloquear_sabotaje();
 	for(int i=0; i<list_size(lista_exec); i++){
 		pthread_mutex_lock(&mutex_cola_exec);
 		p_tripulante* tripulante_plani = (p_tripulante*) list_get(lista_exec,i);
 		pthread_mutex_unlock(&mutex_cola_exec);
 
 		log_info(logger, "Detenemos al tripulante %d en EXEC", tripulante_plani->tripulante->id);
-		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+//		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 
 		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
 	}
@@ -131,9 +132,45 @@ void detener_tripulantes(){
 			);
 }
 
+void bloquear_sabotaje(){
+	pthread_mutex_lock(&mutex_sabotajes);
+	pthread_mutex_lock(&mutex_sabotajes_bloqueados_io);
+	for(int i=0; i<grado_multitarea; i++){
+		sem_post(&semaforo_cola_bloqueados_sabotaje);
+	}
+}
+
+void desbloquear_sabotaje(){
+	pthread_mutex_unlock(&mutex_sabotajes);
+	pthread_mutex_unlock(&mutex_sabotajes_bloqueados_io);
+	for(int i=0; i<grado_multitarea; i++){
+		sem_wait(&semaforo_cola_bloqueados_sabotaje);
+	}
+}
+
+
+bool verificar_sabotaje_cpu(){
+	sem_wait(&semaforo_cola_bloqueados_sabotaje);
+	sem_post(&semaforo_cola_bloqueados_sabotaje);
+
+	return true;
+}
+
+bool verificar_sabotaje_io(){
+	pthread_mutex_lock(&mutex_sabotajes_bloqueados_io);
+	pthread_mutex_unlock(&mutex_sabotajes_bloqueados_io);
+
+	return true;
+}
 
 void rafaga_cpu(uint32_t tiempo){
-	sleep(retardo_ciclo_cpu * tiempo);
+	for(int i=0; i<tiempo && verificar_sabotaje_cpu(); i++)
+		sleep(retardo_ciclo_cpu);
+}
+
+void rafaga_block_io(uint32_t tiempo){
+	for(int i=0; i<tiempo && verificar_sabotaje_io(); i++)
+		sleep(retardo_ciclo_cpu);
 }
 
 char* obtener_estado_segun_caracter(char estado) {

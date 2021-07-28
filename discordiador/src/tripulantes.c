@@ -128,6 +128,7 @@ bool verificar_estado(t_tripulante* tripulante){
 bool puedo_seguir(p_tripulante* tripulante_plani){
 	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 	pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+	verificar_sabotaje_cpu();
 
 	return verificar_estado(tripulante_plani->tripulante);
 }

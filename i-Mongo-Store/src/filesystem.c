@@ -21,6 +21,7 @@ void inicializar_paths_aux(){
 	path_bitacoras = string_new();
 
 	pthread_mutex_init(&mutex_bitmap, NULL);
+	pthread_mutex_init(&mutex_Tareas, NULL);
 
 	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
 	string_append_with_format(&path_blocks, "%s/Blocks.ims", punto_montaje);

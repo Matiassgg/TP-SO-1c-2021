@@ -37,6 +37,7 @@ t_bitarray* bitmap;
 void* contenido_blocks;
 void* contenido_blocks_aux;
 pthread_mutex_t mutex_FS;
+pthread_mutex_t mutex_Tareas;
 
 char* path_files;
 char* path_blocks;

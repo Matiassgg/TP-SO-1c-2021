@@ -14,11 +14,15 @@ void preparar_planificacion(){
 	pthread_mutex_init(&mutex_cola_exec, NULL);
 	pthread_mutex_init(&mutex_cola_bloqueados_io, NULL);
 	pthread_mutex_init(&mutex_planificacion_bloqueados_sabotajes, NULL);
+	pthread_mutex_init(&mutex_sabotajes, NULL);
+	pthread_mutex_init(&mutex_sabotajes_bloqueados_io, NULL);
+
 	sem_init(&semaforo_planificacion, 0, 0);
 	sem_init(&semaforo_cola_ready, 0, 0);
 	sem_init(&semaforo_cola_exec, 0, 0);
 	sem_init(&semaforo_cola_bloqueados_io, 0, 0);
 	sem_init(&semaforo_cola_bloqueados_sabotaje, 0, 0);
+
 	planificacion_corto_plazo = convertir(algoritmo);
 
 	if(algoritmo == NULL)
@@ -58,7 +62,7 @@ void planificar_tripulantes_bloqueados(){
 
 			log_info(logger, "El tripulante %i iniciara la tarea en E/S %s por %i ciclos", tripulante_plani->tripulante->id, tripulante_plani->tripulante->tarea_act->tarea, tripulante_plani->tripulante->tarea_act->tiempo);
 
-			rafaga_cpu(tripulante_plani->tripulante->tarea_act->tiempo);
+			rafaga_block_io(tripulante_plani->tripulante->tarea_act->tiempo);
 			tripulante_plani->tripulante->tarea_act->tiempo = 0;
 
 		}

@@ -149,6 +149,7 @@ void subir_a_bitacora(char* informacion,uint32_t id_tripulante){
 }
 
 void verificar_archivo_tarea(t_tarea_Mongo* tarea){
+	pthread_mutex_lock(&mutex_Tareas);
 	if(son_iguales(tarea->tarea,"GENERAR_OXIGENO") || son_iguales(tarea->tarea,"CONSUMIR_OXIGENO")){
 		if(archivo_recursos_existe("Oxigeno.ims"))
 			procesar_tarea(tarea);
@@ -171,6 +172,7 @@ void verificar_archivo_tarea(t_tarea_Mongo* tarea){
 			procesar_tarea(tarea);
 		}
 	}
+	pthread_mutex_unlock(&mutex_Tareas);
 
 }
 

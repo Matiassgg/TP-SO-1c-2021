@@ -59,8 +59,10 @@ sem_t semaforo_planificacion;
 sem_t semaforo_cola_ready;
 sem_t semaforo_cola_exec;
 sem_t semaforo_cola_bloqueados_io;
+
 sem_t semaforo_cola_bloqueados_sabotaje;
-sem_t semaforo_cola_bloqueados_sabotaje_tripulantes;
+pthread_mutex_t mutex_sabotajes;
+pthread_mutex_t mutex_sabotajes_bloqueados_io;
 
 uint32_t cantidad_patotas;
 uint32_t cantidad_tripulantes;
@@ -69,9 +71,14 @@ void arrancar_servidor(void);
 void serve_client(int*);
 void procesar_mensaje_recibido(int, int);
 void rafaga_cpu(uint32_t tiempo);
+void rafaga_block_io(uint32_t tiempo);
 char* obtener_estado_segun_caracter(char);
 int conectar_con_RAM(void);
 int conectar_con_MONGO(void);
+void bloquear_sabotaje();
+void desbloquear_sabotaje();
+bool verificar_sabotaje_cpu();
+bool verificar_sabotaje_io();
 void detener_tripulantes(void);
 bool posicion_mas_cercana(t_posicion*,t_posicion*,t_posicion*);
 void planificar_tripulante_para_sabotaje(int);
