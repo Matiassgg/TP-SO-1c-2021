@@ -40,6 +40,7 @@ t_queue* cola_bloq_Emergencia;
 t_list* lista_bloq_Emergencia;
 t_list* lista_exec;
 t_list* lista_expulsados;
+t_list* lista_tripulantes_plani;
 
 typedef struct {
 	t_tripulante* tripulante;
@@ -76,8 +77,8 @@ void rafaga_block_io(uint32_t tiempo);
 char* obtener_estado_segun_caracter(char);
 int conectar_con_RAM(void);
 int conectar_con_MONGO(void);
-void bloquear_sabotaje();
-void desbloquear_sabotaje();
+void bloquear_por_sabotaje();
+void desbloquear_por_sabotaje();
 bool verificar_sabotaje_cpu();
 bool verificar_sabotaje_io();
 void detener_tripulantes(void);

@@ -81,8 +81,6 @@ INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaC.txt 3|3
 INICIAR_PLANIFICACION
 LISTAR_TRIPULANTES
 
-PAUSAR_PLANIFICACION
-
 Enviar la señal para el DUMP de la memoria. (SIGUSR2)
 Una vez iniciada la planificación esperar 10 ciclos de CPU y ejecutar los siguientes comandos.
 EXPULSAR_TRIPULANTE 1

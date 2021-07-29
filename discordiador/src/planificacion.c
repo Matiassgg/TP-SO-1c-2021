@@ -53,17 +53,19 @@ void planificar_patota(t_patota* patota){
 void planificar_tripulantes_bloqueados(){
 	while(1){
 		while (!cola_bloqueados_vacia()) {
+			verificar_sabotaje_io();
 			pthread_mutex_lock(&mutex_cola_bloqueados_io);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_bloq_E_S);
 			pthread_mutex_unlock(&mutex_cola_bloqueados_io);
 
 //			pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
-			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 
 			log_info(logger, "El tripulante %i iniciara la tarea en E/S %s por %i ciclos", tripulante_plani->tripulante->id, tripulante_plani->tripulante->tarea_act->tarea, tripulante_plani->tripulante->tarea_act->tiempo);
 
 			rafaga_block_io(tripulante_plani->tripulante->tarea_act->tiempo);
 			tripulante_plani->tripulante->tarea_act->tiempo = 0;
+
+			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion); // SE LIBERA AVISANDO QUE TERMINO
 
 		}
 	}
@@ -79,7 +81,9 @@ void arrancar_planificacion(){
 	pthread_create(&planificador_bloqueados, NULL, (void*) planificar_tripulantes_bloqueados, NULL);
 	pthread_detach(planificador_bloqueados);
 
-	desbloquear_sabotaje();
+	for(int i=0; i<grado_multitarea; i++){
+		sem_post(&semaforo_cola_bloqueados_sabotaje);
+	}
 }
 
 void iniciar_planificacion(){
@@ -176,7 +180,7 @@ void planificacion_segun_RR() {
 }
 
 void finalizar_tripulante_plani(uint32_t id_tripulante) {
-	// ??
+	list_add(lista_expulsados, id_tripulante);
 }
 
 void crear_colas_planificacion() {
@@ -189,6 +193,7 @@ void crear_colas_planificacion() {
 	lista_expulsados = list_create();
 	lista_bloq_Emergencia = list_create();
 	lista_exec = list_create();
+	lista_tripulantes_plani = list_create();
 }
 
 

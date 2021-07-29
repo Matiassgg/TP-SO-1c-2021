@@ -49,6 +49,8 @@ void expulsar_tripulante(t_tripulante* tripulante){
 
 	log_info(logger, "Se expulso el tripulante %i", tripulante->id);
 
+	liberar_tripulante_plani(quitar_tripulante_plani(tripulante->id));
+
 	free(tripulante->posicion);
 	free(tripulante->tarea_act);
 	liberar_conexion(&tripulante->socket_conexion_Mongo);
@@ -72,31 +74,42 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 	while(tripulante->tarea_act && (tripulante->estado != EXIT)){
 		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
 		tripulante_plani->tripulante = tripulante;
-		tripulante_plani->esta_activo = true;
 
 		pthread_mutex_init(&tripulante_plani->mutex_solicitud, NULL);
 		pthread_mutex_init(&tripulante_plani->mutex_ejecucion, NULL);
 		pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
 		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+		tripulante_plani->esta_activo = true;
+		list_add(lista_tripulantes_plani, tripulante_plani);
 
 		subir_tripulante_ready(tripulante_plani);
 
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion, true));
 		}
-		if(!puedo_seguir(tripulante_plani))
-			break;
-		while(tripulante->tarea_act->tiempo > 0 && puedo_seguir(tripulante_plani))
-			hacer_tarea(tripulante_plani);
-		if(puedo_seguir(tripulante_plani) && tripulante->tarea_act->tiempo <= 0){
-			log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
-			enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
-		}
-		tripulante_plani->esta_activo = false;
-		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		if(!verificar_estado(tripulante))
 			break;
-		solicitar_tarea(tripulante);
+
+		else{
+			while(tripulante->tarea_act->tiempo > 0 && puedo_seguir(tripulante_plani))
+				hacer_tarea(tripulante_plani);
+
+			if(!verificar_estado(tripulante))
+				break;
+
+			if(puedo_seguir(tripulante_plani) && tripulante->tarea_act->tiempo <= 0){
+				log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
+				enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
+			}
+
+			tripulante_plani->esta_activo = false;
+			pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
+			if(!verificar_estado(tripulante))
+				break;
+
+			else
+				solicitar_tarea(tripulante);
+		}
 	}
 
 	expulsar_tripulante(tripulante);
@@ -115,8 +128,10 @@ void actualizar_estado(t_tripulante* tripulante){
 	}
 
 	if(list_any_satisfy(lista_expulsados, (void*) esta_expulsado)){
-		tripulante->estado = EXIT;
-		log_info(logger, "El tripulante %i esta en estado EXIT", tripulante->id);
+		if(tripulante->estado != EXIT){
+			tripulante->estado = EXIT;
+			log_info(logger, "El tripulante %i esta en estado EXIT", tripulante->id);
+		}
 	}
 }
 

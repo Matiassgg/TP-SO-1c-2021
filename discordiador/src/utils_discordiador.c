@@ -89,15 +89,51 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			detener_tripulantes();
 			planificar_tripulante_para_sabotaje(cliente_fd);
-			desbloquear_sabotaje();
+			desbloquear_por_sabotaje();
 			free(posicion_sabotaje);
 			break;
 	}
 
 }
 
+void liberar_tripulante_plani(p_tripulante* tripulante_plani){
+	if(tripulante_plani == NULL)
+		return;
+	pthread_mutex_destroy(&tripulante_plani->mutex_ejecucion);
+	pthread_mutex_destroy(&tripulante_plani->mutex_solicitud);
+//	free(tripulante_plani);
+}
+
+p_tripulante* quitar_tripulante_plani(uint32_t id_tripulante){
+	bool es_id(p_tripulante* tripulante_plani){
+		return id_tripulante == tripulante_plani->tripulante->id;
+	}
+	bool es_id_tripulante(t_tripulante* tripulante){
+		return id_tripulante == tripulante->id;
+	}
+
+	p_tripulante* tripulante_plani = list_remove_by_condition(lista_tripulantes_plani,es_id);
+	if(tripulante_plani != NULL){
+		switch(tripulante_plani->tripulante->estado){
+			case READY:
+				for(int i=0; i<queue_size(cola_ready); i++){
+					pthread_mutex_lock(&mutex_cola_ready);
+					p_tripulante* tripulante_plani_aux = (p_tripulante*) queue_pop(cola_ready);
+					if(tripulante_plani_aux->tripulante->id != id_tripulante)
+						queue_push(cola_ready, tripulante_plani_aux); // se devuelven a la cola
+					pthread_mutex_unlock(&mutex_cola_ready);
+				}
+				break;
+			case EXEC:
+				list_remove_by_condition(lista_exec,es_id_tripulante);
+		}
+	}
+
+	return tripulante_plani;
+}
+
 void detener_tripulantes(){
-	bloquear_sabotaje();
+	bloquear_por_sabotaje();
 	for(int i=0; i<list_size(lista_exec); i++){
 		pthread_mutex_lock(&mutex_cola_exec);
 		p_tripulante* tripulante_plani = (p_tripulante*) list_get(lista_exec,i);
@@ -111,19 +147,21 @@ void detener_tripulantes(){
 	for(int i=0; i<queue_size(cola_ready); i++){
 		pthread_mutex_lock(&mutex_cola_ready);
 		p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
+		queue_push(cola_ready, tripulante_plani); // se devuelven a la cola
 		pthread_mutex_unlock(&mutex_cola_ready);
 
 		log_info(logger, "Detenemos al tripulante %d en READY", tripulante_plani->tripulante->id);
 		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
 	}
-	for(int i=0; i<queue_size(cola_bloq_E_S); i++){
-		pthread_mutex_lock(&mutex_cola_bloqueados_io);
-		p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_bloq_E_S);
-		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
-
-		log_info(logger, "Detenemos al tripulante %d en BLOQ I/O", tripulante_plani->tripulante->id);
-		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
-	}
+//	for(int i=0; i<queue_size(cola_bloq_E_S); i++){
+//		pthread_mutex_lock(&mutex_cola_bloqueados_io);
+//		p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_bloq_E_S);
+//		queue_push(cola_bloq_E_S, tripulante_plani); // se devuelven a la cola
+//		pthread_mutex_unlock(&mutex_cola_bloqueados_io);
+//
+//		log_info(logger, "Detenemos al tripulante %d en BLOQ I/O", tripulante_plani->tripulante->id);
+//		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
+//	}
 
 	log_info(logger,
 			"Detuvimos a los tripulantes durante el sabotaje en la posicion %d|%d",
@@ -132,7 +170,7 @@ void detener_tripulantes(){
 			);
 }
 
-void bloquear_sabotaje(){
+void bloquear_por_sabotaje(){
 	pthread_mutex_lock(&mutex_sabotajes);
 	pthread_mutex_lock(&mutex_sabotajes_bloqueados_io);
 	for(int i=0; i<grado_multitarea; i++){
@@ -140,7 +178,7 @@ void bloquear_sabotaje(){
 	}
 }
 
-void desbloquear_sabotaje(){
+void desbloquear_por_sabotaje(){
 	pthread_mutex_unlock(&mutex_sabotajes);
 	pthread_mutex_unlock(&mutex_sabotajes_bloqueados_io);
 	for(int i=0; i<grado_multitarea; i++){
@@ -331,6 +369,10 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 		return posicion_mas_cercana(tripulante_A->posicion, tripulante_B->posicion, posicion_sabotaje);
 	}
 
+	bool ordenar_segun_id(t_tripulante* tripulante_A, t_tripulante* tripulante_B) {
+		return tripulante_A->id < tripulante_B->id;
+	}
+
 	t_list* tripulantes = list_filter(lista_bloq_Emergencia, tripulante_en_exec_o_ready);
 
 	if(list_size(tripulantes) == 0 || list_size(lista_expulsados) == cantidad_tripulantes){
@@ -338,6 +380,7 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 		return;
 	}
 
+	list_sort(tripulantes, ordenar_segun_id);
 	list_sort(tripulantes, ordenar_segun_posicion);
 	t_tripulante* tripulante_mas_cercano = list_get(tripulantes, 0);
 
