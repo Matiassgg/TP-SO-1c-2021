@@ -199,61 +199,14 @@ bool detectar_sabotaje_files_size(t_config* archivo_recurso){
 //	Ej. OOOOOOOOOOOOOOOOOOOOOOOOO recorremos hasta encontrar el primer carácter que no es una O, llegué al size 400, ese será el size del archivo.
 //	PONER UN CENTINELA PARA DECIR HASTA ACÁ LLEGUE
 	uint32_t supuesto_size = config_get_int_value(archivo_recurso,"SIZE");
-	uint32_t cantidad_real_caracteres = 0; // FALTA CALCULAR
+	char* caracteres = obtener_caracteres_de_file(archivo_recurso);
+	uint32_t cantidad_real_caracteres = string_length(caracteres); // FALTA CALCULAR
 	if(supuesto_size != cantidad_real_caracteres){
 		resolver_sabotaje_files_size(archivo_recurso, cantidad_real_caracteres);
 		return 1;
 	}
 	else
 		return 0;
-}
-
-char* obtener_caracteres(t_list* bloques, char caracter_llenado){
-//	int tam = 0;
-//	char* stream = string_duplicate("hola");
-//	tam = string_length(stream);
-//	void* aux = calloc(1,10);
-//	memcpy(aux, stream, tam);
-//	printf("stream %s tam %i\n", aux, tam);
-//
-//
-////	string_append(&stream, "\0");
-//	tam = string_length(stream)+1;
-//	printf("stream %s tam %i\n", aux, tam);
-//	char* caracteres_nuevos = string_new();
-//	int bloque=0;
-//	int offset_bloque = 0;
-//	int offset = 0;
-//
-//	do{
-//		memcpy(caracteres_nuevos+offset, aux + offset_bloque + offset, 1);
-//		printf("caracteres_nuevos %s\n", caracteres_nuevos);
-//		offset++;
-//	}while(caracteres_nuevos[offset]);
-
-	char* leido = string_new();
-	char* caracter = calloc(2,sizeof(char));
-
-	int offset_bloque = 0;
-	int offset = 0;
-	int bloques_leidos = 0;
-
-	offset_bloque = (uint32_t) list_get(bloques, bloques_leidos) * block_size;
-	memcpy(caracter, contenido_blocks_aux + offset_bloque + offset, 1);
-	offset++;
-	while(caracter != '\0' || caracter != caracter_llenado){
-		string_append(&leido, caracter);
-		memcpy(caracter, contenido_blocks_aux + offset_bloque + offset, 1);
-		offset++;
-		if(offset >= block_size){
-			offset_bloque = (uint32_t) list_get(bloques, ++bloques_leidos) * block_size;
-			offset = 0;
-		}
-	}
-	free(caracter);
-
-	return leido;
-
 }
 
 void resolver_sabotaje_files_size(t_config* archivo_recurso, uint32_t cantidad_real_caracteres){
@@ -264,8 +217,7 @@ void resolver_sabotaje_files_size(t_config* archivo_recurso, uint32_t cantidad_r
 }
 
 bool detectar_sabotaje_files_blockcount(t_config* archivo_recurso){
-	t_list* bloques = list_create();
-	sumar_bloques_config(bloques,archivo_recurso);
+	t_list* bloques = obtener_bloques_totales(archivo_recurso);
 	uint32_t cantidad_bloques = list_size(bloques);
 
 	uint32_t block_count = config_get_int_value(archivo_recurso,"BLOCK_COUNT");

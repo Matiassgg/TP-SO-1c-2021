@@ -31,6 +31,9 @@ t_bitarray* leer_bitmap();
 void subir_bitmap(t_bitarray* bitarray);
 char* dar_hash_md5(char* archivo);
 char* obtener_hashmd5_string(char* stream);
+char* obtener_caracteres_de_file(t_config* file_recurso);
+char* obtener_caracteres(t_list* bloques, char caracter_llenado);
+char* obtener_caracteres2(t_list* bloques);
 
 
 t_bitarray* crear_bitmap(void);

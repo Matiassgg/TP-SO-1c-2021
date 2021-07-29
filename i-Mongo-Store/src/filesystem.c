@@ -549,17 +549,20 @@ void actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* confi
 void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, int size){
 	log_info(logger, "\n ~~size %i~~ \n", size);
 	t_list* bloques_a_subir;
-	if(size < 0)
+	int size_old = config_get_int_value(config, "SIZE");
+	int size_total = size_old+size;
+	if(size < 0){
+		if(size_total < 0)
+			size_total = 0;
 		bloques_a_subir = sacar_bloques_config(bloques, config);
+	}
 	else
 		bloques_a_subir = sumar_bloques_config(bloques, config);
 
 	log_info(logger, "\n ~~BLOCK_COUNT %i~~ \n", list_size(bloques_a_subir));
 
-	int size_old = config_get_int_value(config, "SIZE");
-	int size_total = size_old+size;
-	char* stream_aux = obtener_stream_blocks(bloques_a_subir);
 	config_set_value(config,"SIZE", string_itoa(size_total));
+	char* stream_aux = obtener_stream_blocks(bloques_a_subir);
 	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques_a_subir)));
 	config_set_value(config,"BLOCKS",stream_aux);
 	free(stream_aux);
@@ -805,7 +808,127 @@ void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
 	log_info(logger, "Se eliminaron %i caracteres %c de llenado", cantidad, caracter);
 }
 
+char* obtener_caracteres_de_file(t_config* file_recurso){
+	t_list* bloques = list_create();
+	char** bloques_config = config_get_array_value(config, "BLOCKS");
+	for(int i=0; bloques_config[i];i++){
+		list_add(bloques, atoi(bloques_config[i]));
+	}
 
+
+	char* caracteres = obtener_caracteres2(bloques);
+
+	list_destroy(bloques);
+	string_iterate_lines(bloques_config, free);
+
+	return caracteres;
+}
+
+char* obtener_caracteres(t_list* bloques, char caracter_llenado){
+//	int tam = 0;
+//	char* stream = string_duplicate("hola");
+//	tam = string_length(stream);
+//	void* aux = calloc(1,10);
+//	memcpy(aux, stream, tam);
+//	printf("stream %s tam %i\n", aux, tam);
+//
+//
+////	string_append(&stream, "\0");
+//	tam = string_length(stream)+1;
+//	printf("stream %s tam %i\n", aux, tam);
+//	char* caracteres_nuevos = string_new();
+//	int bloque=0;
+//	int offset_bloque = 0;
+//	int offset = 0;
+//
+//	do{
+//		memcpy(caracteres_nuevos+offset, aux + offset_bloque + offset, 1);
+//		printf("caracteres_nuevos %s\n", caracteres_nuevos);
+//		offset++;
+//	}while(caracteres_nuevos[offset]);
+
+	char* leido = string_new();
+	char* caracter = calloc(2,sizeof(char));
+
+	int offset_bloque = 0;
+	int offset = 0;
+	int bloques_leidos = 0;
+
+	offset_bloque = (uint32_t) list_get(bloques, bloques_leidos) * block_size;
+	memcpy(caracter, contenido_blocks_aux + offset_bloque + offset, 1);
+	offset++;
+	while(caracter[0] != '\0' || caracter[0] != caracter_llenado){
+		string_append(&leido, caracter);
+		memcpy(caracter, contenido_blocks_aux + offset_bloque + offset, 1);
+		offset++;
+		if(offset >= block_size){
+			offset_bloque = (uint32_t) list_get(bloques, ++bloques_leidos) * block_size;
+			offset = 0;
+		}
+	}
+	free(caracter);
+
+	return leido;
+
+}
+
+char* obtener_caracteres2(t_list* bloques){
+//	char* test = string_duplicate("AAAAA");
+//	char* test_2 = string_duplicate("AAAAA");
+//	char* test_3 = string_duplicate("AAA");
+//
+//	char* stream_1 = string_new();
+//	string_append(&stream_1, test);
+//	string_append(&stream_1, test_2);
+//	string_append(&stream_1, test_3);
+//
+//	printf("stream leido %s size %i\n",stream_1, string_length(stream_1));
+//	void* aux = malloc(20);
+//	int offset = 0;
+//	memcpy(aux + offset,test,string_length(test));
+//	offset += string_length(test);
+//	memcpy(aux + offset,test_2,string_length(test_2));
+//	offset += string_length(test_2);
+//	memcpy(aux + offset,test_3,string_length(test_3)+1);
+//	offset += string_length(test_3)+1;
+//
+//	char* aux_1 = calloc(1, 5);
+//	char* aux_2 = calloc(1, 5);
+//	char* aux_3 = calloc(1, 5);
+//
+//
+//	int offset_2 = 0;
+//	memcpy(aux_1,aux + offset_2,5);
+//	offset_2 += 5;
+//	memcpy(aux_2,aux + offset_2,5);
+//	offset_2 += 5;
+//	memcpy(aux_3,aux + offset_2,5);
+//	offset_2 += 5;
+//
+//	char* stream = string_new();
+//	string_append(&stream, aux_1);
+//	string_append(&stream, aux_2);
+//	string_append(&stream, aux_3);
+//
+//	printf("stream leido %s size %i\n",stream, string_length(stream));
+
+	char* stream = string_new();
+
+	for(int i=0; i<list_size(bloques); i++){
+		char* aux = calloc(1, block_size);
+		int nro_bloque = (uint32_t) list_get(bloques, i) * block_size;
+		memcpy(aux, contenido_blocks_aux + nro_bloque, 1);
+		string_append(&stream, aux);
+		if(string_length(aux)<block_size){
+			free(aux);
+			break;
+		}
+		free(aux);
+	}
+
+	return stream;
+
+}
 
 
 

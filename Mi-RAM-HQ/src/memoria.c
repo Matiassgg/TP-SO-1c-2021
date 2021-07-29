@@ -385,6 +385,7 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 }
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
 	t_tarea* tarea;
 
@@ -395,6 +396,7 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		tarea = obtener_tarea_paginacion(tripulante);
 
 	pthread_mutex_unlock(&mutex_tocar_memoria_tareas);
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 
 	return tarea;
 }
@@ -631,6 +633,8 @@ void modificar_memoria_estado_tripulante(t_tripulante* tripulante,char nuevo_est
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ordenar_segmentos(){
+	pthread_mutex_lock(&mutex_tocar_memoria);
+	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
 	pthread_mutex_lock(&mutex_tablas);
 	uint32_t inicio_nuevo = 0;
 	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
@@ -667,6 +671,8 @@ void ordenar_segmentos(){
 	log_info(logger, "COMPACTACION :: Se creo el nuevo segmento libre");
 
 	pthread_mutex_unlock(&mutex_tablas);
+	pthread_mutex_unlock(&mutex_tocar_memoria_tareas);
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void compactar_memoria(int signum) {
