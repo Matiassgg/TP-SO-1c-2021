@@ -273,17 +273,22 @@ int crear_archivo_recursos(char* nombreArchivo, char caracter_llenado){
 
 int crear_archivo_bitacora(uint32_t id_tripulante){
 	char* ruta_archivo_bitacora = path_bitacora_tripulante(id_tripulante);
-	FILE* archivo = fopen(ruta_archivo_bitacora, "w+");
-	if(archivo){
-		char* file_generico = string_duplicate("SIZE=0\nBLOCKS=[]");
-		fwrite(file_generico,string_length(file_generico),1,archivo);
+	if(!archivo_existe(ruta_archivo_bitacora)){
+		FILE* archivo = fopen(ruta_archivo_bitacora, "w+");
+		if(archivo){
+			char* file_generico = string_duplicate("SIZE=0\nBLOCKS=[]");
+			fwrite(file_generico,string_length(file_generico),1,archivo);
 
-		fclose(archivo);
+			fclose(archivo);
+			free(ruta_archivo_bitacora);
+			return 1;
+		}
 		free(ruta_archivo_bitacora);
-		return 1;
+		return 0;
 	}
-	free(ruta_archivo_bitacora);
-	return 0;
+	else{
+		return 2;
+	}
 }
 
 int eliminar_archivo_recursos(char* nombreArchivo){

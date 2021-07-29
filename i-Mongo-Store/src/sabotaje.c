@@ -35,11 +35,11 @@ void verificar_sabotajes() {
 
 void resolver_sabotaje(t_tripulante* tripulante){
 	if(detectar_algun_sabotaje_en_superbloque())
-		log_info(logger, "El tripulante %i resolvio el sabotaje en el superbloque");
+		log_info(logger, "El tripulante %i resolvio el sabotaje en el superbloque", tripulante->id);
 	else if(detectar_algun_sabotaje_en_files())
-		log_info(logger, "El tripulante %i resolvio el sabotaje en files");
+		log_info(logger, "El tripulante %i resolvio el sabotaje en files", tripulante->id);
 	else
-		log_warning(logger, "No se detectaron sabotajes");
+		log_warning(logger, "El tripulante %i no detecto sabotajes", tripulante->id);
 }
 
 bool detectar_algun_sabotaje_en_superbloque(){
@@ -98,7 +98,10 @@ bool detectar_sabotaje_superbloque_bitmap(){
 	pthread_mutex_lock(&mutex_bitmap);
 	t_bitarray* bitarray = leer_bitmap();
 
+	log_info(logger, "size bloques usados %i size bitarray %i", list_size(bloques_usados), bitarray_get_max_bit(bitarray));
+
 	bool inconsistencia_bitmap(int bloque){
+		log_info(logger, "El bloque usado %i esta en %i", bloque, bitarray_test_bit(bitarray,bloque));
 		return bitarray_test_bit(bitarray,bloque)==0;
 	}
 
@@ -109,8 +112,12 @@ bool detectar_sabotaje_superbloque_bitmap(){
 				return i != bloque;
 			}
 
-			if(bitarray_test_bit(bitarray,i)==1 && list_all_satisfy(bloques_usados,no_esta_presente))
+			log_info(logger, "El bloque %i esta en %i", i, bitarray_test_bit(bitarray,i));
+			if(bitarray_test_bit(bitarray,i)==1 && list_all_satisfy(bloques_usados,no_esta_presente)){
+				log_warning(logger, "El bloque %i esta en %i", i, bitarray_test_bit(bitarray,i));
+				sleep(10);
 				return 1;
+			}
 		}
 		return 0;
 	}
@@ -276,10 +283,11 @@ t_list* listaArchivosDeBitacora() {
 	d = opendir(path_bitacoras);
 	if (d) {
 		while ((dir = readdir(d)) != NULL) {
-			if( son_iguales( dir->d_name, "." ) != 0 &&
-					son_iguales( dir->d_name, ".." ) != 0){
+			if( !son_iguales( dir->d_name, "." ) &&
+					!son_iguales( dir->d_name, ".." )){
 
 				char* cadena = string_duplicate(dir->d_name);
+				log_info(logger, "Se detecto la bitacora %s", cadena);
 				list_add(listaArchivos,cadena);
 
 			}
@@ -287,14 +295,22 @@ t_list* listaArchivosDeBitacora() {
 		closedir(d);
 	}
 
+
+
 	return listaArchivos;
 }
 
 t_list* obtener_bloques_usados(){
+	bool ordenar_bloques(int bloque_1, int bloque_2){
+		return bloque_1 < bloque_2;
+	}
 	t_list* lista_bloques = list_create();
 
+	log_info(logger, "Se van a obtener los bloques de los archivos de recursos");
 	list_add_all(lista_bloques,obtener_bloques_recursos());
+	log_info(logger, "Se van a obtener los bloques de las bitacoras");
 	list_add_all(lista_bloques,obtener_bloques_bitacora());
+	list_sort(lista_bloques,ordenar_bloques);
 
 	return lista_bloques;
 }
@@ -325,6 +341,7 @@ t_list* obtener_bloques_recursos(){
 }
 
 t_list* obtener_bloques_bitacora(){
+	log_info(logger, "Se entra a obtener_bloques_bitacora");
 
 	t_list* lista_bloques = list_create();
 	t_list* listaArchivos = listaArchivosDeBitacora();
@@ -340,6 +357,7 @@ t_list* obtener_bloques_bitacora(){
 	}
 
 	list_iterate(listaArchivos,traer_bloques_bitacoras);
+	log_info(logger, "Se itero la lista de bitacoras con tamaño %i", list_size(listaArchivos));
 	list_destroy(listaArchivos);
 	return lista_bloques;
 }

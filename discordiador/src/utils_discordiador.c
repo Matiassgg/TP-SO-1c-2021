@@ -362,6 +362,6 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 void regresar_tripulante(t_tripulante* tripulante){
 	// Muevo al tripulante a la posicion de su tarea
 	while(!esta_en_el_lugar(tripulante->posicion, tripulante->tarea_act->posicion)){
-		enviar_mover_hacia(tripulante,avanzar_hacia(tripulante, posicion_sabotaje, true));
+		enviar_mover_hacia(tripulante,avanzar_hacia(tripulante, tripulante->tarea_act->posicion, true));
 	}
 }

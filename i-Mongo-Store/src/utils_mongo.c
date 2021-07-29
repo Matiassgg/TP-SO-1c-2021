@@ -72,7 +72,12 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			log_info(logger, "Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
 
-			crear_archivo_bitacora(tripulante->id);
+			if(crear_archivo_bitacora(tripulante->id)==1)
+				log_info(logger, "Se creo correctamente la bitacora del tripulante %i", tripulante->id);
+			else if(crear_archivo_bitacora(tripulante->id) == 2)
+				log_info(logger, "Ya existia la bitacora del tripulante %i", tripulante->id);
+			else
+				log_error(logger, "No se creo correctamente la bitacora del tripulante %i", tripulante->id);
 
 			free(tripulante);
 		break;
