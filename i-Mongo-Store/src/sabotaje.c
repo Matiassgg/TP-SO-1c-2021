@@ -208,6 +208,54 @@ bool detectar_sabotaje_files_size(t_config* archivo_recurso){
 		return 0;
 }
 
+char* obtener_caracteres(t_list* bloques, char caracter_llenado){
+//	int tam = 0;
+//	char* stream = string_duplicate("hola");
+//	tam = string_length(stream);
+//	void* aux = calloc(1,10);
+//	memcpy(aux, stream, tam);
+//	printf("stream %s tam %i\n", aux, tam);
+//
+//
+////	string_append(&stream, "\0");
+//	tam = string_length(stream)+1;
+//	printf("stream %s tam %i\n", aux, tam);
+//	char* caracteres_nuevos = string_new();
+//	int bloque=0;
+//	int offset_bloque = 0;
+//	int offset = 0;
+//
+//	do{
+//		memcpy(caracteres_nuevos+offset, aux + offset_bloque + offset, 1);
+//		printf("caracteres_nuevos %s\n", caracteres_nuevos);
+//		offset++;
+//	}while(caracteres_nuevos[offset]);
+
+	char* leido = string_new();
+	char* caracter = calloc(2,sizeof(char));
+
+	int offset_bloque = 0;
+	int offset = 0;
+	int bloques_leidos = 0;
+
+	offset_bloque = (uint32_t) list_get(bloques, bloques_leidos) * block_size;
+	memcpy(caracter, contenido_blocks_aux + offset_bloque + offset, 1);
+	offset++;
+	while(caracter != '\0' || caracter != caracter_llenado){
+		string_append(&leido, caracter);
+		memcpy(caracter, contenido_blocks_aux + offset_bloque + offset, 1);
+		offset++;
+		if(offset >= block_size){
+			offset_bloque = (uint32_t) list_get(bloques, ++bloques_leidos) * block_size;
+			offset = 0;
+		}
+	}
+	free(caracter);
+
+	return leido;
+
+}
+
 void resolver_sabotaje_files_size(t_config* archivo_recurso, uint32_t cantidad_real_caracteres){
 	log_info(logger, "Se entra a resolver el sabotaje en el campo size del file %s", archivo_recurso->path);
 	config_set_value(archivo_recurso,"SIZE",string_itoa(cantidad_real_caracteres));
@@ -238,30 +286,63 @@ void resolver_sabotaje_files_blockcount(t_config* archivo_recurso, uint32_t cant
 	config_destroy(archivo_recurso);
 }
 
+//char* leer_blocks_sabotaje(t_list* bloques, int size){
+//	char* informacion = malloc(size+1);
+//	uint32_t offset = 0;
+//	int tamanio_total = size;
+//	for(int i=0;i<list_size(bloques);i++){
+//		uint32_t bloque = (uint32_t) list_get(bloques,i);
+//		int tamanio_leer = minimo(tamanio_total, block_size);
+//		memcpy(informacion + offset, contenido_blocks_aux + (bloque*block_size), tamanio_leer);
+//		offset += tamanio_leer;
+//		tamanio_total -= block_size;
+//	}
+//
+//	return informacion;
+//}
+
 bool detectar_sabotaje_files_blocks(t_config* archivo_recurso){
 	//TODO
 	//Lista de blocks alterado.
 	//Entra en juego el md5_archivo. Concatenamos los bloques, calculamos el md5 hasta el size, y lo comparamos con el md5 que tenemos guardado.
 	//Si no coinciden restaurar archivo, escribiendo tantos caracteres de llenado hasta completar el size, en el orden de bloques que tenemos
 	char* md5_guardado = config_get_string_value(archivo_recurso,"MD5_ARCHIVO");
-	char* calcular_md5 = ""; // CALCULAR
+	char* caracteres_de_llenado = leer_FS(archivo_recurso->path);
+	char* calcular_md5 = obtener_hashmd5_string(caracteres_de_llenado);
+	free(caracteres_de_llenado);
 
-	if(md5_guardado != calcular_md5){
+	if(!son_iguales(md5_guardado,calcular_md5)){
 		log_info(logger,"MD5 GUARDADO: %s -- MD5 RECALCULADO: %s",md5_guardado,calcular_md5);
-		char* bloques_reales; //generar_bloques();
-		resolver_sabotaje_files_blocks(archivo_recurso, bloques_reales);
+		resolver_sabotaje_files_blocks(archivo_recurso);
+		free(calcular_md5);
 		return 1;
 	}
+	free(calcular_md5);
 	return 0;
 }
 
-void resolver_sabotaje_files_blocks(t_config* archivo_recurso, char* stream_bloques_reales){
+void resolver_sabotaje_files_blocks(t_config* archivo_recurso){
 	log_info(logger, "Se entra a resolver el sabotaje en el campo blocks del file %s", archivo_recurso->path);
 	//TODO
 	//tomar como referencia el size del archivo y el caracter de llenado e ir llenando los bloques hasta completar el size del archivo,
 	//en caso de que falten bloques, los mismos se deberán agregar al final del mismo.
-	config_set_value(archivo_recurso,"BLOCKS",stream_bloques_reales);
-	config_save(archivo_recurso);
+
+	pthread_mutex_lock(&mutex_FS);
+	char* caracter_llenado = config_get_string_value(archivo_recurso,"CARACTER_LLENADO");
+	int size = config_get_int_value(archivo_recurso,"SIZE");
+	t_list* bloques = obtener_bloques_totales(archivo_recurso);
+	char* stream = string_repeat(caracter_llenado[0], size);
+	string_append(&stream, "\0");
+	int offset_bloque = 0;
+	int offset = 0;
+	for(int i=0; i<list_size(bloques); i++){
+		offset_bloque = (uint32_t) list_get(bloques, i) * block_size;
+		int tamanio_subida = minimo((size - offset),block_size);
+		memcpy(contenido_blocks_aux + offset_bloque, stream + offset, tamanio_subida);
+		offset += tamanio_subida;
+	}
+	pthread_mutex_unlock(&mutex_FS);
+
 	config_destroy(archivo_recurso);
 }
 

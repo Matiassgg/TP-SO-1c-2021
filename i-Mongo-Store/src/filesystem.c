@@ -80,7 +80,7 @@ void leer_superbloque(FILE* archivo){
 
 char* dar_hash_md5(char* archivo){
 	char* system_command = string_new();
-	char* path_aux = string_duplicate("aux.tmp");
+	char* path_aux = string_duplicate("aux_hash.tmp");
 	string_append_with_format(&system_command, "md5sum %s > %s", archivo,path_aux);
 	system(system_command);
 	free(system_command);
@@ -102,6 +102,24 @@ char* dar_hash_md5(char* archivo){
 	eliminar_archivo(path_aux);
 
 	return hash[0];
+}
+
+char* obtener_hashmd5_string(char* stream){
+	char* path_aux = string_duplicate("aux.tmp");
+
+	int archivo_aux = open(path_aux, O_RDWR);
+	if(archivo_aux == -1){
+		log_error(logger, "no se abrio archivo");
+	}
+	if(stream)
+		write(archivo_aux,stream,string_length(stream));
+	close(archivo_aux);
+
+	char* hash = dar_hash_md5(path_aux);
+
+	eliminar_archivo(path_aux);
+
+	return hash;
 }
 
 void obtener_blocks(){
@@ -260,7 +278,8 @@ int crear_archivo_recursos(char* nombreArchivo, char caracter_llenado){
 	if(archivo){
 		char* file_generico = string_duplicate("SIZE=0\nBLOCK_COUNT=0\nBLOCKS=[]\nCARACTER_LLENADO=");
 		string_append_with_format(&file_generico,"%c\nMD5_ARCHIVO=", caracter_llenado);
-		string_append(&file_generico,dar_hash_md5(ruta_archivo_recursos));
+		char* hash = obtener_hashmd5_string(NULL);
+		string_append(&file_generico,hash);
 		fwrite(file_generico,string_length(file_generico),1,archivo);
 
 		fclose(archivo);
@@ -367,6 +386,7 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 	t_list* bloques = list_create();
 	int bloque_libre;
 	int offset_bloque = 0;
+	string_append(&stream, "\0");
 
 	uint32_t cant_caracteres = string_length(stream);
 	while(offset < cant_caracteres){
@@ -537,15 +557,16 @@ void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, i
 	log_info(logger, "\n ~~BLOCK_COUNT %i~~ \n", list_size(bloques_a_subir));
 
 	int size_old = config_get_int_value(config, "SIZE");
+	int size_total = size_old+size;
 	char* stream_aux = obtener_stream_blocks(bloques_a_subir);
-	config_set_value(config,"SIZE", string_itoa(size_old+size));
+	config_set_value(config,"SIZE", string_itoa(size_total));
 	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques_a_subir)));
 	config_set_value(config,"BLOCKS",stream_aux);
 	free(stream_aux);
 	stream_aux = string_repeat(caracter,1);
 	config_set_value(config,"CARACTER_LLENADO", stream_aux);
 	free(stream_aux);
-	stream_aux = dar_hash_md5(config->path);
+	stream_aux = obtener_hashmd5_string(string_repeat(caracter, size_total));
 	config_set_value(config,"MD5_ARCHIVO",stream_aux);
 
 	free(stream_aux);

@@ -30,6 +30,7 @@ t_list* sumar_bloques_config(t_list* bloques, t_config* config);
 t_bitarray* leer_bitmap();
 void subir_bitmap(t_bitarray* bitarray);
 char* dar_hash_md5(char* archivo);
+char* obtener_hashmd5_string(char* stream);
 
 
 t_bitarray* crear_bitmap(void);

@@ -29,7 +29,7 @@ bool chequear_sabotajes_en_recurso(char* path_relativo);
 bool detectar_sabotaje_files_size(t_config*);
 bool detectar_sabotaje_files_blocks();
 void resolver_sabotaje_files_size(t_config*, uint32_t);
-void resolver_sabotaje_files_blocks(t_config*,char*);
+void resolver_sabotaje_files_blocks(t_config*);
 bool detectar_algun_sabotaje_en_files();
 bool detectar_algun_sabotaje_en_superbloque();
 uint32_t tamanio_real_blocks_ims();
