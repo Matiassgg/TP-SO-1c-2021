@@ -368,7 +368,7 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 	int bloque_libre;
 	int offset_bloque = 0;
 
-	uint32_t cant_caracteres = string_length(stream)+1;
+	uint32_t cant_caracteres = string_length(stream);
 	while(offset < cant_caracteres){
 		log_info(logger, "Se entro al while");
 		uint32_t tamanio_subida;
@@ -397,7 +397,7 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 			tamanio_subida = minimo((cant_caracteres - offset),block_size);
 		}
 
-		log_info(logger, "Se subira %s del tamañano %i al bloque %i en el offset %i", stream + offset, tamanio_subida, bloque_libre, offset_bloque);
+		log_info(logger, "Se subira %s del tamanio %i al bloque %i en el offset %i", stream + offset, tamanio_subida, bloque_libre, offset_bloque);
 
 		offset_bloque += (bloque_libre*block_size);
 		memcpy(contenido_blocks_aux + offset_bloque, stream + offset, tamanio_subida);

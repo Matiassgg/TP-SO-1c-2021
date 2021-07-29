@@ -97,7 +97,7 @@ void serializar_sabotaje_en_mongo(t_posicion* posicion, t_buffer* buffer) {
 	memcpy(buffer->stream + offset, &(posicion->pos_x), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(buffer->stream + offset, &(posicion->pos_x), sizeof(uint32_t));
+	memcpy(buffer->stream + offset, &(posicion->pos_y), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 }
 

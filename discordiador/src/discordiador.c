@@ -75,6 +75,19 @@ void finalizar_discordiador(){
 	queue_clean_and_destroy_elements(cola_bloq_Emergencia,free);
 	queue_clean_and_destroy_elements(cola_exit,free);
 
+	pthread_mutex_destroy(&mutex_cola_ready);
+	pthread_mutex_destroy(&mutex_cola_exec);
+	pthread_mutex_destroy(&mutex_cola_bloqueados_io);
+	pthread_mutex_destroy(&mutex_planificacion_bloqueados_sabotajes);
+	pthread_mutex_destroy(&mutex_sabotajes);
+	pthread_mutex_destroy(&mutex_sabotajes_bloqueados_io);
+
+	sem_destroy(&semaforo_planificacion);
+	sem_destroy(&semaforo_cola_ready);
+	sem_destroy(&semaforo_cola_exec);
+	sem_destroy(&semaforo_cola_bloqueados_io);
+	sem_destroy(&semaforo_cola_bloqueados_sabotaje);
+
 	config_destroy(config);
 //	free(punto_montaje);
 
