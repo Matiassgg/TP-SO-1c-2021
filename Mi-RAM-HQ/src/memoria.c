@@ -385,7 +385,6 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 }
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
 	t_tarea* tarea;
 
@@ -396,7 +395,6 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 		tarea = obtener_tarea_paginacion(tripulante);
 
 	pthread_mutex_unlock(&mutex_tocar_memoria_tareas);
-	pthread_mutex_unlock(&mutex_tocar_memoria);
 
 	return tarea;
 }
