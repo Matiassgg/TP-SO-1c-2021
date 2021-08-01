@@ -1420,6 +1420,11 @@ t_marco_en_swap* asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint
 void verificar_marco_memoria(t_pagina* pagina, uint32_t id_patota){
 	if(pagina->bit_presencia == 0)
 		pagina->marco = traer_pagina_con_marco_asignado(pagina, id_patota);
+	else if(pagina->bit_presencia == 1){
+		if(son_iguales(algoritmo_reemplazo, "CLOCK")){
+			pagina->marco->bitUso=1;
+		}
+	}
 }
 
 t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
@@ -1556,12 +1561,14 @@ void seleccionar_victima_CLOCK(void){
 				} else {
 					punteroMarcoClock->bitUso = 0;
 				}
+
+				if(!victima_seleccionada){
 					// referencio a la siguiente entrada
 					punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
 
 					// aumento el indice del puntero
 					posicion_puntero_actual = ((posicion_puntero_actual + 1) % cantidad_de_marcos);
-
+				}
 			}
 		}
 
@@ -1571,6 +1578,12 @@ void seleccionar_victima_CLOCK(void){
 	pthread_mutex_lock(&mutexFree);
 
 	log_info(logger, "Victima seleccionada: %d", punteroMarcoClock->numeroMarco);
+
+	// referencio a la siguiente entrada para dejar el puntero bien ubicado luego de elegida la víctima
+	punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
+
+	// aumento el indice del puntero
+	posicion_puntero_actual = ((posicion_puntero_actual + 1) % cantidad_de_marcos);
 
 	// todo Escribo en SWAP --> LO MISMO QUE ARRIBA EN LRU
 	generar_proceso_de_pase_a_swap(((t_marco*)list_get(tablaDeMarcos, posicion_puntero_actual)));
