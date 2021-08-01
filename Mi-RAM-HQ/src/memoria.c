@@ -1363,7 +1363,7 @@ uint32_t crear_archivo_swap(){
 		return -1;
 	llenar_archivo(fd, tamanio_swap);
 	memoria_virtual = mmap(NULL,tamanio_swap,PROT_READ | PROT_WRITE,MAP_SHARED,fd,0);
-//	close(fd);
+	close(fd);
 	return 0;
 }
 
@@ -1554,15 +1554,14 @@ void seleccionar_victima_CLOCK(void){
 				if (!bit_uso(punteroMarcoClock)) {
 					victima_seleccionada = true;
 				} else {
-					punteroMarcoClock->bitUso = false;
+					punteroMarcoClock->bitUso = 0;
 				}
-				if(!victima_seleccionada){
 					// referencio a la siguiente entrada
 					punteroMarcoClock = list_get(tablaDeMarcos, ((posicion_puntero_actual + 1) % cantidad_de_marcos));
 
 					// aumento el indice del puntero
 					posicion_puntero_actual = ((posicion_puntero_actual + 1) % cantidad_de_marcos);
-				}
+
 			}
 		}
 
