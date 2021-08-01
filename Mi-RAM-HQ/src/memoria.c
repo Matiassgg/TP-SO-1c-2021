@@ -402,6 +402,17 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
+		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
+
+		bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
+			return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
+		}
+
+		if(list_size(tabla->tripulantes_activos)<1){
+			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
+			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
+			list_remove_by_condition(lista_tablas_segmentos,es_tabla);
+		}
 		liberar_segmento( sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato) );
 	}
 	else{
@@ -476,21 +487,12 @@ void liberar_segmento(t_segmento* segmento){
 }
 
 void expulsar_tripulante(t_tripulante* tripulante){
-	t_tabla_segmentos* tabla = dar_tabla_segmentos(tripulante->id_patota_asociado);
 
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
 	eliminar_tripulante(tripulante->id);
 
-	bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
-		return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
-	}
 
-	if(list_size(tabla->tripulantes_activos)<1){
-		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
-		sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
-		list_remove_by_condition(lista_tablas_segmentos,es_tabla);
-	}
 
 }
 
@@ -622,6 +624,7 @@ void dump_memoria_principal(){
 void modificar_memoria_estado_tripulante(t_tripulante* tripulante,char nuevo_estado){
 
     t_tcb* tcb = deserializar_memoria_tcb(leer_memoria(tripulante->id, tripulante->id_patota_asociado, TCB));
+    log_info(logger, "MODIFICAREMOS EL ESTADO DEL TRIPULANTE %i DE %c A %c", tcb->tid, tcb->estado, nuevo_estado);
     tcb->estado = nuevo_estado;
 
     modificar_memoria(tcb,tripulante->id_patota_asociado,TCB);
@@ -631,9 +634,9 @@ void modificar_memoria_estado_tripulante(t_tripulante* tripulante,char nuevo_est
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ordenar_segmentos(){
-	pthread_mutex_lock(&mutex_tocar_memoria);
-	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
 	pthread_mutex_lock(&mutex_tablas);
+	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	uint32_t inicio_nuevo = 0;
 	for(int i=0; i<list_size(lista_tablas_segmentos); i++){
 		t_tabla_segmentos* tabla = list_get(lista_tablas_segmentos, i);
@@ -675,10 +678,10 @@ void ordenar_segmentos(){
 
 void compactar_memoria(int signum) {
 	log_info(logger, "COMPACTACION :: Recibimos la señal para realizar la compactacion\n");
-	pthread_mutex_lock(&mutex_tocar_memoria);
+//	pthread_mutex_lock(&mutex_tocar_memoria);
 	ordenar_segmentos();
 
-	pthread_mutex_unlock(&mutex_tocar_memoria);
+//	pthread_mutex_unlock(&mutex_tocar_memoria);
 
 }
 
@@ -867,13 +870,13 @@ void subir_segmento_memoria(t_segmento* segmento, void* stream){
 }
 
 void subir_segmento_libre(t_segmento* segmento){
-	bool ordenar_segmentos(t_segmento* segmento_1, t_segmento* segmento_2){
+	bool ordenar_segmentos_libres(t_segmento* segmento_1, t_segmento* segmento_2){
 		return (segmento_1->tamanio < segmento_2->tamanio);
 	}
 
 	list_add(lista_segmentos_libres, segmento);
 	if(son_iguales(criterio_seleccion, "BF"))
-		list_sort(lista_segmentos_libres, ordenar_segmentos); // TODO HAY QUE ORDENAR? QUIZA SI ES BF SIRVE PA ESO Y ORDENAMOS POR TAMAÑO
+		list_sort(lista_segmentos_libres, ordenar_segmentos_libres); // TODO HAY QUE ORDENAR? QUIZA SI ES BF SIRVE PA ESO Y ORDENAMOS POR TAMAÑO
 }
 
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
@@ -1232,6 +1235,8 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 
 	t_list* paginas = obtener_paginas_asignadas(tabla, id_tripulante, tipo_dato);
 
+	log_info(logger, "Estamos en modificar y hay %i paginas para el tripulante %i de la patota %i", list_size(paginas), id_tripulante, patota_asociada);
+
 	uint32_t tamanio_restante = buffer->size;
 
 	for(int i=0; i<list_size(paginas);i++){
@@ -1282,9 +1287,6 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 		memcpy(dato_requerido + offset, memoria + pagina->marco->inicioMemoria + asociador->inicio, asociador->tamanio);
 		offset += asociador->tamanio;
 	}
-
-	t_tcb* tcb = deserializar_memoria_tcb(dato_requerido);
-	log_info(logger, "prox_instruccion %i - puntero_pcb %i", tcb->prox_instruccion, tcb->puntero_pcb);
 
 	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return dato_requerido;
