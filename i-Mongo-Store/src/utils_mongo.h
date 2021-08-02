@@ -30,6 +30,7 @@ t_config* config;
 t_log* logger;
 pthread_t hiloReceive;
 pthread_mutex_t mutex_bitmap;
+pthread_mutex_t mutex_hash;
 
 uint32_t blocks;
 uint32_t block_size;

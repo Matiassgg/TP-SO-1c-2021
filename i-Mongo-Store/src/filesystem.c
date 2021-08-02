@@ -21,6 +21,7 @@ void inicializar_paths_aux(){
 	path_bitacoras = string_new();
 
 	pthread_mutex_init(&mutex_bitmap, NULL);
+	pthread_mutex_init(&mutex_hash, NULL);
 	pthread_mutex_init(&mutex_Tareas, NULL);
 
 	string_append_with_format(&path_superbloque, "%s/SuperBloque.ims", punto_montaje);
@@ -105,19 +106,24 @@ char* dar_hash_md5(char* archivo){
 }
 
 char* obtener_hashmd5_string(char* stream){
+	pthread_mutex_lock(&mutex_hash);
+
 	char* path_aux = string_duplicate("aux.tmp");
 
-	int archivo_aux = open(path_aux, O_RDWR);
-	if(archivo_aux == -1){
+	FILE* archivo_aux = fopen(path_aux, "w+");
+	sleep(2);
+	if(!archivo_aux){
 		log_error(logger, "no se abrio archivo");
 	}
 	if(stream)
-		write(archivo_aux,stream,string_length(stream));
-	close(archivo_aux);
+		fwrite(stream, string_length(stream), 1, archivo_aux);
+	fclose(archivo_aux);
+	sleep(10);
 
 	char* hash = dar_hash_md5(path_aux);
 
 	eliminar_archivo(path_aux);
+	pthread_mutex_unlock(&mutex_hash);
 
 	return hash;
 }
@@ -386,7 +392,6 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 	t_list* bloques = list_create();
 	int bloque_libre;
 	int offset_bloque = 0;
-	string_append(&stream, "\0");
 
 	uint32_t cant_caracteres = string_length(stream);
 	while(offset < cant_caracteres){
@@ -418,7 +423,8 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 		}
 
 		log_info(logger, "Se subira %s del tamanio %i al bloque %i en el offset %i", stream + offset, tamanio_subida, bloque_libre, offset_bloque);
-
+		if(offset_bloque+tamanio_subida!= block_size && offset + tamanio_subida == cant_caracteres)
+			tamanio_subida++;
 		offset_bloque += (bloque_libre*block_size);
 		memcpy(contenido_blocks_aux + offset_bloque, stream + offset, tamanio_subida);
 
@@ -566,9 +572,9 @@ void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, i
 	config_set_value(config,"BLOCK_COUNT", string_itoa(list_size(bloques_a_subir)));
 	config_set_value(config,"BLOCKS",stream_aux);
 	free(stream_aux);
-	stream_aux = string_repeat(caracter,1);
-	config_set_value(config,"CARACTER_LLENADO", stream_aux);
-	free(stream_aux);
+//	stream_aux = string_repeat(caracter,1);
+//	config_set_value(config,"CARACTER_LLENADO", stream_aux);
+//	free(stream_aux);
 	stream_aux = obtener_hashmd5_string(string_repeat(caracter, size_total));
 	config_set_value(config,"MD5_ARCHIVO",stream_aux);
 
@@ -776,10 +782,10 @@ void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
 	int cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
 	int cant_bloques_sacar = obtener_bloques_a_sacar(cantidad,size,cant_bloques);
 	log_info(logger,"cant_bloques_sacar %i",cant_bloques_sacar);
-	t_list* bloques = list_create();
+	t_list* bloques_a_sacar = list_create();
 	for(int i=0; i<cant_bloques_sacar;i++){
-		liberar_bloque(atoi(bloques_config[cant_bloques_sacar-i-1]));
-		list_add(bloques, atoi(bloques_config[cant_bloques_sacar-i-1]));
+		liberar_bloque(atoi(bloques_config[cant_bloques+i-1]));
+		list_add(bloques_a_sacar, atoi(bloques_config[cant_bloques-i-1]));
 	}
 	int offset;
 	int ultimo_bloque_nuevo;
@@ -791,16 +797,16 @@ void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
 	else{
 		div_t aux = div(size-cantidad, block_size);
 		if(aux.rem == 0)
-			offset = block_size;
+			offset = -1;
 		else
 			offset = aux.rem;
 		ultimo_bloque_nuevo = atoi(bloques_config[cant_bloques - cant_bloques_sacar-1]);
 	}
-	if(ultimo_bloque_nuevo != -1){
+	if(ultimo_bloque_nuevo != -1 && offset != -1){
 		memcpy(contenido_blocks_aux + offset + (ultimo_bloque_nuevo*block_size), "\0", 1);
 	}
 	int cantidad_negativa = cantidad*(-1);
-	actualizar_archivo_file(caracter, bloques, config, cantidad_negativa);
+	actualizar_archivo_file(caracter, bloques_a_sacar, config, cantidad_negativa);
 	config_destroy(config);
 	pthread_mutex_unlock(&mutex_FS);
 
@@ -916,13 +922,13 @@ char* obtener_caracteres2(t_list* bloques){
 
 	for(int i=0; i<list_size(bloques); i++){
 		char* aux = calloc(1, block_size);
-		int nro_bloque = (uint32_t) list_get(bloques, i) * block_size;
-		memcpy(aux, contenido_blocks_aux + nro_bloque, 1);
+		int ptr_bloque = (uint32_t) list_get(bloques, i) * block_size;
+		memcpy(aux, contenido_blocks_aux + ptr_bloque, block_size);
 		string_append(&stream, aux);
-		if(string_length(aux)<block_size){
-			free(aux);
-			break;
-		}
+//		if(string_length(aux)<block_size){
+//			free(aux);
+//			break;
+//		}
 		free(aux);
 	}
 
