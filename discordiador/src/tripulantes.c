@@ -97,7 +97,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			if(!verificar_estado(tripulante))
 				break;
 
-			if(puedo_seguir(tripulante_plani) && tripulante->tarea_act->tiempo <= 0){
+			if(tripulante->tarea_act->tiempo <= 0){
 				log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 				enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
 			}
@@ -160,8 +160,8 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		enviar_Mongo_tarea_e_s(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_Mongo);
 		// Se debe acceder al FS -> BLoquear al wachin hasta que termine de hacer la tarea
 
-		tripulante_plani->esta_activo = false;
 		subir_tripulante_bloqueado(tripulante_plani);
+		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 	}
 	else{
 		hacer_ciclos_tarea(tripulante_plani->tripulante);

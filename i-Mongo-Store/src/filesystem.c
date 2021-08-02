@@ -111,14 +111,12 @@ char* obtener_hashmd5_string(char* stream){
 	char* path_aux = string_duplicate("aux.tmp");
 
 	FILE* archivo_aux = fopen(path_aux, "w+");
-	sleep(2);
 	if(!archivo_aux){
 		log_error(logger, "no se abrio archivo");
 	}
 	if(stream)
 		fwrite(stream, string_length(stream), 1, archivo_aux);
 	fclose(archivo_aux);
-	sleep(10);
 
 	char* hash = dar_hash_md5(path_aux);
 
