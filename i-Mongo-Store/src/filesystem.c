@@ -815,12 +815,16 @@ void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
 char* obtener_caracteres_de_file(t_config* file_recurso){
 	t_list* bloques = list_create();
 	char** bloques_config = config_get_array_value(config, "BLOCKS");
+	int cantidad_bloques= config_get_int_value(config, "BLOCK_COUNT");
+	log_info(logger, "Bloques del archivo %s (%i):", file_recurso->path, cantidad_bloques);
 	for(int i=0; bloques_config[i];i++){
 		list_add(bloques, atoi(bloques_config[i]));
+		log_info(logger, "Bloques del archivo %s: %i", file_recurso->path, atoi(bloques_config[i]));
 	}
 
 
 	char* caracteres = obtener_caracteres2(bloques);
+	log_info(logger, "caracteres: %s", caracteres);
 
 	list_destroy(bloques);
 	string_iterate_lines(bloques_config, free);
@@ -922,6 +926,7 @@ char* obtener_caracteres2(t_list* bloques){
 		char* aux = calloc(1, block_size);
 		int ptr_bloque = (uint32_t) list_get(bloques, i) * block_size;
 		memcpy(aux, contenido_blocks_aux + ptr_bloque, block_size);
+		log_info(logger, "bloque %i ptr %i aux %s", ptr_bloque/block_size, ptr_bloque, aux);
 		string_append(&stream, aux);
 //		if(string_length(aux)<block_size){
 //			free(aux);
@@ -929,6 +934,8 @@ char* obtener_caracteres2(t_list* bloques){
 //		}
 		free(aux);
 	}
+
+	log_info(logger, "stream %s", stream);
 
 	return stream;
 

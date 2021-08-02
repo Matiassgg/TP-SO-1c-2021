@@ -1,6 +1,57 @@
 #include "discordiador.h"
 
+void test(){
+	char* test = string_duplicate("AAAAA");
+	char* test_2 = string_duplicate("AAAAA");
+	char* test_3 = string_duplicate("AAA");
+
+	char* stream_1 = string_new();
+	string_append(&stream_1, test);
+	string_append(&stream_1, test_2);
+	string_append(&stream_1, test_3);
+
+
+
+	printf("stream leido %s size %i\n",stream_1, string_length(stream_1));
+	free(stream_1);
+	void* aux = malloc(20);
+	int offset = 0;
+	memcpy(aux + offset,test,string_length(test));
+	offset += string_length(test);
+	memcpy(aux + offset,test_2,string_length(test_2));
+	offset += string_length(test_2);
+	memcpy(aux + offset,test_3,string_length(test_3)+1);
+	offset += string_length(test_3)+1;
+	free(test);
+	free(test_2);
+	free(test_3);
+	char* aux_1 = calloc(1, 5);
+	char* aux_2 = calloc(1, 5);
+	char* aux_3 = calloc(1, 5);
+
+
+	int offset_2 = 0;
+	memcpy(aux_1,aux + offset_2,5);
+	offset_2 += 5;
+	memcpy(aux_2,aux + offset_2,5);
+	offset_2 += 5;
+	memcpy(aux_3,aux + offset_2,5);
+	offset_2 += 5;
+
+	char* stream = string_new();
+	string_append(&stream, aux_1);
+	string_append(&stream, aux_2);
+	string_append(&stream, aux_3);
+
+	free(aux_1);
+	free(aux_2);
+	free(aux_3);
+
+	printf("stream leido %s size %i\n",stream, string_length(stream));
+}
+
 int main(int argc, char* argv[]) {
+//	test();
 	iniciar_discordiador();
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
 	pthread_detach(hiloReceive);
