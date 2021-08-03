@@ -129,7 +129,6 @@ char* path_dump;
 //Semaforos
 pthread_mutex_t mutexTablaMarcos;
 pthread_mutex_t mutexMemoriaVirtual;
-pthread_mutex_t mutexVerificarPaginas;
 pthread_mutex_t mutexMemoria;
 pthread_mutex_t mutexSwap;
 pthread_mutex_t mutexTablaSegmentos;
@@ -141,7 +140,7 @@ pthread_mutex_t mutexFree;
 pthread_mutex_t mutexVictima;
 pthread_mutex_t mutexBuscarSegmento;
 pthread_mutex_t mutexBuscarPagina;
-pthread_mutex_t mutexBuscarInfoTripulante;
+pthread_mutex_t mutexExpulsar;
 pthread_mutex_t mutex_tocar_memoria;
 pthread_mutex_t mutex_subir_patota;
 t_list* lista_mutex_patotas;

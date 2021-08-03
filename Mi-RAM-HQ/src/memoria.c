@@ -29,9 +29,8 @@ void preparar_memoria() {
 	pthread_mutex_init(&mutexSwap, NULL);
 	pthread_mutex_init(&mutexBuscarSegmento, NULL);
 	pthread_mutex_init(&mutexBuscarPagina, NULL);
-	pthread_mutex_init(&mutexBuscarInfoTripulante, NULL);
+	pthread_mutex_init(&mutexExpulsar, NULL);
 	pthread_mutex_init(&mutex_tocar_memoria, NULL);
-	pthread_mutex_init(&mutexVerificarPaginas, NULL);
 	pthread_mutex_init(&mutex_tocar_memoria_tareas,NULL);
 
 	if(esquema_memoria == NULL)
@@ -489,11 +488,14 @@ void liberar_segmento(t_segmento* segmento){
 }
 
 void expulsar_tripulante(t_tripulante* tripulante){
+	pthread_mutex_lock(&mutexExpulsar);
 
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
 	eliminar_tripulante(tripulante->id);
 
+
+	pthread_mutex_unlock(&mutexExpulsar);
 
 }
 
