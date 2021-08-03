@@ -404,6 +404,8 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
 
+		liberar_segmento( sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato) );
+
 		bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
 			return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
 		}
@@ -413,7 +415,17 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
 			list_remove_by_condition(lista_tablas_segmentos,es_tabla);
 		}
-		liberar_segmento( sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato) );
+//		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
+//
+//		bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
+//			return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
+//		}
+//
+//		if(list_size(tabla->tripulantes_activos)<1){
+//			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
+//			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
+//			list_remove_by_condition(lista_tablas_segmentos,es_tabla);
+//		}
 	}
 	else{
 		t_tabla_paginas* tabla = dar_tabla_paginas(patota_asociada);
@@ -491,7 +503,6 @@ void expulsar_tripulante(t_tripulante* tripulante){
 	sacar_de_memoria(tripulante->id, tripulante->id_patota_asociado, TCB);
 
 	eliminar_tripulante(tripulante->id);
-
 
 
 }
@@ -876,11 +887,11 @@ void subir_segmento_libre(t_segmento* segmento){
 
 	list_add(lista_segmentos_libres, segmento);
 	if(son_iguales(criterio_seleccion, "BF"))
-		list_sort(lista_segmentos_libres, ordenar_segmentos_libres); // TODO HAY QUE ORDENAR? QUIZA SI ES BF SIRVE PA ESO Y ORDENAMOS POR TAMAÑO
+		list_sort(lista_segmentos_libres, ordenar_segmentos_libres);
 }
 
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
-	bool esta_libre(t_segmento* segmento){ // TODO SE VA A VER SI ES FF O BF
+	bool esta_libre(t_segmento* segmento){
 		return (espacio_requerido <= segmento->tamanio);
 	}
 
