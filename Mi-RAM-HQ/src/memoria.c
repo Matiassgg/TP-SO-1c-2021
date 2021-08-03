@@ -404,28 +404,18 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
 
-		liberar_segmento( sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato) );
+		liberar_segmento(sacar_de_tabla_segmentacion(id, patota_asociada, tipo_dato));
 
 		bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
 			return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
 		}
 
 		if(list_size(tabla->tripulantes_activos)<1){
-			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
-			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
+			liberar_segmento(sacar_de_tabla_segmentacion(id, patota_asociada, TAREAS));
+			liberar_segmento(sacar_de_tabla_segmentacion(id, patota_asociada, PCB));
 			list_remove_by_condition(lista_tablas_segmentos,es_tabla);
 		}
-//		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
-//
-//		bool es_tabla(t_tabla_segmentos* tablaDeLaLista){
-//			return tablaDeLaLista->id_patota_asociada==tabla->id_patota_asociada;
-//		}
-//
-//		if(list_size(tabla->tripulantes_activos)<1){
-//			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, TAREAS);
-//			sacar_de_memoria(tabla->id_patota_asociada, tabla->id_patota_asociada, PCB);
-//			list_remove_by_condition(lista_tablas_segmentos,es_tabla);
-//		}
+
 	}
 	else{
 		t_tabla_paginas* tabla = dar_tabla_paginas(patota_asociada);
