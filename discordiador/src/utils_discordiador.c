@@ -269,7 +269,6 @@ bool posicion_mas_cercana(t_posicion* posicion_A, t_posicion* posicion_B, t_posi
 	int distancia_x_B_D = distancia_entre_puntos(posicion_destino->pos_x, posicion_B->pos_x);
 	int distancia_y_A_D = distancia_entre_puntos(posicion_A->pos_y, posicion_destino->pos_y);
 	int distancia_y_B_D = distancia_entre_puntos(posicion_B->pos_y, posicion_destino->pos_y);
-
 	// La posicon A en x ES MEJOR que la posicion B en x
 	if(distancia_x_A_D < distancia_x_B_D){
 
@@ -277,7 +276,6 @@ bool posicion_mas_cercana(t_posicion* posicion_A, t_posicion* posicion_B, t_posi
 		if(distancia_y_A_D < distancia_y_B_D){
 			resultado = true;
 		}
-
 		// La posicon B en y ES MEJOR que la posicion A en y
 		else if(distancia_y_A_D > distancia_y_B_D){
 
@@ -382,6 +380,8 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 
 	list_sort(tripulantes, ordenar_segun_id);
 	list_sort(tripulantes, ordenar_segun_posicion);
+	for(int i=0; i< list_size(tripulantes); i++)
+		log_info(logger, "tripulantes[%i]: %i", i, (int) list_get(tripulantes, i));
 	t_tripulante* tripulante_mas_cercano = list_get(tripulantes, 0);
 
 	log_info(logger, "El tripulante %d corre en panico a la posicion del sabotaje", tripulante_mas_cercano->id);
