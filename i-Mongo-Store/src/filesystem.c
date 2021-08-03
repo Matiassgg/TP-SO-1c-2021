@@ -662,7 +662,7 @@ char* leer_blocks(t_list* bloques, int size){
 		int tamanio_leer = minimo(tamanio_total, block_size);
 		memcpy(informacion + offset, contenido_blocks_aux + (bloque*block_size), tamanio_leer);
 		offset += tamanio_leer;
-		tamanio_total -= block_size;
+		tamanio_total -= tamanio_leer;
 	}
 
 	return informacion;
