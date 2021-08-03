@@ -261,77 +261,37 @@ int conectar_con_MONGO(){
 // ELIJO A LA POSICION_B -> false
 bool posicion_mas_cercana(t_posicion* posicion_A, t_posicion* posicion_B, t_posicion* posicion_destino){
 	bool resultado = true;
-	int distancia_entre_puntos(int punto_A, int punto_B){
-		return abs(punto_A-punto_B);
-	}
 
-	int distancia_x_A_D = distancia_entre_puntos(posicion_destino->pos_x, posicion_A->pos_x);
-	int distancia_x_B_D = distancia_entre_puntos(posicion_destino->pos_x, posicion_B->pos_x);
-	int distancia_y_A_D = distancia_entre_puntos(posicion_A->pos_y, posicion_destino->pos_y);
-	int distancia_y_B_D = distancia_entre_puntos(posicion_B->pos_y, posicion_destino->pos_y);
-	// La posicon A en x ES MEJOR que la posicion B en x
-	if(distancia_x_A_D < distancia_x_B_D){
+//	int primer_termino_A = pow(posicion_destino->pos_x - posicion_A->pos_x, 2);
+//	int segundo_termino_A = pow(posicion_destino->pos_y - posicion_A->pos_y, 2);
+//
+//	int primer_termino_B = pow(posicion_destino->pos_x - posicion_B->pos_x, 2);
+//	int segundo_termino_B = pow(posicion_destino->pos_y - posicion_B->pos_y, 2);
+//
+//	int distancia_A = sqrt(primer_termino_A + segundo_termino_A);
+//	int distancia_B = sqrt(primer_termino_B + segundo_termino_B);
 
-		// La posicon A en y ES MEJOR que la posicion B en y
-		if(distancia_y_A_D < distancia_y_B_D){
-			resultado = true;
-		}
-		// La posicon B en y ES MEJOR que la posicion A en y
-		else if(distancia_y_A_D > distancia_y_B_D){
+	int distancia_pitagoras_A = pitagoras_entre(posicion_A, posicion_destino);
+	int distancia_pitagoras_B = pitagoras_entre(posicion_B, posicion_destino);
 
-			// DESEMPATO POR CUAL ES MAS CHICA, si la posicion A en x o la posicion B en y
-			if(distancia_x_A_D < distancia_y_B_D) {
-				resultado = true;
-			}
-
-			else {
-				resultado = false;
-			}
-		}
-
-		else {
-			resultado = true;
-		}
-	}
-
-	// La posicon B en x ES MEJOR que la posicion A en x
-	else if(distancia_x_A_D > distancia_x_B_D){
-
-		// La posicon B en y ES MEJOR que la posicion A en y
-		if(distancia_y_A_D > distancia_y_B_D){
-			resultado = false;
-		}
-
-		// La posicon A en y ES MEJOR que la posicion B en y
-		else if(distancia_y_A_D < distancia_y_B_D){
-
-			// DESEMPATO POR CUAL ES MAS CHICA, si la posicion A en y o la posicion B en x
-			if(distancia_x_A_D < distancia_y_B_D) {
-				resultado = true;
-			}
-
-			else {
-				resultado = false;
-			}
-		}
-
-		else {
-			resultado = true;
-		}
-	}
-
-	// La posicon B en x ES IGUAL que la posicion A en x
-	else {
-		// DESEMPATO POR CUAL ES MAS CHICA, si la posicion A en y o la posicion B en y
-		if(distancia_y_A_D < distancia_y_B_D){
-			resultado = true;
-		}
-		else {
-			resultado = false;
-		}
-	}
+	if(distancia_pitagoras_A < distancia_pitagoras_B)
+		resultado = true;
+	else if(distancia_pitagoras_A > distancia_pitagoras_B)
+		resultado = false;
 
 	return resultado;
+}
+
+int pitagoras_entre(t_posicion* posicion_A, t_posicion* posicion_B){
+
+	int diferencia_al_cuadrado(int punto_A, int punto_B){
+		return pow(punto_A - punto_B, 2);
+	}
+
+	int primer_termino = diferencia_al_cuadrado(posicion_A->pos_x, posicion_B->pos_x);
+	int segundo_termino = diferencia_al_cuadrado(posicion_A->pos_y, posicion_B->pos_y);
+
+	return sqrt(primer_termino + segundo_termino);
 }
 
 char* obtener_estado_segun_enum(int estado) {
@@ -380,8 +340,11 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 
 	list_sort(tripulantes, ordenar_segun_id);
 	list_sort(tripulantes, ordenar_segun_posicion);
-	for(int i=0; i< list_size(tripulantes); i++)
-		log_info(logger, "tripulantes[%i]: %i", i, (int) list_get(tripulantes, i));
+	for(int i=0; i< list_size(tripulantes); i++){
+		t_tripulante* tripulante = list_get(tripulantes, i);
+		log_info(logger, "tripulantes[%i]: ID:%i	DISTANCIA:%d", i, tripulante->id, pitagoras_entre(tripulante->posicion, posicion_sabotaje));
+	}
+
 	t_tripulante* tripulante_mas_cercano = list_get(tripulantes, 0);
 
 	log_info(logger, "El tripulante %d corre en panico a la posicion del sabotaje", tripulante_mas_cercano->id);

@@ -33,6 +33,7 @@
 #include "nivel-gui/tad_nivel.h"
 #include "nivel-gui/nivel-gui.h"
 
+
 t_log* iniciar_logger(char*, char*);
 int contar_elementos_array(char**);
 uint32_t minimo(uint32_t numero1, uint32_t numero2);

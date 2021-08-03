@@ -3,6 +3,7 @@
 
 #include "../../utils/utils/utils.h"
 #include "msg_discordiador.h"
+#include <math.h>
 
 char* ip_discordiador;
 char* puerto_escucha;
