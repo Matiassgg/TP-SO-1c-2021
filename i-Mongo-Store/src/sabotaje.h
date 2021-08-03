@@ -7,7 +7,7 @@
 void verificar_sabotajes(void);
 void procesar_nuevo_sabotaje(int signal);
 bool hay_sabotajes(void);
-void resolver_sabotaje();
+t_respuesta resolver_sabotaje();
 
 
 char* obtener_path_bitacora(char* nombreBitacora);

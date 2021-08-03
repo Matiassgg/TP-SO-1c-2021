@@ -394,7 +394,11 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 
 	rafaga(duracion_sabotaje);
 	log_info(logger, "El tripulante %d finalizo su I/O en emergencia", tripulante_mas_cercano->id);
-
+	t_respuesta respuesta = recibir_respuesta(socket_mongo);
+	if(respuesta == OK)
+		log_info(logger, "Se resolvio el sabotaje");
+	else
+		log_warning(logger, "No hubo sabotaje");
 	log_info(logger, "Volviendo a toda la tripulacion de la nave de amongo a la normalidad");
 
 	regresar_tripulante(tripulante_mas_cercano);

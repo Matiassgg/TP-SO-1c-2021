@@ -15,13 +15,12 @@ void procesar_nuevo_sabotaje(int signal) {
 
 		t_tripulante* tripulante = recibir_tripulante_sabotaje(socket_discordiador);
 		log_info(logger, "Nos llega el tripulante %d para que resuelva el sabotaje", tripulante->id);
-		resolver_sabotaje(tripulante);
+		enviar_respuesta(resolver_sabotaje(tripulante), socket_discordiador);
 
 		liberar_conexion(&socket_discordiador);
 	}
 	else {
 		log_warning(logger, "Ya no hay nuevas posiciones de sabotajes");
-		return;
 	}
 }
 
@@ -33,13 +32,19 @@ void verificar_sabotajes() {
 	signal(SIGUSR1, procesar_nuevo_sabotaje);
 }
 
-void resolver_sabotaje(t_tripulante* tripulante){
-	if(detectar_algun_sabotaje_en_superbloque())
+t_respuesta resolver_sabotaje(t_tripulante* tripulante){
+	if(detectar_algun_sabotaje_en_superbloque()){
 		log_info(logger, "El tripulante %i resolvio el sabotaje en el superbloque", tripulante->id);
-	else if(detectar_algun_sabotaje_en_files())
+		return OK;
+	}
+	else if(detectar_algun_sabotaje_en_files()){
 		log_info(logger, "El tripulante %i resolvio el sabotaje en files", tripulante->id);
-	else
+		return OK;
+	}
+	else{
 		log_warning(logger, "El tripulante %i no detecto sabotajes", tripulante->id);
+		return FAIL;
+	}
 }
 
 bool detectar_algun_sabotaje_en_superbloque(){
@@ -101,7 +106,6 @@ bool detectar_sabotaje_superbloque_bitmap(){
 	log_info(logger, "size bloques usados %i size bitarray %i", list_size(bloques_usados), bitarray_get_max_bit(bitarray));
 
 	bool inconsistencia_bitmap(int bloque){
-		log_info(logger, "El bloque usado %i esta en %i", bloque, bitarray_test_bit(bitarray,bloque));
 		return bitarray_test_bit(bitarray,bloque)==0;
 	}
 
@@ -112,10 +116,7 @@ bool detectar_sabotaje_superbloque_bitmap(){
 				return i != bloque;
 			}
 
-			log_info(logger, "El bloque %i esta en %i", i, bitarray_test_bit(bitarray,i));
 			if(bitarray_test_bit(bitarray,i)==1 && list_all_satisfy(bloques_usados,no_esta_presente)){
-				log_warning(logger, "El bloque %i esta en %i", i, bitarray_test_bit(bitarray,i));
-				sleep(10);
 				return 1;
 			}
 		}
@@ -260,6 +261,7 @@ bool detectar_sabotaje_files_blocks(t_config* archivo_recurso){
 	//Si no coinciden restaurar archivo, escribiendo tantos caracteres de llenado hasta completar el size, en el orden de bloques que tenemos
 	char* md5_guardado = config_get_string_value(archivo_recurso,"MD5_ARCHIVO");
 	char* caracteres_de_llenado = leer_FS(archivo_recurso->path);
+	log_info(logger, "caracteres_de_llenado %s", caracteres_de_llenado);
 	char* calcular_md5 = obtener_hashmd5_string(caracteres_de_llenado);
 	free(caracteres_de_llenado);
 
@@ -282,17 +284,23 @@ void resolver_sabotaje_files_blocks(t_config* archivo_recurso){
 	pthread_mutex_lock(&mutex_FS);
 	char* caracter_llenado = config_get_string_value(archivo_recurso,"CARACTER_LLENADO");
 	int size = config_get_int_value(archivo_recurso,"SIZE");
-	t_list* bloques = obtener_bloques_totales(archivo_recurso);
+	t_list* bloques = (t_list*) obtener_bloques_totales(archivo_recurso);
 	char* stream = string_repeat(caracter_llenado[0], size);
-	string_append(&stream, "\0");
 	int offset_bloque = 0;
 	int offset = 0;
 	for(int i=0; i<list_size(bloques); i++){
 		offset_bloque = (uint32_t) list_get(bloques, i) * block_size;
 		int tamanio_subida = minimo((size - offset),block_size);
+		if(offset_bloque+tamanio_subida!= block_size && offset + tamanio_subida == size)
+			tamanio_subida++;
 		memcpy(contenido_blocks_aux + offset_bloque, stream + offset, tamanio_subida);
 		offset += tamanio_subida;
 	}
+	char* hash = obtener_hashmd5_string(stream);
+	config_set_value(config,"MD5_ARCHIVO",hash);
+	config_save(archivo_recurso);
+	free(stream);
+	list_destroy(bloques);
 	pthread_mutex_unlock(&mutex_FS);
 
 	config_destroy(archivo_recurso);
