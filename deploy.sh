@@ -31,6 +31,7 @@ unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$UTILS
 export LD_LIBRARY_PATH
 
+cd
 cd $UTILS
 sudo cp libutils.a /usr/lib
 
