@@ -79,9 +79,10 @@ En el módulo discordiador ejecutar los siguientes comandos
 INICIAR_PATOTA 4 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaA.txt 1|1
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaC.txt 3|3
 INICIAR_PLANIFICACION
-LISTAR_TRIPULANTES
 
 Enviar la señal para el DUMP de la memoria. (SIGUSR2)
+LISTAR_TRIPULANTES
+
 Una vez iniciada la planificación esperar 10 ciclos de CPU y ejecutar los siguientes comandos.
 EXPULSAR_TRIPULANTE 1
 EXPULSAR_TRIPULANTE 3

@@ -166,13 +166,17 @@ void planificacion_segun_RR() {
 			pthread_mutex_lock(&mutex_cola_ready);
 			p_tripulante* tripulante_plani = (p_tripulante*) queue_pop(cola_ready);
 			pthread_mutex_unlock(&mutex_cola_ready);
+			log_info(logger, "PLANI :: Tomamos al tripulante %i en ready para poner en exec", tripulante_plani->tripulante->id);
 
 			subir_tripulante_exec(tripulante_plani);
 			for(int i=0; i<quantum && verificar_planificacion_activa() && tripulante_plani->esta_activo; i++) {
+				log_info(logger, "Se entro al for del trip %i", tripulante_plani->tripulante->id);
 				pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
+				log_info(logger, "LLego solicitud del trip %i", tripulante_plani->tripulante->id);
 				if(tripulante_plani->esta_activo)
 					pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 			}
+			log_info(logger, "Salimos del for trip %i", tripulante_plani->tripulante->id);
 			if(tripulante_plani->esta_activo)
 				subir_tripulante_ready(tripulante_plani);
 		}

@@ -59,6 +59,10 @@ void expulsar_tripulante(t_tripulante* tripulante){
 }
 
 void ejecutar_tripulante(t_tripulante* tripulante){
+	bool es_tripulante_plani(p_tripulante* tripulante_plani_aux){
+		return tripulante_plani_aux->tripulante->id == tripulante->id;
+	}
+
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 	tripulante->socket_conexion_Mongo = crear_conexion(ip_Mongo_Store, puerto_Mongo_Store);
 	log_info(logger, "El tripulante %i tiene el socket %i con RAM", tripulante->id, tripulante->socket_conexion_RAM);
@@ -87,6 +91,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion, true));
 		}
+		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		if(!verificar_estado(tripulante))
 			break;
 
@@ -110,6 +115,14 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			else
 				solicitar_tarea(tripulante);
 		}
+		list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
+	}
+	log_info(logger, "Se salio del while del tripulante %i", tripulante->id);
+	p_tripulante* tripulante_plani_aux = list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
+	if(tripulante_plani_aux){
+		log_info(logger, "Se encontro un tripulante plani %i", tripulante_plani_aux->tripulante->id);
+		tripulante_plani_aux->esta_activo = false;
+		pthread_mutex_unlock(&tripulante_plani_aux->mutex_solicitud);
 	}
 
 	expulsar_tripulante(tripulante);
@@ -141,9 +154,11 @@ bool verificar_estado(t_tripulante* tripulante){
 }
 
 bool puedo_seguir(p_tripulante* tripulante_plani){
-	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
-	pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
-	verificar_sabotaje_cpu();
+	if(verificar_estado(tripulante_plani->tripulante)){
+		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
+		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+		verificar_sabotaje_cpu();
+	}
 
 	return verificar_estado(tripulante_plani->tripulante);
 }

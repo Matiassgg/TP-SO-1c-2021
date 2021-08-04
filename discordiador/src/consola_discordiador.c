@@ -124,6 +124,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		p_tripulante* tripulante_plani = quitar_tripulante_plani(id_tripulante);
 		if(tripulante_plani == NULL)
 			log_error(logger, "Se cago");
+		tripulante_plani->esta_activo = false;
+		pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 		pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 
 //		liberar_tripulante_plani(tripulante_plani);
