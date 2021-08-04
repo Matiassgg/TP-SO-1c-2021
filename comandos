@@ -12,10 +12,6 @@ INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota5.txt 0|2 9|6 3|
 INICIAR_PLANIFICACION
 LISTAR_TRIPULANTES
 
-INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota1.txt 9|9 0|0 5|5
-INICIAR_PLANIFICACION
-LISTAR_TRIPULANTES
-
 Esperar el final de la planificación listando los tripulantes cada cierto tiempo.
 Resultados Esperados
 Deberán terminar todos los tripulantes.

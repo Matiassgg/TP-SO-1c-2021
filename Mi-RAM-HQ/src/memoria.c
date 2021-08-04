@@ -874,12 +874,16 @@ void subir_segmento_memoria(t_segmento* segmento, void* stream){
 
 void subir_segmento_libre(t_segmento* segmento){
 	bool ordenar_segmentos_libres(t_segmento* segmento_1, t_segmento* segmento_2){
+		return (segmento_1->inicio < segmento_2->inicio);
+	}
+	bool ordenar_segmentos_libres_BF(t_segmento* segmento_1, t_segmento* segmento_2){
 		return (segmento_1->tamanio < segmento_2->tamanio);
 	}
 
 	list_add(lista_segmentos_libres, segmento);
+	list_sort(lista_segmentos_libres, ordenar_segmentos_libres);
 	if(son_iguales(criterio_seleccion, "BF"))
-		list_sort(lista_segmentos_libres, ordenar_segmentos_libres);
+		list_sort(lista_segmentos_libres, ordenar_segmentos_libres_BF);
 }
 
 t_segmento* buscar_segmento_libre(uint32_t espacio_requerido){
