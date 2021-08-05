@@ -65,7 +65,7 @@ void planificar_tripulantes_bloqueados(){
 			rafaga_block_io(tripulante_plani->tripulante->tarea_act->tiempo);
 			tripulante_plani->tripulante->tarea_act->tiempo = 0;
 
-			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion); // SE LIBERA AVISANDO QUE TERMINO
+//			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion); // SE LIBERA AVISANDO QUE TERMINO
 
 		}
 	}

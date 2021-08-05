@@ -13,6 +13,8 @@ void subir_tripulante_ready(p_tripulante* tripulante_plani){
 void subir_tripulante_bloqueado(p_tripulante* tripulante_plani){
 	log_info(logger, "Se agrega al tripulante %i a BLOCKED_I_O", tripulante_plani->tripulante->id);
 	tripulante_plani->tripulante->estado = BLOCKED_I_O;
+	tripulante_plani->esta_activo = false;
+	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
 	pthread_mutex_lock(&mutex_cola_bloqueados_io);
 	queue_push(cola_bloq_E_S, tripulante_plani);
@@ -176,7 +178,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		// Se debe acceder al FS -> BLoquear al wachin hasta que termine de hacer la tarea
 
 		subir_tripulante_bloqueado(tripulante_plani);
-		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+//		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 	}
 	else{
 		hacer_ciclos_tarea(tripulante_plani->tripulante);
