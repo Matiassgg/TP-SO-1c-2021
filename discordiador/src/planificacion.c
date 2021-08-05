@@ -99,17 +99,6 @@ void pausar_planificacion(){
 	}
 }
 
-void subir_tripulante_exec(p_tripulante* tripulante_plani){
-	log_info(logger, "Se agrega al tripulante %i a EXEC", tripulante_plani->tripulante->id);
-	tripulante_plani->tripulante->estado = EXEC;
-	tripulante_plani->esta_activo = true;
-	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
-	pthread_mutex_lock(&mutex_cola_exec);
-	list_add(lista_exec, tripulante_plani);
-	pthread_mutex_unlock(&mutex_cola_exec);
-	sem_post(&semaforo_cola_exec);
-}
-
 void planificacion_segun_FIFO() {
 	log_info(logger, "Entramos a la planificacion POR FIFO");
 	while(1){
