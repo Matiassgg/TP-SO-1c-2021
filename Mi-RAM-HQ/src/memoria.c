@@ -459,14 +459,17 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 }
 
 t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+
+	t_segmento* segmento;
+
 	t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
 
 	switch(tipo_dato){
 		case TAREAS:
-			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"TAREAS");
+			segmento = (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"TAREAS");
 		break;
 		case PCB:
-			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"PCB");
+			segmento = (t_segmento*) dictionary_remove(tabla->diccionario_segmentos,"PCB");
 		break;
 		case TCB:
 			;
@@ -474,10 +477,10 @@ t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e
 				return id_tripulante == id;
 			}
 			list_remove_by_condition(tabla->tripulantes_activos, es_tripulante);
-			return (t_segmento*) dictionary_remove(tabla->diccionario_segmentos, dar_key_tripulante(id));
+			segmento = (t_segmento*) dictionary_remove(tabla->diccionario_segmentos, dar_key_tripulante(id));
 		break;
 	}
-
+	return segmento;
 }
 
 void liberar_segmento(t_segmento* segmento){
@@ -715,36 +718,39 @@ t_list* buscar_paginas_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato
 }
 
 uint32_t obtener_direccion_pcb(uint32_t id_patota){
+	uint32_t direccion_pcb;
 	if(son_iguales(esquema_memoria, "SEGMENTACION")){
 		t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,PCB);
 
-		return dar_direccion_logica(segmento->nro_segmento,0);
+		direccion_pcb = dar_direccion_logica(segmento->nro_segmento,0);
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
 		t_list* paginas = buscar_paginas_id(id_patota, id_patota, PCB);
 		t_pagina* pagina = list_get(paginas, 0);
 		t_asociador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,PCB);
 
-		return dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
+		direccion_pcb = dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
 	}
+	return direccion_pcb;
 }
 
 
 uint32_t obtener_direccion_tarea(uint32_t id_patota, uint32_t offset){
+	uint32_t direccion_tarea;
 	if(son_iguales(esquema_memoria, "SEGMENTACION")){
 		t_segmento* segmento = buscar_segmento_id(id_patota,id_patota,TAREAS);
 		log_info(logger, "segmento->inicio = %i", segmento->inicio);
 
-		return dar_direccion_logica(segmento->nro_segmento,0);
+		direccion_tarea = dar_direccion_logica(segmento->nro_segmento,0);
 	}
 	else if(son_iguales(esquema_memoria, "PAGINACION")){
 		t_list* paginas = buscar_paginas_id(id_patota, id_patota, TAREAS);
 		t_pagina* pagina = list_get(paginas, 0);
 		t_asociador_pagina* asociador = dar_asociador_pagina(pagina,id_patota,TAREAS);
 
-		return dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
+		direccion_tarea = dar_direccion_logica(pagina->numeroPagina,asociador->inicio);
 	}
-
+	return direccion_tarea;
 }
 
 uint32_t dar_direccion_logica(uint32_t nro_segmento, uint32_t offset){
@@ -1196,39 +1202,43 @@ t_list* obtener_paginas_asignadas(t_tabla_paginas* tabla, uint32_t id_tripulante
 }
 
 t_asociador_pagina* quitar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
+	t_asociador_pagina* asociador_pagina;
 	switch(tipo_dato){
 		case TAREAS:
 			log_info(logger, "Se busca asociador de TAREAS");
-			return (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina,"TAREAS");
+			asociador_pagina = (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina,"TAREAS");
 		break;
 		case PCB:
 			log_info(logger, "Se busca asociador de PCB");
-			return (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina,"PCB");
+			asociador_pagina = (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina,"PCB");
 		break;
 		case TCB:
 			;
 			char* key_tcb = dar_key_tripulante(id_tripulante);
 			log_info(logger, "Se busca asociador de %s para el tripulante %i en la pagina %i", key_tcb, id_tripulante, pagina->numeroPagina);
-			return (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina, key_tcb);
+			asociador_pagina = (t_asociador_pagina*) dictionary_remove(pagina->diccionario_pagina, key_tcb);
 	}
+	return asociador_pagina;
 }
 
 t_asociador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulante, e_tipo_dato tipo_dato){
+	t_asociador_pagina* asociador_pagina;
 	switch(tipo_dato){
 		case TAREAS:
 			log_info(logger, "Se busca asociador de TAREAS");
-			return (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina,"TAREAS");
+			asociador_pagina = (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina,"TAREAS");
 		break;
 		case PCB:
 			log_info(logger, "Se busca asociador de PCB");
-			return (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina,"PCB");
+			asociador_pagina = (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina,"PCB");
 		break;
 		case TCB:
 			;
 			char* key_tcb = dar_key_tripulante(id_tripulante);
 			log_info(logger, "Se busca asociador de %s para el tripulante %i en la pagina %i", key_tcb, id_tripulante, pagina->numeroPagina);
-			return (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina, key_tcb);
+			asociador_pagina = (t_asociador_pagina*) dictionary_get(pagina->diccionario_pagina, key_tcb);
 	}
+	return asociador_pagina;
 }
 
 void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
