@@ -1520,21 +1520,36 @@ void seleccionar_victima_LRU(void){
 		milElem1 = atoi(timeElem1[3]);
 		milElem2 = atoi(timeElem2[3]);
 
-		if (horaElem1 < horaElem2) {
-			return horaElem1 < horaElem2;
-		} else if (horaElem1 == horaElem2) {
-			if (minElem1 < minElem2) {
-				return minElem1 < minElem2;
-			} else if (minElem1 == minElem2) {
-				if (segElem1 < segElem2) {
-					return segElem1 < segElem2;
-				} else if (segElem1 == segElem2) {
-					if (milElem1 <= milElem2) {
-						return milElem1 <= milElem2;
-					}
+//		if (horaElem1 < horaElem2) {
+//			return horaElem1 < horaElem2;
+//		} else if (horaElem1 == horaElem2) {
+//			if (minElem1 < minElem2) {
+//				return minElem1 < minElem2;
+//			} else if (minElem1 == minElem2) {
+//				if (segElem1 < segElem2) {
+//					return segElem1 < segElem2;
+//				} else if (segElem1 == segElem2) {
+//					if (milElem1 <= milElem2) {
+//						return milElem1 <= milElem2;
+//					}
+//				}
+//			}
+//		}
+		if (horaElem1 < horaElem2)
+			return true;
+		if (horaElem1 == horaElem2) {
+			if (minElem1 < minElem2)
+				return true;
+			if (minElem1 == minElem2) {
+				if (segElem1 < segElem2)
+					return true;
+				if (segElem1 == segElem2){
+					if (milElem1 <= milElem2)
+						return true;
 				}
 			}
 		}
+		return false;
 	}
 
 
