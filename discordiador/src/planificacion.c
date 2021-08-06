@@ -65,8 +65,7 @@ void planificar_tripulantes_bloqueados(){
 			rafaga_block_io(tripulante_plani->tripulante->tarea_act->tiempo);
 			tripulante_plani->tripulante->tarea_act->tiempo = 0;
 
-			subir_tripulante_ready(tripulante_plani);
-//			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion); // SE LIBERA AVISANDO QUE TERMINO
+			pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion); // SE LIBERA AVISANDO QUE TERMINO
 
 		}
 	}
@@ -97,6 +96,16 @@ void pausar_planificacion(){
 	for(int i=0; i<grado_multitarea; i++){
 		sem_wait(&semaforo_planificacion);
 	}
+}
+
+void subir_tripulante_exec(p_tripulante* tripulante_plani){
+	log_info(logger, "Se agrega al tripulante %i a EXEC", tripulante_plani->tripulante->id);
+	tripulante_plani->tripulante->estado = EXEC;
+	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
+	pthread_mutex_lock(&mutex_cola_exec);
+	list_add(lista_exec, tripulante_plani);
+	pthread_mutex_unlock(&mutex_cola_exec);
+	sem_post(&semaforo_cola_exec);
 }
 
 void planificacion_segun_FIFO() {
