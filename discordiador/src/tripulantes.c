@@ -10,9 +10,30 @@ void subir_tripulante_ready(p_tripulante* tripulante_plani){
 	sem_post(&semaforo_cola_ready);
 }
 
+void liberar_tarea(t_tarea* tarea){
+	if(tarea){
+		free(tarea->tarea);
+		free(tarea->posicion);
+		free(tarea);
+	}
+}
+void sacar_tripulante_exec(p_tripulante* tripulante_plani){
+	bool es_tripulante_plani(p_tripulante* tripulante_plani_aux){
+		return tripulante_plani_aux->tripulante->id == tripulante_plani->tripulante->id;
+	}
+	liberar_tarea(tripulante_plani->tripulante->tarea_act);
+	tripulante_plani->esta_activo = false;
+	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
+	sem_wait(&semaforo_cola_exec);
+	pthread_mutex_lock(&mutex_cola_exec);
+	list_remove_by_condition(lista_exec, es_tripulante_plani);
+	pthread_mutex_unlock(&mutex_cola_exec);
+}
+
 void subir_tripulante_bloqueado(p_tripulante* tripulante_plani){
 	log_info(logger, "Se agrega al tripulante %i a BLOCKED_I_O", tripulante_plani->tripulante->id);
 	tripulante_plani->tripulante->estado = BLOCKED_I_O;
+	sacar_tripulante_exec(tripulante_plani);
 	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
 	pthread_mutex_lock(&mutex_cola_bloqueados_io);
 	queue_push(cola_bloq_E_S, tripulante_plani);
@@ -25,7 +46,9 @@ t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
 	tripulante->posicion = malloc(sizeof(t_posicion));
 
 	tripulante->id_patota_asociado = patota->id_patota;
-	tripulante->posicion = list_get(patota->posiciones,i);
+	t_posicion* pos_aux = list_get(patota->posiciones,i);
+	tripulante->posicion->pos_x = pos_aux->pos_x;
+	tripulante->posicion->pos_y = pos_aux->pos_y;
 	tripulante->id = ++cantidad_tripulantes;
 	log_info(logger, "El tripulante %i esta en la posicion %i|%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y);
 	tripulante->tarea_act = NULL;
@@ -52,11 +75,12 @@ void expulsar_tripulante(t_tripulante* tripulante){
 	liberar_tripulante_plani(quitar_tripulante_plani(tripulante->id));
 
 	free(tripulante->posicion);
-	free(tripulante->tarea_act);
+	liberar_tarea(tripulante->tarea_act);
 	liberar_conexion(&tripulante->socket_conexion_Mongo);
 	liberar_conexion(&tripulante->socket_conexion_RAM);
 	free(tripulante);
 }
+
 
 void ejecutar_tripulante(t_tripulante* tripulante){
 	bool es_tripulante_plani(p_tripulante* tripulante_plani_aux){
@@ -105,10 +129,9 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			if(tripulante->tarea_act->tiempo <= 0){
 				log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 				enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
+				sacar_tripulante_exec(tripulante_plani);
 			}
 
-			tripulante_plani->esta_activo = false;
-			pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 			if(!verificar_estado(tripulante))
 				break;
 
@@ -116,6 +139,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 				solicitar_tarea(tripulante);
 		}
 		list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
+		liberar_tripulante_plani(tripulante_plani);
 	}
 	log_info(logger, "Se salio del while del tripulante %i", tripulante->id);
 	p_tripulante* tripulante_plani_aux = list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
@@ -123,6 +147,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		log_info(logger, "Se encontro un tripulante plani %i", tripulante_plani_aux->tripulante->id);
 		tripulante_plani_aux->esta_activo = false;
 		pthread_mutex_unlock(&tripulante_plani_aux->mutex_solicitud);
+		liberar_tripulante_plani(tripulante_plani_aux);
 	}
 
 	expulsar_tripulante(tripulante);
@@ -177,6 +202,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 
 		subir_tripulante_bloqueado(tripulante_plani);
 		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+		subir_tripulante_ready(tripulante_plani);
 	}
 	else{
 		hacer_ciclos_tarea(tripulante_plani->tripulante);

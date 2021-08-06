@@ -39,7 +39,6 @@ char* de_listado_a_string(t_list* lista_tripulantes){
 }
 
 void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
-
 	if(son_iguales(palabras_del_mensaje[0] ,"ESTAS_ON")) {
 		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 1)) {
 			log_warning(logger, "DISCORDIADOR :: Falta especificar el modulo");
@@ -67,6 +66,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		else
 			log_info(logger, "DISCORDIADOR :: El modulo %s esta ON", palabras_del_mensaje[1]);
 
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 
@@ -89,6 +90,11 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		liberar_conexion(&socket_con_RAM);
 
+		free(patota->path_tareas);
+		list_destroy_and_destroy_elements(patota->posiciones, free);
+		free(patota);
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 
@@ -107,6 +113,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		free(string_listado);
 		list_destroy_and_destroy_elements(lista_tripulantes, free);
 		liberar_conexion(&socket_con_RAM);
+
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 
@@ -129,7 +138,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 
 //		liberar_tripulante_plani(tripulante_plani);
-
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 
@@ -139,6 +149,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "DISCORDIADOR :: Se da inicio a la planificacion");
 		iniciar_planificacion();
 		log_info(logger, "Se inicia la planificacion");
+
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 
@@ -148,6 +161,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		log_info(logger, "DISCORDIADOR :: Se esta deteniendo la planificacion");
 		pausar_planificacion();
 		log_info(logger, "Se pausa la planificacion");
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 
@@ -167,6 +182,9 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 
 		free(bitacora);
 		liberar_conexion(&socket_mongo);
+
+		string_iterate_lines(palabras_del_mensaje, free);
+		free(palabras_del_mensaje);
 		return;
 	}
 }
@@ -191,6 +209,7 @@ t_patota* de_consola_a_patota(char** palabras_del_mensaje){
 		list_add(patota->posiciones, pos_ini);
 
 		string_iterate_lines(posicion, (void*) free);
+		free(posicion);
 	}
 
 	if(cant_posiciones < patota->cant_tripulantes) {
