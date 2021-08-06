@@ -654,7 +654,7 @@ void subir_FS(char* a_subir, char* archivo, bool es_files){
 }
 
 char* leer_blocks(t_list* bloques, int size){
-	char* informacion = malloc(size+1);
+	char* informacion = malloc(size);
 	uint32_t offset = 0;
 	int tamanio_total = size;
 	for(int i=0;i<list_size(bloques);i++){
@@ -665,6 +665,9 @@ char* leer_blocks(t_list* bloques, int size){
 		tamanio_total -= tamanio_leer;
 	}
 
+
+	log_info(logger, "informacion %s - size %i", informacion, size);
+
 	return informacion;
 }
 
@@ -674,7 +677,8 @@ char* leer_FS(char* archivo){
 
 	t_config* config = config_create(archivo);
 	t_list* bloques = obtener_bloques_totales(config);
-	char* informacion = leer_blocks(bloques, config_get_int_value(config,"SIZE"));
+//	char* informacion = leer_blocks(bloques, config_get_int_value(config,"SIZE"));
+	char* informacion = obtener_caracteres2(bloques);
 
 	pthread_mutex_unlock(&mutex_FS);
 
@@ -928,11 +932,12 @@ char* obtener_caracteres2(t_list* bloques){
 		memcpy(aux, contenido_blocks_aux + ptr_bloque, block_size);
 		log_info(logger, "bloque %i ptr %i aux %s", ptr_bloque/block_size, ptr_bloque, aux);
 		string_append(&stream, aux);
-//		if(string_length(aux)<block_size){
-//			free(aux);
-//			break;
-//		}
+		if(string_length(aux)<block_size){
+			free(aux);
+			break;
+		}
 		free(aux);
+
 	}
 
 	log_info(logger, "stream %s", stream);

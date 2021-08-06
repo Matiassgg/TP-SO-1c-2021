@@ -176,16 +176,16 @@ bool chequear_sabotajes_en_recurso(char* path_relativo){
 	char* path_archivo = obtener_path_files(path_relativo);
 	t_config* config_recurso = config_create(path_archivo);
 
-	if(detectar_sabotaje_files_size(config_recurso)){
-		log_info(logger,"FSCK: Se detecto sabotaje en el campo SIZE del recurso %s",path_relativo);
+	if(detectar_sabotaje_files_blocks(config_recurso)){
+		log_info(logger,"FSCK: Se detecto sabotaje en el campo BLOCKS del recurso %s",path_relativo);
 		return 1;
 	}
 	if(detectar_sabotaje_files_blockcount(config_recurso)){
 		log_info(logger,"FSCK: Se detecto sabotaje en el campo BLOCK_COUNT del recurso %s",path_relativo);
 		return 1;
 	}
-	if(detectar_sabotaje_files_blocks(config_recurso)){
-		log_info(logger,"FSCK: Se detecto sabotaje en el campo BLOCKS del recurso %s",path_relativo);
+	if(detectar_sabotaje_files_size(config_recurso)){
+		log_info(logger,"FSCK: Se detecto sabotaje en el campo SIZE del recurso %s",path_relativo);
 		return 1;
 	}
 	log_info(logger,"FSCK: No se detectaron sabotajes en el recurso %s",path_relativo);
@@ -347,10 +347,11 @@ t_list* obtener_bloques_usados(){
 	}
 	t_list* lista_bloques = list_create();
 
-	log_info(logger, "Se van a obtener los bloques de los archivos de recursos");
+	log_info(logger, "Se van a obtener los bloques de los archivos de recursos y de las bitacoras");
 	list_add_all(lista_bloques,obtener_bloques_recursos());
-	log_info(logger, "Se van a obtener los bloques de las bitacoras");
+	log_info(logger, "Se obtuvieron %i bloques de los archivos de recursos", list_size(lista_bloques));
 	list_add_all(lista_bloques,obtener_bloques_bitacora());
+	log_info(logger, "Se obtuvieron %i bloques de las bitacoras y recursos", list_size(lista_bloques));
 	list_sort(lista_bloques,ordenar_bloques);
 
 	return lista_bloques;
