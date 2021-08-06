@@ -148,6 +148,7 @@ En el módulo discordiador crear las siguientes patotas e inicia la planificaci�
 INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaA.txt
 INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaB.txt
 INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
 
 Controlar las escrituras de los recursos en los bloques
 Mientras ejecutan los tripulantes verificar cómo se realizan las peticiones de I/O y que se

@@ -13,11 +13,37 @@ void subir_tripulante_ready(p_tripulante* tripulante_plani){
 void subir_tripulante_bloqueado(p_tripulante* tripulante_plani){
 	log_info(logger, "Se agrega al tripulante %i a BLOCKED_I_O", tripulante_plani->tripulante->id);
 	tripulante_plani->tripulante->estado = BLOCKED_I_O;
+	tripulante_plani->esta_activo = false;
+	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
 	pthread_mutex_lock(&mutex_cola_bloqueados_io);
 	queue_push(cola_bloq_E_S, tripulante_plani);
 	pthread_mutex_unlock(&mutex_cola_bloqueados_io);
 	sem_post(&semaforo_cola_bloqueados_io);
+}
+
+void subir_tripulante_exec(p_tripulante* tripulante_plani){
+	log_info(logger, "Se agrega al tripulante %i a EXEC", tripulante_plani->tripulante->id);
+	tripulante_plani->tripulante->estado = EXEC;
+	tripulante_plani->esta_activo = true;
+	enviar_RAM_actualizar_estado(tripulante_plani->tripulante,tripulante_plani->tripulante->socket_conexion_RAM);
+	pthread_mutex_lock(&mutex_cola_exec);
+	list_add(lista_exec, tripulante_plani);
+	pthread_mutex_unlock(&mutex_cola_exec);
+	sem_post(&semaforo_cola_exec);
+}
+
+void sacar_tripulante_exec(p_tripulante* tripulante_plani){
+	bool es_tripulante_plani(p_tripulante* tripulante_plani_aux){
+		return tripulante_plani_aux->tripulante->id == tripulante_plani->tripulante->id;
+	}
+
+	tripulante_plani->esta_activo = false;
+	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
+	sem_wait(&semaforo_cola_exec);
+	pthread_mutex_lock(&mutex_cola_exec);
+	list_remove_by_condition(lista_exec, tripulante_plani);
+	pthread_mutex_unlock(&mutex_cola_exec);
 }
 
 t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
@@ -74,20 +100,18 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 
 	// TODO :: SOLICITA LA TAREA A EJECUTAR
 	solicitar_tarea(tripulante);
+	p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
+	tripulante_plani->tripulante = tripulante;
+
+	pthread_mutex_init(&tripulante_plani->mutex_solicitud, NULL);
+	pthread_mutex_init(&tripulante_plani->mutex_ejecucion, NULL);
+	pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
+	pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+	tripulante_plani->esta_activo = true;
+	list_add(lista_tripulantes_plani, tripulante_plani);
 
 	while(tripulante->tarea_act && (tripulante->estado != EXIT)){
-		p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
-		tripulante_plani->tripulante = tripulante;
-
-		pthread_mutex_init(&tripulante_plani->mutex_solicitud, NULL);
-		pthread_mutex_init(&tripulante_plani->mutex_ejecucion, NULL);
-		pthread_mutex_lock(&tripulante_plani->mutex_solicitud);
-		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
-		tripulante_plani->esta_activo = true;
-		list_add(lista_tripulantes_plani, tripulante_plani);
-
 		subir_tripulante_ready(tripulante_plani);
-
 		while(quedan_pasos(tripulante) && puedo_seguir(tripulante_plani)){
 			enviar_mover_hacia(tripulante, avanzar_hacia(tripulante, tripulante->tarea_act->posicion, true));
 		}
@@ -115,7 +139,6 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 			else
 				solicitar_tarea(tripulante);
 		}
-		list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
 	}
 	log_info(logger, "Se salio del while del tripulante %i", tripulante->id);
 	p_tripulante* tripulante_plani_aux = list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
@@ -164,6 +187,8 @@ bool puedo_seguir(p_tripulante* tripulante_plani){
 }
 
 void hacer_tarea(p_tripulante* tripulante_plani){
+	if(tripulante_plani->tripulante->tarea_act->tiempo <= 0)
+		return;
 	hacer_peticon_IO();
 	char* tarea_por_hacer = tripulante_plani->tripulante->tarea_act->tarea;
 
@@ -176,7 +201,7 @@ void hacer_tarea(p_tripulante* tripulante_plani){
 		// Se debe acceder al FS -> BLoquear al wachin hasta que termine de hacer la tarea
 
 		subir_tripulante_bloqueado(tripulante_plani);
-		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
+//		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 	}
 	else{
 		hacer_ciclos_tarea(tripulante_plani->tripulante);
