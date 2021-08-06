@@ -102,6 +102,7 @@ void liberar_tripulante_plani(p_tripulante* tripulante_plani){
 	pthread_mutex_destroy(&tripulante_plani->mutex_ejecucion);
 	pthread_mutex_destroy(&tripulante_plani->mutex_solicitud);
 	free(tripulante_plani);
+	tripulante_plani = NULL;
 }
 
 p_tripulante* quitar_tripulante_plani(uint32_t id_tripulante){

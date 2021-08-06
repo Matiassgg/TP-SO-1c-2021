@@ -19,14 +19,29 @@ void liberar_tarea(t_tarea* tarea){
 }
 void sacar_tripulante_exec(p_tripulante* tripulante_plani){
 	bool es_tripulante_plani(p_tripulante* tripulante_plani_aux){
-		return tripulante_plani_aux->tripulante->id == tripulante_plani->tripulante->id;
+		if(tripulante_plani_aux && tripulante_plani)
+			if(tripulante_plani_aux->tripulante && tripulante_plani->tripulante)
+				return tripulante_plani_aux->tripulante->id == tripulante_plani->tripulante->id;
+			else
+				return false;
+		else
+			return false;
 	}
-	liberar_tarea(tripulante_plani->tripulante->tarea_act);
+	bool sacar_tripu(p_tripulante* tripulante_plani_aux){
+		if(tripulante_plani_aux && tripulante_plani)
+			if(tripulante_plani_aux->tripulante && tripulante_plani->tripulante)
+				return tripulante_plani_aux->tripulante->id != tripulante_plani->tripulante->id;
+			else
+				return false;
+		else
+			return false;
+	}
 	tripulante_plani->esta_activo = false;
 	pthread_mutex_unlock(&tripulante_plani->mutex_solicitud);
 	sem_wait(&semaforo_cola_exec);
 	pthread_mutex_lock(&mutex_cola_exec);
-	list_remove_by_condition(lista_exec, es_tripulante_plani);
+	lista_exec = list_filter(lista_exec, sacar_tripu);
+//	list_remove_by_condition(lista_exec, es_tripulante_plani);
 	pthread_mutex_unlock(&mutex_cola_exec);
 }
 
@@ -130,6 +145,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 				log_info(logger, "El tripulante %i finalizo la tarea %s", tripulante->id, tripulante->tarea_act->tarea);
 				enviar_Mongo_bitacora_tarea_finalizar(tripulante, tripulante->socket_conexion_Mongo);
 				sacar_tripulante_exec(tripulante_plani);
+				liberar_tarea(tripulante->tarea_act);
 			}
 
 			if(!verificar_estado(tripulante))

@@ -52,6 +52,30 @@ void test(){
 
 int main(int argc, char* argv[]) {
 //	test();
+
+//	p_tripulante* tripulante_plani = malloc(sizeof(p_tripulante));
+//	t_tripulante* tripulante = malloc(sizeof(t_tripulante));
+//	tripulante->id = 1;
+//	tripulante_plani->tripulante = tripulante;
+//	bool es_tripulante_plani(p_tripulante* tripulante_plani_aux){
+//		if(tripulante_plani_aux && tripulante_plani)
+//			if(tripulante_plani_aux->tripulante && tripulante_plani->tripulante)
+//				return tripulante_plani_aux->tripulante->id == tripulante_plani->tripulante->id;
+//			else
+//				return false;
+//		else
+//			return false;
+//	}
+//	t_list* lista = list_create();
+//	list_add(lista, tripulante_plani);
+//	free(tripulante);
+//	tripulante = NULL;
+//	if(tripulante)
+//		printf("\n\t\tENTRO TRIPU\n");
+//	p_tripulante* tripulante_plani_aux = list_remove_by_condition(lista, es_tripulante_plani);
+//	if(tripulante_plani_aux!=NULL && tripulante_plani_aux->tripulante!=NULL)
+//		printf("\n\t\tENTRO %i\n", tripulante_plani_aux->tripulante->id);
+
 	iniciar_discordiador();
 	pthread_create(&hiloReceive, NULL, (void*) arrancar_servidor, NULL);
 	pthread_detach(hiloReceive);
@@ -119,16 +143,16 @@ void finalizar_discordiador(){
 	liberar_conexion(&socket_Mi_RAM_HQ);
 	liberar_conexion(&socket_Mongo_Store);
 
-	queue_clean_and_destroy_elements(cola_new,free);
-	queue_clean_and_destroy_elements(cola_ready,free);
-	queue_clean_and_destroy_elements(cola_exec,free);
-	queue_clean_and_destroy_elements(cola_bloq_E_S,free);
-	queue_clean_and_destroy_elements(cola_bloq_Emergencia,free);
-	queue_clean_and_destroy_elements(cola_exit,free);
+	queue_destroy_and_destroy_elements(cola_new,free);
+	queue_destroy_and_destroy_elements(cola_ready,free);
+	queue_destroy_and_destroy_elements(cola_exec,free);
+	queue_destroy_and_destroy_elements(cola_bloq_E_S,free);
+	queue_destroy_and_destroy_elements(cola_bloq_Emergencia,free);
+	queue_destroy_and_destroy_elements(cola_exit,free);
 
 	list_destroy_and_destroy_elements(lista_expulsados, free);
 	list_destroy_and_destroy_elements(lista_bloq_Emergencia, free);
-	list_destroy_and_destroy_elements(lista_exec, free);
+	list_destroy(lista_exec);
 	list_destroy_and_destroy_elements(lista_tripulantes_plani, free);
 
 	pthread_mutex_destroy(&mutex_cola_ready);
