@@ -179,8 +179,10 @@ void planificacion_segun_RR() {
 					pthread_mutex_unlock(&tripulante_plani->mutex_ejecucion);
 			}
 //			log_info(logger, "Salimos del for trip %i", tripulante_plani->tripulante->id);
-			if(tripulante_plani->esta_activo)
+			if(tripulante_plani->esta_activo){
+				log_info(logger, "El tripulante %i esta activo y se subira de nuevo a ready", tripulante_plani->tripulante->id);
 				subir_tripulante_ready(tripulante_plani);
+			}
 		}
 	}
 }

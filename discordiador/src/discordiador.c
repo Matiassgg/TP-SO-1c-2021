@@ -150,10 +150,12 @@ void finalizar_discordiador(){
 	queue_destroy_and_destroy_elements(cola_bloq_Emergencia,free);
 	queue_destroy_and_destroy_elements(cola_exit,free);
 
-	list_destroy_and_destroy_elements(lista_expulsados, free);
+//	list_destroy_and_destroy_elements(, free);
 	list_destroy(lista_bloq_Emergencia);
 	list_destroy(lista_exec);
-	list_destroy_and_destroy_elements(lista_tripulantes_plani, free);
+	list_destroy(lista_expulsados);
+	list_destroy(lista_tripulantes_plani);
+//	list_destroy_and_destroy_elements(, free);
 
 	pthread_mutex_destroy(&mutex_cola_ready);
 	pthread_mutex_destroy(&mutex_cola_exec);

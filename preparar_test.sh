@@ -5,9 +5,9 @@ PROJECT="tp-2021-1c-LaMitad-1/"
 DISCORDIADOR="discordiador"
 MONGO="i-Mongo-Store"
 RAM="Mi-RAM-HQ"
-G_IP_RAM="10.108.176.4"
-G_IP_DISC="10.108.176.2"
-G_IP_MONGO="10.108.176.3"
+G_IP_RAM="127.0.0.1"
+G_IP_DISC="127.0.0.1"
+G_IP_MONGO="127.0.0.1"
 
 echo "\n\n"
 read -r -p "~~~Press enter to continue...~~~" 1 -n -s
