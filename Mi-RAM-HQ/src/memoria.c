@@ -316,9 +316,9 @@ t_tarea* obtener_tarea_segmentacion(t_tripulante* tripulante){
 t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 	t_tcb* tcb  = deserializar_memoria_tcb(leer_memoria_paginacion(tripulante->id, tripulante->id_patota_asociado, TCB));
 
-	log_info(logger,"prox_instruccion: %i",tcb->prox_instruccion);
+//	log_info(logger,"prox_instruccion: %i",tcb->prox_instruccion);
 	uint32_t offset = dar_offset_direccion_logica(tcb->prox_instruccion);
-	log_info(logger,"offset: %d",offset);
+//	log_info(logger,"offset: %d",offset);
 
 	if(offset >= tamanio_pagina)
 		return NULL;
@@ -338,20 +338,20 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 	if(pagina->marco == NULL)
 		log_error(logger, "Ta cagado el marco de la pagina %i del tripulante %i", pagina->numeroPagina, tripulante->id);
 	uint32_t inicio_tarea = pagina->marco->inicioMemoria + offset; // TODO FALLA SEGURAMENTE MARCO ESTA EN SWAP
-	log_info(logger,"inicio_tarea: %i",inicio_tarea);
+//	log_info(logger,"inicio_tarea: %i",inicio_tarea);
 	do{
 		memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
 		new_offset++;
 		string_append(&tarea_string, c_leido);
 	}while((c_leido[0] != '\n') && ((offset + new_offset) < tamanio_pagina) && ((offset + new_offset) < asociador->tamanio));
-	log_info(logger,"tarea_string: %s",tarea_string);
-	log_info(logger,"new_offset: %i",new_offset);
+//	log_info(logger,"tarea_string: %s",tarea_string);
+//	log_info(logger,"new_offset: %i",new_offset);
 
 	nro_pagina = pagina->numeroPagina;
 	uint32_t offset_logico = new_offset+offset;
 
 	if((c_leido[0] != '\n') && (offset + new_offset) >= tamanio_pagina){
-		log_info(logger,"Se entro al if 2");
+//		log_info(logger,"Se entro al if 2");
 		t_list* paginas = obtener_paginas_asignadas(tabla, tripulante->id_patota_asociado, TAREAS);
 		if(list_size(paginas) > 1){
 			bool aux = false;
@@ -369,13 +369,13 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 			offset = asociador_2->inicio;
 
 			new_offset=0;
-			log_info(logger,"offset: %d",offset);
+//			log_info(logger,"offset: %d",offset);
 
 			if(offset >= tamanio_pagina)
 				return NULL;
 
 			inicio_tarea = pagina_aux->marco->inicioMemoria + offset;
-			log_info(logger,"inicio_tarea: %i",inicio_tarea);
+//			log_info(logger,"inicio_tarea: %i",inicio_tarea);
 
 			while((c_leido[0] != '\n') && ((offset + new_offset) < tamanio_pagina) && ((offset + new_offset) < asociador_2->tamanio)){
 				memcpy(c_leido, memoria + inicio_tarea + new_offset, sizeof(char));
@@ -386,8 +386,8 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 			nro_pagina = pagina_aux->numeroPagina;
 			offset_logico = new_offset+offset;
 
-			log_info(logger,"tarea_string: %s",tarea_string);
-			log_info(logger,"nro_pagina: %i",nro_pagina);
+//			log_info(logger,"tarea_string: %s",tarea_string);
+//			log_info(logger,"nro_pagina: %i",nro_pagina);
 		}
 	}
 
@@ -813,7 +813,7 @@ void* leer_memoria_segmentacion(t_segmento* segmento){
 }
 
 void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
-	pthread_mutex_lock(&mutex_tocar_memoria);
+//	pthread_mutex_lock(&mutex_tocar_memoria);
 	uint32_t id_tripulante = 0;
 	if(tipo_dato == TCB)
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
@@ -835,7 +835,7 @@ void modificar_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, 
 
 	subir_segmento_memoria(segmento, buffer->stream);
 
-	pthread_mutex_unlock(&mutex_tocar_memoria);
+//	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void escribir_en_memoria_segmentacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -1452,6 +1452,7 @@ t_marco_en_swap* asignar_marco_en_swap_y_sacar_de_memoria(t_pagina* pagina, uint
 }
 
 void verificar_marco_memoria(t_pagina* pagina, uint32_t id_patota){
+	pthread_mutex_lock(&mutexSwap);
 	if(pagina->bit_presencia == 0)
 		pagina->marco = traer_pagina_con_marco_asignado(pagina, id_patota);
 	else if(pagina->bit_presencia == 1){
@@ -1459,6 +1460,7 @@ void verificar_marco_memoria(t_pagina* pagina, uint32_t id_patota){
 			pagina->marco->bitUso=1;
 		}
 	}
+	pthread_mutex_unlock(&mutexSwap);
 }
 
 t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
