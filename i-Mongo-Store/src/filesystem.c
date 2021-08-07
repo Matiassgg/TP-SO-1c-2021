@@ -384,7 +384,7 @@ void* obtener_informacion_bloque(uint32_t bloque){
 }
 
 t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tamanio_restante){
-	log_info(logger, "Se entra a agregar_stream_blocks para el stream %s", stream_a_agregar);
+//	log_info(logger, "Se entra a agregar_stream_blocks para el stream %s", stream_a_agregar);
 	char* stream = string_duplicate(stream_a_agregar);
 	uint32_t offset = 0;
 	t_list* bloques = list_create();
@@ -420,7 +420,7 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 			tamanio_subida = minimo((cant_caracteres - offset),block_size);
 		}
 
-		log_info(logger, "Se subira %s del tamanio %i al bloque %i en el offset %i", stream + offset, tamanio_subida, bloque_libre, offset_bloque);
+//		log_info(logger, "Se subira %s del tamanio %i al bloque %i en el offset %i", stream + offset, tamanio_subida, bloque_libre, offset_bloque);
 		if(offset_bloque+tamanio_subida!= block_size && offset + tamanio_subida == cant_caracteres)
 			tamanio_subida++;
 		offset_bloque += (bloque_libre*block_size);
@@ -502,7 +502,7 @@ t_list* obtener_bloques_totales(t_config* config){
 
 t_list* sacar_bloques_config(t_list* bloques, t_config* config){
 	t_list* bloques_nuevos = obtener_bloques_totales(config);
-	log_info(logger,"Se borraran %i bloques de %i", list_size(bloques), list_size(bloques_nuevos));
+//	log_info(logger,"Se borraran %i bloques de %i", list_size(bloques), list_size(bloques_nuevos));
 
 	bool es_bloque(uint32_t bloque){
 		bool esta_aca(uint32_t bloque_a_sacar){
@@ -513,7 +513,7 @@ t_list* sacar_bloques_config(t_list* bloques, t_config* config){
 	for(int i=0; i<list_size(bloques); i++)
 		list_remove_by_condition(bloques_nuevos, es_bloque);
 
-	log_info(logger,"Nos quedaron %i bloques nuevos", list_size(bloques_nuevos));
+//	log_info(logger,"Nos quedaron %i bloques nuevos", list_size(bloques_nuevos));
 	return bloques_nuevos;
 }
 
@@ -551,7 +551,7 @@ void actualizar_archivo_bitacora(char caracter, t_list* bloques, t_config* confi
 }
 
 void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, int size){
-	log_info(logger, "\n ~~size %i~~ \n", size);
+//	log_info(logger, "\n ~~size %i~~ \n", size);
 	t_list* bloques_a_subir;
 	int size_old = config_get_int_value(config, "SIZE");
 	int size_total = size_old+size;
@@ -563,7 +563,7 @@ void actualizar_archivo_file(char caracter, t_list* bloques, t_config* config, i
 	else
 		bloques_a_subir = sumar_bloques_config(bloques, config);
 
-	log_info(logger, "\n ~~BLOCK_COUNT %i~~ \n", list_size(bloques_a_subir));
+//	log_info(logger, "\n ~~BLOCK_COUNT %i~~ \n", list_size(bloques_a_subir));
 
 	config_set_value(config,"SIZE", string_itoa(size_total));
 	char* stream_aux = obtener_stream_blocks(bloques_a_subir);
@@ -635,13 +635,13 @@ int tamanio_restante_config(t_config* config){
 void subir_FS(char* a_subir, char* archivo, bool es_files){
 	pthread_mutex_lock(&mutex_FS);
 	t_config* config = config_create(archivo);
-	log_info(logger, "Se obtuvo el config");
+//	log_info(logger, "Se obtuvo el config");
 	int ultimo_bloque = ultimo_bloque_config(config);
-	log_info(logger, "Se obtuvo el ultimo_bloque %i", ultimo_bloque);
+//	log_info(logger, "Se obtuvo el ultimo_bloque %i", ultimo_bloque);
 	int tamanio_restante = tamanio_restante_config(config);
-	log_info(logger, "Se obtuvo el tamanio_restante %i", tamanio_restante);
+//	log_info(logger, "Se obtuvo el tamanio_restante %i", tamanio_restante);
 	t_list* bloques = agregar_stream_blocks(a_subir, ultimo_bloque, tamanio_restante);
-	log_info(logger, "Se subio a blocks");
+//	log_info(logger, "Se subio a blocks");
 
 	if(es_files)
 		actualizar_archivo_file(a_subir[0], bloques, config, string_length(a_subir));
