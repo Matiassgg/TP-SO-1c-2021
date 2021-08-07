@@ -32,6 +32,14 @@ void preparar_memoria() {
 	pthread_mutex_init(&mutexExpulsar, NULL);
 	pthread_mutex_init(&mutex_tocar_memoria, NULL);
 	pthread_mutex_init(&mutex_tocar_memoria_tareas,NULL);
+	pthread_mutex_init(&mutex_tablas, NULL);
+	pthread_mutex_init(&mutexTablaSegmentos, NULL);
+	pthread_mutex_init(&mutexInfoPatotaAEnviar, NULL);
+	pthread_mutex_init(&mutexEscribirMemoria, NULL);
+	pthread_mutex_init(&mutexEliminarDeMemoria, NULL);
+	pthread_mutex_init(&mutexPatotasCreadas, NULL);
+	pthread_mutex_init(&mutexFree, NULL);
+	pthread_mutex_init(&mutexVictima, NULL);
 
 	if(esquema_memoria == NULL)
 		log_error(logger, "Error al leer el esquema de memoria");
@@ -210,6 +218,8 @@ void escribir_en_memoria(void* informacion, uint32_t patota_asociada, e_tipo_dat
 }
 
 void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
+
 	t_buffer* buffer;
 	switch(tipo_dato){
 		case TAREAS:
@@ -229,6 +239,8 @@ void modificar_memoria(void* informacion, uint32_t id_patota, e_tipo_dato tipo_d
 	else{
 		modificar_memoria_paginacion(buffer, id_patota, tipo_dato);
 	}
+
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
@@ -243,6 +255,7 @@ void mover_tripulante_memoria(t_mover_hacia* mover_hacia){
 }
 
 void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 	void* informacion;
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		informacion = leer_memoria_segmentacion(buscar_segmento_id(id, id_patota, tipo_dato));
@@ -250,6 +263,7 @@ void* leer_memoria(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
 	else{
 		informacion = leer_memoria_paginacion(id, id_patota, tipo_dato);
 	}
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return informacion;
 }
 
@@ -349,7 +363,8 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 				return aux;
 			}
 			t_pagina* pagina_aux = list_find(paginas, dar_proxima_pagina);
-			pagina_aux->marco = traer_pagina_con_marco_asignado(pagina_aux, tripulante->id);
+			verificar_marco_memoria(pagina_aux, tripulante->id_patota_asociado);
+//			pagina_aux->marco = traer_pagina_con_marco_asignado(pagina_aux, tripulante->id);
 			t_asociador_pagina* asociador_2 = dar_asociador_pagina(pagina_aux, tripulante->id_patota_asociado, TAREAS);
 			offset = asociador_2->inicio;
 
@@ -385,6 +400,8 @@ t_tarea* obtener_tarea_paginacion(t_tripulante* tripulante){
 
 t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	pthread_mutex_lock(&mutex_tocar_memoria_tareas);
+	pthread_mutex_lock(&mutex_tocar_memoria);
+
 	t_tarea* tarea;
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION"))
@@ -393,12 +410,14 @@ t_tarea* obtener_tarea_memoria(t_tripulante* tripulante){
 	else if(son_iguales(esquema_memoria, "PAGINACION"))
 		tarea = obtener_tarea_paginacion(tripulante);
 
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 	pthread_mutex_unlock(&mutex_tocar_memoria_tareas);
 
 	return tarea;
 }
 
 void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
+	pthread_mutex_lock(&mutex_tocar_memoria);
 
 	if(son_iguales(esquema_memoria, "SEGMENTACION")) {
 		t_tabla_segmentos* tabla = dar_tabla_segmentos(patota_asociada);
@@ -456,6 +475,8 @@ void sacar_de_memoria(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_da
 			//list_remove(lista_tablas_paginas,tabla);
 			//free(tabla);
 	}
+
+	pthread_mutex_unlock(&mutex_tocar_memoria);
 }
 
 t_segmento* sacar_de_tabla_segmentacion(uint32_t id, uint32_t patota_asociada, e_tipo_dato tipo_dato){
@@ -696,8 +717,6 @@ void preparar_memoria_para_esquema_de_segmentacion() {
 	lista_tablas_segmentos = list_create();
 	tabla_asociadores_segmentos = list_create();
 
-	pthread_mutex_init(&mutex_tablas, NULL);
-
 	t_segmento* segmento = malloc(sizeof(t_segmento));
 
 	segmento->inicio = 0;
@@ -785,13 +804,11 @@ t_segmento* buscar_segmento_id(uint32_t id, uint32_t id_patota, e_tipo_dato tipo
 }
 
 void* leer_memoria_segmentacion(t_segmento* segmento){
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	void* dato_requerido = malloc(segmento->tamanio);
 
 	memcpy(dato_requerido, memoria + segmento->inicio, segmento->tamanio);
 	log_info(logger, "segmento %i - inicio del segmento %i y tamanio %i",segmento->nro_segmento, segmento->inicio, segmento->tamanio);
 
-	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return dato_requerido;
 }
 
@@ -911,6 +928,9 @@ void preparar_memoria_para_esquema_de_paginacion() {
 	marcos_swap = list_create();
 	lista_tablas_paginas = list_create();
 
+	pthread_mutex_init(&mutex_marcos, NULL);
+	pthread_mutex_init(&mutex_marcos_libres, NULL);
+
 	crear_archivo_swap();
 
 	for(int offset = 0; offset < tamanio_memoria -1; offset += tamanio_pagina){
@@ -1004,7 +1024,7 @@ void asignar_marco(t_pagina* pagina) {
 }
 
 t_marco* buscar_marco_libre(){
-
+	pthread_mutex_lock(&mutex_marcos_libres);
 	bool marco_esta_libre(t_marco* marco){
 			return !marco->bitUso;
 	}
@@ -1026,6 +1046,7 @@ t_marco* buscar_marco_libre(){
 	t_marco* marco = list_find(tablaDeMarcos, marco_esta_libre);
 
 	if(marco==NULL){
+		pthread_mutex_unlock(&mutex_marcos_libres);
 		return NULL;
 	}else{
 		t_pagina* pagina = obtener_pagina_con_marco(marco);
@@ -1033,6 +1054,7 @@ t_marco* buscar_marco_libre(){
 			generar_proceso_de_pase_a_swap(marco);
 		}
 
+		pthread_mutex_unlock(&mutex_marcos_libres);
 		return marco;
 	}
 
@@ -1242,7 +1264,6 @@ t_asociador_pagina* dar_asociador_pagina(t_pagina* pagina, uint32_t id_tripulant
 }
 
 void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_tipo_dato tipo_dato){
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	uint32_t id_tripulante = 0;
 	if(tipo_dato == TCB)
 		memcpy(&id_tripulante, buffer->stream, sizeof(uint32_t));
@@ -1267,8 +1288,6 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 		tamanio_restante -= asociador->tamanio;
 	}
 
-	pthread_mutex_unlock(&mutex_tocar_memoria);
-
 	if(tamanio_restante)
 		log_error(logger, "Falta info para subir");
 	else
@@ -1276,7 +1295,6 @@ void modificar_memoria_paginacion(t_buffer* buffer, uint32_t patota_asociada, e_
 }
 
 void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_dato){
-	pthread_mutex_lock(&mutex_tocar_memoria);
 	t_tabla_paginas* tabla = dar_tabla_paginas(id_patota);
 	t_list* paginas = obtener_paginas_asignadas(tabla, id, tipo_dato);
 	void* dato_requerido;
@@ -1305,7 +1323,6 @@ void* leer_memoria_paginacion(uint32_t id, uint32_t id_patota, e_tipo_dato tipo_
 		offset += asociador->tamanio;
 	}
 
-	pthread_mutex_unlock(&mutex_tocar_memoria);
 	return dato_requerido;
 }
 
@@ -1445,10 +1462,11 @@ void verificar_marco_memoria(t_pagina* pagina, uint32_t id_patota){
 }
 
 t_marco* traer_pagina_con_marco_asignado(t_pagina* pagina, uint32_t id_patota){
+	pthread_mutex_lock(&mutex_marcos);
 	log_info(logger,"Se produce un page fault de la pagina nro: %d de la patota nro: %d",pagina->numeroPagina,id_patota);
 	t_marco_en_swap* marco_en_swap = buscar_marco_en_swap(pagina, id_patota);
 	log_info(logger,"El contenido de la pagina que se quiere traer se encuentra en el marco de swap nro: %i",marco_en_swap->numeroMarcoSwap);
-	pthread_mutex_lock(&mutex_marcos);
+
 	t_marco* marcoLibre = buscar_marco_libre();
 	if(marcoLibre!=NULL && marco_en_swap!=NULL){
 		//PRIMERO TENGO QUE COPIAR EL CONTENIDO DEL MARCO EN SWAP, EN EL MARCO Y LUEGO ASIGNAMOS

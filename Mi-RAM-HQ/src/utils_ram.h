@@ -146,6 +146,7 @@ pthread_mutex_t mutex_subir_patota;
 t_list* lista_mutex_patotas;
 pthread_mutex_t mutex_tablas;
 pthread_mutex_t mutex_marcos;
+pthread_mutex_t mutex_marcos_libres;
 pthread_mutex_t mutex_tocar_memoria_tareas;
 
 pthread_t hiloReceive;

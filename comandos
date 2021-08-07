@@ -117,9 +117,9 @@ En el módulo discordiador crear las siguientes patotas e inicia la planificaci�
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaA.txt 1|1
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaB.txt 3|3
 INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaC.txt 5|5
+LISTAR_TRIPULANTES
 INICIAR_PLANIFICACION
 
-LISTAR_TRIPULANTES
 Controlar los reemplazos de páginas al momento de guardar los datos mientras se inicia
 la patota y sus tripulantes.
 Mientras ejecutan los tripulantes verificar cómo se realizan las peticiones de memoria y
