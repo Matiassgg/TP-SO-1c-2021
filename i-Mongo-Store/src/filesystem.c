@@ -11,46 +11,10 @@ void sincronizar_blocks(){
 	}
 }
 
-void liberar_bloques_bitacoras(t_list* bloques_bitacoras){
-	pthread_mutex_lock(&mutex_bitmap);
-	t_bitarray* bitarray = leer_bitmap();
-
-	for(int i=0; i<list_size(bloques_bitacoras);i++){
-		bitarray_clean_bit(bitarray,i);
-		if(bitarray_test_bit(bitarray, i) == 0)
-			log_info(logger,"El bloque %i se libero correctamente con %i", i, bitarray_test_bit(bitarray, i));
-	}
-
-	subir_bitmap(bitarray);
-	bitarray_destroy(bitarray);
-	pthread_mutex_unlock(&mutex_bitmap);
-}
-
-void reset_bitacoras(){
-	t_list* bloques_bitacoras = obtener_bloques_bitacora();
-	liberar_bloques_bitacoras(bloques_bitacoras);
-	char* comando = string_new();
-	string_append_with_format(&comando, "rm -r %s/*", path_bitacoras);
-	system(comando);
-	free(comando);
-	list_destroy(bloques_bitacoras);
-}
-
-void inicializar_directorios(){
+void inicializar_paths_aux(){
 	if (!directorio_existe(punto_montaje))
 		mkdir(punto_montaje, 0700);
 
-	if (!directorio_existe(path_files)) {
-		mkdir(path_files, 0700);
-	}
-
-	if (!directorio_existe(path_bitacoras)) {
-		mkdir(path_bitacoras, 0700);
-	}
-
-}
-
-void inicializar_paths_aux(){
 	path_superbloque = string_new();
 	path_blocks = string_new();
 	path_files = string_new();
@@ -64,6 +28,15 @@ void inicializar_paths_aux(){
 	string_append_with_format(&path_blocks, "%s/Blocks.ims", punto_montaje);
 	string_append_with_format(&path_files, "%s/Files", punto_montaje);
 	string_append_with_format(&path_bitacoras, "%s/Bitacoras", path_files);
+
+	if (!directorio_existe(path_files)) {
+		mkdir(path_files, 0700);
+	}
+
+	if (!directorio_existe(path_bitacoras)) {
+		mkdir(path_bitacoras, 0700);
+	}
+
 }
 
 void crear_superbloque() {
@@ -762,7 +735,7 @@ int obtener_bloques_a_sacar(uint32_t cantidad, int size, int cant_bloques){
 void liberar_bloque(int bloque){
 	pthread_mutex_lock(&mutex_bitmap);
 	t_bitarray* bitarray = leer_bitmap();
-	bitarray_clean_bit(bitarray,bloque);
+	bitarray_set_bit(bitarray,bloque);
 	if(bitarray_test_bit(bitarray, bloque) == 0)
 		log_info(logger,"El bloque %i se libero correctamente con %i", bloque, bitarray_test_bit(bitarray, bloque));
 	subir_bitmap(bitarray);
