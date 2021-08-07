@@ -59,7 +59,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 		case INICIAR_PATOTA:
 			patota = deserializar_iniciar_patota(cliente_fd);
 
-			log_info(logger, "Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
+			log_info(logger, "MONGO-STORE: Nos llego INICIAR_PATOTA de la patota %i", patota->id_patota);
 
 //			crear_bitacoras_de_tripulantes(patota->cant_tripulantes);
 //			GUARDAR EN FS Y HACER LAS TARES CORRESPONDIENTES
@@ -73,11 +73,11 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 			log_info(logger, "Nos llego INICIAR_TRIPULANTE del tripulante %i", tripulante->id);
 
 			if(crear_archivo_bitacora(tripulante->id)==1)
-				log_info(logger, "Se creo correctamente la bitacora del tripulante %i", tripulante->id);
+				log_info(logger, "MONGO-STORE: Se creo correctamente la bitacora del tripulante %i", tripulante->id);
 			else if(crear_archivo_bitacora(tripulante->id) == 2)
-				log_info(logger, "Ya existia la bitacora del tripulante %i", tripulante->id);
+				log_warning(logger, "MONGO-STORE: Ya existia la bitacora del tripulante %i", tripulante->id);
 			else
-				log_error(logger, "No se creo correctamente la bitacora del tripulante %i", tripulante->id);
+				log_error(logger, "MONGO-STORE: No se creo correctamente la bitacora del tripulante %i", tripulante->id);
 
 			free(tripulante);
 		break;
@@ -93,7 +93,7 @@ void procesar_mensaje_recibido(int cod_op, int cliente_fd) {
 
 			enviar_respuesta_obtener_bitacora(bitacora, cliente_fd);
 
-			log_info(logger, "Se enviaro la bitacora del tripulante %i", id_tripulante);
+			log_info(logger, "Se envio la bitacora del tripulante %i", id_tripulante);
 
 			free(bitacora);
 
@@ -146,7 +146,7 @@ void subir_a_bitacora(char* informacion,uint32_t id_tripulante){
 	if(!archivo_existe(path))
 		log_error(logger,"No se pudo abrir el archivo %s para su escritura", path);
 	else{
-		log_info(logger,"%s", informacion);
+		log_info(logger,"MONGO-STORE :: Se subira a la bitacora la siguiente informacion: %s", informacion);
 		subir_FS(informacion, path, false);
 	}
 
@@ -227,7 +227,7 @@ void agregar_caracteres_llenado_a_archivo(char caracter, uint32_t cantidad, char
 		log_error(logger,"No se pudo abrir el archivo %s para su escritura", archivo);
 	}else{
 		char* caracteres = string_repeat(caracter,cantidad);
-		log_info(logger,"Se va a llenar el archivo %s con %s", ruta_archivo, caracteres);
+		log_info(logger,"MONGO-STORE: Se va a llenar el archivo de recurso %s con %s", ruta_archivo, caracteres);
 		subir_FS(caracteres, ruta_archivo, true);
 //		fwrite(caracteres,string_length(caracteres)+1,1,file);
 	}
@@ -273,20 +273,20 @@ void procesar_falta_archivo(t_tarea_Mongo* tarea,char* archivo){
 	char* nombre_tarea = tarea->tarea;
 	if(string_contains(nombre_tarea,"GENERAR")){
 		if(crear_archivo_recursos(archivo, obtener_caracter_llenado(tarea->tarea))){
-			log_info(logger, "El archivo %s se creo correctamente",archivo);
+			log_info(logger, "MONGO-STORE: El archivo de recursos %s se creo correctamente",archivo);
 		}
 	}
 	else if(string_contains(nombre_tarea,"CONSUMIR")){
 		informar_falta_archivo(tarea, archivo);
 	}
 	else if(son_iguales(nombre_tarea,"DESCARTAR_BASURA")){
-		log_error(logger, "El archivo Basuras.ims no existe. Finalizando tarea DESCARTAR_BASURA");
+		log_error(logger, "MONGO-STORE: El archivo Basuras.ims no existe. Finalizando tarea DESCARTAR_BASURA");
 	}
 }
 
 void informar_falta_archivo(t_tarea_Mongo* tarea, char* archivo){
 	//ACA HAY QUE AVISARLE AL TRIPULANTE A CARGO DE LA TAREA Y FINALIZAR TAREA. TIENE QUE ESPERAR EN COLA DE BLOQUEADO.
-	log_error(logger, "El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
+	log_error(logger, "MONGO-STORE: El archivo %s no existe. Finalizando tarea %s", archivo, tarea->tarea);
 
 }
 

@@ -82,7 +82,7 @@ uint32_t tamanio_real_blocks_ims(){
 
 	stat(path_blocks, &st);
 	int size_blocks_ims = st.st_size;
-	log_info(logger, "VALOR :: %d", size_blocks_ims);
+//	log_info(logger, "VALOR :: %d", size_blocks_ims);
 	return size_blocks_ims;
 }
 
@@ -90,7 +90,7 @@ void resolver_sabotaje_superbloque_blocks(uint32_t blocks_reales, FILE * superbl
 
 	fseek(superbloque,sizeof(uint32_t),SEEK_SET);
 	fwrite(&blocks_reales,sizeof(uint32_t),1,superbloque);
-	log_info(logger,"Resolviendo sabotaje -> Se actualiza valor de blocks de superbloque a %d",blocks_reales);
+	log_info(logger,"FSCK: Resolviendo sabotaje -> Se actualiza valor de blocks de superbloque a %d",blocks_reales);
 }
 
 bool detectar_sabotaje_superbloque_bitmap(){
@@ -103,7 +103,7 @@ bool detectar_sabotaje_superbloque_bitmap(){
 	pthread_mutex_lock(&mutex_bitmap);
 	t_bitarray* bitarray = leer_bitmap();
 
-	log_info(logger, "size bloques usados %i size bitarray %i", list_size(bloques_usados), bitarray_get_max_bit(bitarray));
+//	log_info(logger, "size bloques usados %i size bitarray %i", list_size(bloques_usados), bitarray_get_max_bit(bitarray));
 
 	bool inconsistencia_bitmap(int bloque){
 		return bitarray_test_bit(bitarray,bloque)==0;
@@ -129,7 +129,7 @@ bool detectar_sabotaje_superbloque_bitmap(){
 		return true;
 	}
 	else{
-		log_info(logger, "FSCK -> No hubo sabotajes en el bitmap de superbloques.ims");
+		log_info(logger, "FSCK: No hubo sabotajes en el bitmap de superbloques.ims");
 		pthread_mutex_unlock(&mutex_bitmap);
 		return false;
 	}
@@ -149,7 +149,7 @@ void resolver_sabotaje_superbloque_bitmap(t_bitarray* bitarray, t_list* bloques_
 	list_iterate(bloques_usados,actualizar_bitmap);
 
 	subir_bitmap(bitarray);
-	log_info(logger,"Se resolvio sabotaje de bitmap (o al menos eso creo)");
+	log_info(logger,"FSCK: Se resolvio sabotaje de bitmap");
 	list_destroy(bloques_usados);
 }
 
@@ -261,7 +261,7 @@ bool detectar_sabotaje_files_blocks(t_config* archivo_recurso){
 	//Si no coinciden restaurar archivo, escribiendo tantos caracteres de llenado hasta completar el size, en el orden de bloques que tenemos
 	char* md5_guardado = config_get_string_value(archivo_recurso,"MD5_ARCHIVO");
 	char* caracteres_de_llenado = leer_FS(archivo_recurso->path);
-	log_info(logger, "caracteres_de_llenado %s", caracteres_de_llenado);
+//	log_info(logger, "caracteres_de_llenado %s", caracteres_de_llenado);
 	char* calcular_md5 = obtener_hashmd5_string(caracteres_de_llenado);
 	free(caracteres_de_llenado);
 
@@ -328,7 +328,7 @@ t_list* listaArchivosDeBitacora() {
 					!son_iguales( dir->d_name, ".." )){
 
 				char* cadena = string_duplicate(dir->d_name);
-				log_info(logger, "Se detecto la bitacora %s", cadena);
+//				log_info(logger, "Se detecto la bitacora %s", cadena);
 				list_add(listaArchivos,cadena);
 
 			}
@@ -347,11 +347,11 @@ t_list* obtener_bloques_usados(){
 	}
 	t_list* lista_bloques = list_create();
 
-	log_info(logger, "Se van a obtener los bloques de los archivos de recursos y de las bitacoras");
+//	log_info(logger, "Se van a obtener los bloques de los archivos de recursos y de las bitacoras");
 	list_add_all(lista_bloques,obtener_bloques_recursos());
-	log_info(logger, "Se obtuvieron %i bloques de los archivos de recursos", list_size(lista_bloques));
+//	log_info(logger, "Se obtuvieron %i bloques de los archivos de recursos", list_size(lista_bloques));
 	list_add_all(lista_bloques,obtener_bloques_bitacora());
-	log_info(logger, "Se obtuvieron %i bloques de las bitacoras y recursos", list_size(lista_bloques));
+//	log_info(logger, "Se obtuvieron %i bloques de las bitacoras y recursos", list_size(lista_bloques));
 	list_sort(lista_bloques,ordenar_bloques);
 
 	return lista_bloques;
@@ -383,7 +383,7 @@ t_list* obtener_bloques_recursos(){
 }
 
 t_list* obtener_bloques_bitacora(){
-	log_info(logger, "Se entra a obtener_bloques_bitacora");
+//	log_info(logger, "Se entra a obtener_bloques_bitacora");
 
 	t_list* lista_bloques = list_create();
 	t_list* listaArchivos = listaArchivosDeBitacora();
@@ -399,7 +399,7 @@ t_list* obtener_bloques_bitacora(){
 	}
 
 	list_iterate(listaArchivos,traer_bloques_bitacoras);
-	log_info(logger, "Se itero la lista de bitacoras con tamaño %i", list_size(listaArchivos));
+//	log_info(logger, "Se itero la lista de bitacoras con tamaño %i", list_size(listaArchivos));
 	list_destroy(listaArchivos);
 	return lista_bloques;
 }

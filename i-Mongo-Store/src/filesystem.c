@@ -93,7 +93,7 @@ char* dar_hash_md5(char* archivo){
 	struct stat file_st;
 	fstat(archivo_aux, &file_st);
 
-	log_info(logger, "file_st.st_size %i", file_st.st_size);
+//	log_info(logger, "file_st.st_size %i", file_st.st_size);
 	char* contenido = malloc(file_st.st_size+1);
 	read(archivo_aux,contenido,file_st.st_size);
 //	log_info(logger, "contenido %s", contenido);
@@ -393,19 +393,19 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 
 	uint32_t cant_caracteres = string_length(stream);
 	while(offset < cant_caracteres){
-		log_info(logger, "Se entro al while");
+//		log_info(logger, "Se entro al while");
 		uint32_t tamanio_subida;
 		if(ultimo_bloque != -1){
-			log_info(logger, "Se entro al if ultimo_bloque != -1");
+//			log_info(logger, "Se entro al if ultimo_bloque != -1");
 			bloque_libre = ultimo_bloque;
 			ultimo_bloque = -1;
 			if(tamanio_restante > 0){
-				log_info(logger, "Se entro al if tamanio_restante > 0");
+//				log_info(logger, "Se entro al if tamanio_restante > 0");
 				offset_bloque = block_size - tamanio_restante;
 				tamanio_subida = minimo((cant_caracteres - offset),tamanio_restante);
 			}
 			else{
-				log_info(logger, "Se entro al else de tamanio_restante > 0");
+//				log_info(logger, "Se entro al else de tamanio_restante > 0");
 				bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
 				list_add(bloques, bloque_libre);
 				offset_bloque = 0;
@@ -413,7 +413,7 @@ t_list* agregar_stream_blocks(char* stream_a_agregar, int ultimo_bloque, int tam
 			}
 		}
 		else{
-			log_info(logger, "Se entro al else de ultimo_bloque != -1");
+//			log_info(logger, "Se entro al else de ultimo_bloque != -1");
 			bloque_libre = dar_bloque_libre(); //TODO hacer verificacion
 			list_add(bloques, bloque_libre);
 			offset_bloque = 0;
@@ -502,7 +502,7 @@ t_list* obtener_bloques_totales(t_config* config){
 
 t_list* sacar_bloques_config(t_list* bloques, t_config* config){
 	t_list* bloques_nuevos = obtener_bloques_totales(config);
-	log_info(logger,"Se borrarar %i bloques de %i", list_size(bloques), list_size(bloques_nuevos));
+	log_info(logger,"Se borraran %i bloques de %i", list_size(bloques), list_size(bloques_nuevos));
 
 	bool es_bloque(uint32_t bloque){
 		bool esta_aca(uint32_t bloque_a_sacar){
@@ -666,7 +666,7 @@ char* leer_blocks(t_list* bloques, int size){
 	}
 
 
-	log_info(logger, "informacion %s - size %i", informacion, size);
+//	log_info(logger, "informacion %s - size %i", informacion, size);
 
 	return informacion;
 }
@@ -783,7 +783,7 @@ void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
 	int size = config_get_int_value(config, "SIZE");
 	int cant_bloques = config_get_int_value(config, "BLOCK_COUNT");
 	int cant_bloques_sacar = obtener_bloques_a_sacar(cantidad,size,cant_bloques);
-	log_info(logger,"cant_bloques_sacar %i",cant_bloques_sacar);
+//	log_info(logger,"cant_bloques_sacar %i",cant_bloques_sacar);
 	t_list* bloques_a_sacar = list_create();
 	for(int i=0; i<cant_bloques_sacar;i++){
 		liberar_bloque(atoi(bloques_config[cant_bloques+i-1]));
@@ -794,7 +794,7 @@ void eliminar_caracteres_FS(char caracter, int cantidad, char* archivo){
 	if(cant_bloques == cant_bloques_sacar && size <= cantidad){
 		offset = 0;
 		ultimo_bloque_nuevo = -1;
-		log_warning(logger,"Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
+		log_warning(logger,"MONGO-STORE: Se quisieron eliminar mas caracteres de los existentes en %s",archivo);
 	}
 	else{
 		div_t aux = div(size-cantidad, block_size);
@@ -820,15 +820,15 @@ char* obtener_caracteres_de_file(t_config* file_recurso){
 	t_list* bloques = list_create();
 	char** bloques_config = config_get_array_value(file_recurso, "BLOCKS");
 	int cantidad_bloques= config_get_int_value(file_recurso, "BLOCK_COUNT");
-	log_info(logger, "Bloques del archivo %s (%i):", file_recurso->path, cantidad_bloques);
+//	log_info(logger, "Bloques del archivo %s (%i):", file_recurso->path, cantidad_bloques);
 	for(int i=0; bloques_config[i];i++){
 		list_add(bloques, atoi(bloques_config[i]));
-		log_info(logger, "Bloques del archivo %s: %i", file_recurso->path, atoi(bloques_config[i]));
+//		log_info(logger, "Bloques del archivo %s: %i", file_recurso->path, atoi(bloques_config[i]));
 	}
 
 
 	char* caracteres = obtener_caracteres2(bloques);
-	log_info(logger, "caracteres: %s", caracteres);
+//	log_info(logger, "caracteres: %s", caracteres);
 
 	list_destroy(bloques);
 	string_iterate_lines(bloques_config, free);
@@ -930,7 +930,7 @@ char* obtener_caracteres2(t_list* bloques){
 		char* aux = calloc(1, block_size+1);
 		int ptr_bloque = (uint32_t) list_get(bloques, i) * block_size;
 		memcpy(aux, contenido_blocks_aux + ptr_bloque, block_size);
-		log_info(logger, "bloque %i ptr %i aux %s", ptr_bloque/block_size, ptr_bloque, aux);
+//		log_info(logger, "bloque %i ptr %i aux %s", ptr_bloque/block_size, ptr_bloque, aux);
 		string_append(&stream, aux);
 		if(string_length(aux)<block_size){
 			free(aux);
@@ -940,7 +940,7 @@ char* obtener_caracteres2(t_list* bloques){
 
 	}
 
-	log_info(logger, "stream %s", stream);
+//	log_info(logger, "stream %s", stream);
 
 	return stream;
 
