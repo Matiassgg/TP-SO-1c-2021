@@ -65,7 +65,7 @@ t_tripulante* obtener_tripulante_de_patota(t_patota* patota, int i){
 	tripulante->posicion->pos_x = pos_aux->pos_x;
 	tripulante->posicion->pos_y = pos_aux->pos_y;
 	tripulante->id = ++cantidad_tripulantes;
-	log_info(logger, "El tripulante %i esta en la posicion %i|%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y);
+//	log_info(logger, "El tripulante %i esta en la posicion %i|%i", tripulante->id, tripulante->posicion->pos_x,tripulante->posicion->pos_y);
 	tripulante->tarea_act = NULL;
 	tripulante->estado = NEW;
 
@@ -104,7 +104,7 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 
 	tripulante->socket_conexion_RAM = crear_conexion(ip_Mi_RAM_HQ, puerto_Mi_RAM_HQ);
 	tripulante->socket_conexion_Mongo = crear_conexion(ip_Mongo_Store, puerto_Mongo_Store);
-	log_info(logger, "El tripulante %i tiene el socket %i con RAM", tripulante->id, tripulante->socket_conexion_RAM);
+//	log_info(logger, "El tripulante %i tiene el socket %i con RAM", tripulante->id, tripulante->socket_conexion_RAM);
 
 	// EL TRIPULANTE INFORMA A RAM QUE QUIERE INICIAR
 	enviar_iniciar_tripulante(tripulante, tripulante->socket_conexion_RAM);
@@ -157,10 +157,10 @@ void ejecutar_tripulante(t_tripulante* tripulante){
 		list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
 		liberar_tripulante_plani(tripulante_plani);
 	}
-	log_info(logger, "Se salio del while del tripulante %i", tripulante->id);
+//	log_info(logger, "Se salio del while del tripulante %i", tripulante->id);
 	p_tripulante* tripulante_plani_aux = list_remove_by_condition(lista_tripulantes_plani, es_tripulante_plani);
 	if(tripulante_plani_aux){
-		log_info(logger, "Se encontro un tripulante plani %i", tripulante_plani_aux->tripulante->id);
+//		log_info(logger, "Se encontro un tripulante plani %i", tripulante_plani_aux->tripulante->id);
 		tripulante_plani_aux->esta_activo = false;
 		pthread_mutex_unlock(&tripulante_plani_aux->mutex_solicitud);
 		liberar_tripulante_plani(tripulante_plani_aux);
@@ -184,7 +184,7 @@ void actualizar_estado(t_tripulante* tripulante){
 	if(list_any_satisfy(lista_expulsados, (void*) esta_expulsado)){
 		if(tripulante->estado != EXIT){
 			tripulante->estado = EXIT;
-			log_info(logger, "El tripulante %i esta en estado EXIT", tripulante->id);
+//			log_info(logger, "El tripulante %i esta en estado EXIT", tripulante->id);
 		}
 	}
 }

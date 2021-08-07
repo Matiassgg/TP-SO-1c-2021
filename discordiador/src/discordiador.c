@@ -151,7 +151,7 @@ void finalizar_discordiador(){
 	queue_destroy_and_destroy_elements(cola_exit,free);
 
 	list_destroy_and_destroy_elements(lista_expulsados, free);
-	list_destroy_and_destroy_elements(lista_bloq_Emergencia, free);
+	list_destroy(lista_bloq_Emergencia);
 	list_destroy(lista_exec);
 	list_destroy_and_destroy_elements(lista_tripulantes_plani, free);
 
@@ -169,7 +169,6 @@ void finalizar_discordiador(){
 	sem_destroy(&semaforo_cola_bloqueados_sabotaje);
 
 	config_destroy(config);
-//	free(punto_montaje);
 
 	log_destroy(logger);
 }

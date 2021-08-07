@@ -10,7 +10,6 @@ void leer_consola() {
 	free(leido);
 }
 
-
 char* estado_string(char estado){
 	switch(estado){
 		case 'n':case 'N':
@@ -23,6 +22,15 @@ char* estado_string(char estado){
 			return "BLOCK I/O";
 	}
 	return "ERROR";
+}
+
+bool verifica_path_tareas(char* path_tareas){
+    if (access(path_tareas, F_OK) != 0){
+        log_error(logger,"El path de tareas '%s' no existe\n", path_tareas);
+        return false;
+    }
+    else
+        return true;
 }
 
 char* de_listado_a_string(t_list* lista_tripulantes){
@@ -42,6 +50,8 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	if(son_iguales(palabras_del_mensaje[0] ,"ESTAS_ON")) {
 		if(chequear_argumentos_del_mensaje(palabras_del_mensaje + 1, 1)) {
 			log_warning(logger, "DISCORDIADOR :: Falta especificar el modulo");
+			string_iterate_lines(palabras_del_mensaje, free);
+			free(palabras_del_mensaje);
 			return;
 		}
 
@@ -74,7 +84,12 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	if(son_iguales(palabras_del_mensaje[0] ,"INICIAR_PATOTA")) {
-
+		if(!verifica_path_tareas(palabras_del_mensaje[2])){
+			log_error(logger, "No se creara la patota por error en el path de las tareas");
+			string_iterate_lines(palabras_del_mensaje, free);
+			free(palabras_del_mensaje);
+			return;
+		}
 		log_info(logger, "DISCORDIADOR :: Iniciaremos la patota %i", ++cantidad_patotas);
 
 		t_patota* patota = de_consola_a_patota(palabras_del_mensaje);
@@ -187,6 +202,10 @@ void procesar_mensajes_en_consola_discordiador(char** palabras_del_mensaje) {
 		free(palabras_del_mensaje);
 		return;
 	}
+	log_error(logger, "El comando ingresado es incorrecto, intente de nuevo");
+
+	string_iterate_lines(palabras_del_mensaje, free);
+	free(palabras_del_mensaje);
 }
 
 t_patota* de_consola_a_patota(char** palabras_del_mensaje){

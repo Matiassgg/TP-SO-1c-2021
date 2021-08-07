@@ -140,7 +140,7 @@ void detener_tripulantes(){
 		p_tripulante* tripulante_plani = (p_tripulante*) list_get(lista_exec,i);
 		pthread_mutex_unlock(&mutex_cola_exec);
 
-		log_info(logger, "Detenemos al tripulante %d en EXEC", tripulante_plani->tripulante->id);
+//		log_info(logger, "Detenemos al tripulante %d en EXEC", tripulante_plani->tripulante->id);
 //		pthread_mutex_lock(&tripulante_plani->mutex_ejecucion);
 
 		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
@@ -151,7 +151,7 @@ void detener_tripulantes(){
 		queue_push(cola_ready, tripulante_plani); // se devuelven a la cola
 		pthread_mutex_unlock(&mutex_cola_ready);
 
-		log_info(logger, "Detenemos al tripulante %d en READY", tripulante_plani->tripulante->id);
+//		log_info(logger, "Detenemos al tripulante %d en READY", tripulante_plani->tripulante->id);
 		list_add(lista_bloq_Emergencia, tripulante_plani->tripulante);
 	}
 //	for(int i=0; i<queue_size(cola_bloq_E_S); i++){
@@ -333,6 +333,7 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 	}
 
 	t_list* tripulantes = list_filter(lista_bloq_Emergencia, tripulante_en_exec_o_ready);
+	list_clean(lista_bloq_Emergencia);
 
 	if(list_size(tripulantes) == 0 || list_size(lista_expulsados) == cantidad_tripulantes){
 		log_warning(logger, "No hay tripulantes para mandar a resolver el sabotaje. Cantidad tripulantes: %d", list_size(tripulantes));
