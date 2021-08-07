@@ -24,6 +24,7 @@ void preparar_memoria() {
 	lista_mutex_patotas = list_create();
 	pthread_mutex_init(&mutex_subir_patota, NULL);
 	pthread_mutex_init(&mutexTablaMarcos, NULL);
+	pthread_mutex_init(&mutex_mapa, NULL);
 	pthread_mutex_init(&mutexMemoriaVirtual, NULL);
 	pthread_mutex_init(&mutexMemoria, NULL);
 	pthread_mutex_init(&mutexSwap, NULL);

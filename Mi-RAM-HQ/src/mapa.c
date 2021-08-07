@@ -13,6 +13,11 @@ int rnd() {
 	return (rand() % 3) - 1;
 }
 
+bool mapa_activo(){
+	pthread_mutex_lock(&mutex_mapa);
+	return true;
+}
+
 void iniciar_mapa_vacio() {
 	int cols, rows;
 //	int err;
@@ -23,7 +28,7 @@ void iniciar_mapa_vacio() {
 
 	nivel = nivel_crear("La nave de amongo");
 
-	while (1) {
+	while (mapa_activo()) {
 
 		// Todo
 		// Queda loopeando de forma media raris el mapa
@@ -47,6 +52,8 @@ int crear_tripulante(t_tripulante* tripulante){
 
 	ASSERT_CREATE(nivel, identificador, err);
 
+	pthread_mutex_unlock(&mutex_mapa);
+
 	return err;
 }
 
@@ -68,6 +75,7 @@ int mover_tripulante(t_mover_hacia* mover_hacia){
 		break;
 	}
 
+	pthread_mutex_unlock(&mutex_mapa);
 	return err;
 }
 
@@ -78,6 +86,7 @@ int eliminar_tripulante(uint32_t id_tripulante){
 	int err = item_borrar(nivel, identificador);
 
 	ASSERT_CREATE(nivel, identificador, err);
+	pthread_mutex_unlock(&mutex_mapa);
 
 	return err;
 }

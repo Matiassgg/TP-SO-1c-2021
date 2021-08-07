@@ -148,6 +148,7 @@ pthread_mutex_t mutex_tablas;
 pthread_mutex_t mutex_marcos;
 pthread_mutex_t mutex_marcos_libres;
 pthread_mutex_t mutex_tocar_memoria_tareas;
+pthread_mutex_t mutex_mapa;
 
 pthread_t hiloReceive;
 
