@@ -342,10 +342,10 @@ void planificar_tripulante_para_sabotaje(int socket_mongo){
 
 	list_sort(tripulantes, ordenar_segun_id);
 	list_sort(tripulantes, ordenar_segun_posicion);
-	for(int i=0; i< list_size(tripulantes); i++){
-		t_tripulante* tripulante = list_get(tripulantes, i);
-		log_info(logger, "tripulantes[%i]: ID:%i	DISTANCIA:%d", i, tripulante->id, pitagoras_entre(tripulante->posicion, posicion_sabotaje));
-	}
+//	for(int i=0; i< list_size(tripulantes); i++){
+//		t_tripulante* tripulante = list_get(tripulantes, i);
+//		log_info(logger, "tripulantes[%i]: ID:%i	DISTANCIA:%d", i, tripulante->id, pitagoras_entre(tripulante->posicion, posicion_sabotaje));
+//	}
 
 	t_tripulante* tripulante_mas_cercano = list_get(tripulantes, 0);
 

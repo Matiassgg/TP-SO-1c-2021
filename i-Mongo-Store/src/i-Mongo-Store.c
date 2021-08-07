@@ -12,6 +12,8 @@ void iniciar_mongo(void) {
 	leer_config();
 	logger = iniciar_logger(archivo_log, "i-Mongo-Store.c");
     log_info(logger, "Ya obtuvimos la config del mongo");
+
+    inicializar_paths_aux();
     FS_RESET();
 
     inicializar_filesystem();
@@ -26,17 +28,20 @@ void iniciar_mongo(void) {
 }
 
 void inicializar_filesystem() {
-
-    inicializar_paths_aux();
+	inicializar_directorios();
 	if(!archivo_existe(path_superbloque))
 		crear_superbloque();
 	else
 	    obtener_superbloque();
 
+	if(!borrarFS)
+		reset_bitacoras();
+
 	if(!archivo_existe(path_blocks))
 	    crear_blocks();
 	else
 		obtener_blocks();
+
 
 	pthread_mutex_init(&mutex_FS, NULL);
 
@@ -46,16 +51,6 @@ void inicializar_filesystem() {
 }
 
 void FS_RESET(){
-//	t_list* bloques_bitacoras = obtener_bloques_bitacora();
-//	for(int i=0; i<list_size(bloques_bitacoras);i++)
-//		liberar_bloque((int) list_get(bloques_bitacoras,i));
-//	char* comando = string_new();
-//	string_append_with_format(&comando, "rm -R %s/Files/Bitacoras/ --dir", punto_montaje);
-//	system(comando);
-//	free(comando);
-//	list_destroy(bloques_bitacoras);
-
-	uint32_t borrarFS;
 	printf("Desea reiniciar el FileSystem? (SI=1 | NO=0) :");
 	scanf("%d",&borrarFS);
 

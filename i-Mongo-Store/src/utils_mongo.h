@@ -21,6 +21,8 @@ char* punto_montaje;
 char* archivo_log;
 char* bitarrayFS;
 
+uint32_t borrarFS;
+
 uint32_t tiempo_sincronizacion;
 t_list* posiciones_sabotaje;
 uint32_t proxima_posicion_sabotaje;

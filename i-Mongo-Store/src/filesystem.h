@@ -8,6 +8,8 @@
 #include <fcntl.h>
 
 void sincronizar_blocks();
+void reset_bitacoras();
+void inicializar_directorios();
 void inicializar_paths_aux();
 void leer_superbloque(FILE*);
 void crear_superbloque();
